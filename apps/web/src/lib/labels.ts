@@ -35,6 +35,8 @@ export function dbErrorMessage(error: { code?: string; message: string }): strin
       return "Accedi per continuare.";
     case "23505":
       return "Esiste già.";
+    case "22023":
+      return "Questa azione non è più possibile: la pagina potrebbe non essere aggiornata.";
     default:
       return "Qualcosa non ha funzionato. Riprova.";
   }
