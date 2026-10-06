@@ -1,6 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { usePushNotifications } from "@/lib/open-notification";
 import { useActiveOrg } from "@/lib/session";
 import { useUnreadCount } from "@/lib/unread";
 import { fonts, useTheme } from "@/theme";
@@ -13,6 +14,7 @@ export default function TabsLayout() {
   const { c } = useTheme();
   const org = useActiveOrg();
   const unread = useUnreadCount();
+  usePushNotifications();
   const insets = useSafeAreaInsets();
   const home = org.type === "supplier" ? "Richieste" : "Eventi";
   return (

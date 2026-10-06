@@ -1,17 +1,15 @@
-import { appRouteForLink } from "@i-events/core";
-import { router } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { LiveDot } from "@/components/badge";
 import { Button } from "@/components/button";
 import { Card } from "@/components/card";
+import { PushPrompt } from "@/components/push-prompt";
 import { Divider } from "@/components/rows";
 import { Screen } from "@/components/screen";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
 import { fetchNotifications, type AppNotification } from "@/lib/data";
-import { env } from "@/lib/env";
+import { useOpenNotification } from "@/lib/open-notification";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import { refreshUnread } from "@/lib/unread";
@@ -21,22 +19,15 @@ import { control, space, useTheme } from "@/theme";
 const timeFmt = new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" });
 
 export default function NotificationsScreen() {
-  const { session, orgs, activeOrg, setActiveOrg } = useSession();
+  const { session } = useSession();
   const q = useQuery(`notifications:${session?.user.id}`, fetchNotifications);
+  const openNotification = useOpenNotification();
   const [marking, setMarking] = useState(false);
   const unread = (q.data ?? []).filter((n) => !n.read_at).length;
 
-  /** Marks it read, switches to the organization it belongs to and opens what it is about. */
   const open = async (n: AppNotification) => {
-    if (!n.read_at) {
-      await supabase.from("notifications").update({ read_at: new Date().toISOString() }).eq("id", n.id);
-      refreshUnread();
-      q.refresh();
-    }
-    if (n.org_id !== activeOrg?.id && orgs.some((o) => o.id === n.org_id)) setActiveOrg(n.org_id);
-    const route = appRouteForLink(n.link);
-    if (route) router.push(route as never);
-    else if (n.link?.startsWith("/")) WebBrowser.openBrowserAsync(`${env.siteUrl}${n.link}`);
+    await openNotification(n);
+    if (!n.read_at) q.refresh();
   };
 
   const markAll = async () => {
@@ -57,6 +48,7 @@ export default function NotificationsScreen() {
       refreshing={q.refreshing}
       onRefresh={q.refresh}
     >
+      <PushPrompt />
       {q.loading ? (
         <CardSkeletons count={2} />
       ) : q.error && !q.data ? (

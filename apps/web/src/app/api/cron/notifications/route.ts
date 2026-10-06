@@ -1,7 +1,7 @@
+import { isCronRequest } from "@/lib/cron";
 import { env } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buildDigest } from "@i-events/core";
-import { timingSafeEqual } from "node:crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -11,12 +11,7 @@ export const dynamic = "force-dynamic";
  * does nothing, so notifications stay pending until one is.
  */
 export async function GET(request: Request) {
-  const secret = process.env.CRON_SECRET;
-  const given = Buffer.from(request.headers.get("authorization") ?? "");
-  const expected = Buffer.from(`Bearer ${secret}`);
-  if (!secret || given.length !== expected.length || !timingSafeEqual(given, expected)) {
-    return Response.json({ error: "unauthorized" }, { status: 401 });
-  }
+  if (!isCronRequest(request)) return Response.json({ error: "unauthorized" }, { status: 401 });
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
   if (!apiKey || !from) return Response.json({ error: "email provider not configured" }, { status: 503 });
