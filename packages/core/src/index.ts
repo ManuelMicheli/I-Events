@@ -18,3 +18,4 @@ export * from "./profiles";
 export * from "./labels";
 export * from "./agenda";
 export * from "./push";
+export * from "./event-day";

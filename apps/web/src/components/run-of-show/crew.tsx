@@ -3,25 +3,13 @@
 import { addCrew, deleteCrew, syncCheckins, updateCrew, type RosState } from "@/app/(app)/pro/eventi/run-of-show-actions";
 import { ContactActions } from "@/components/contacts/contact-actions";
 import { Button, Field, Input, Select } from "@/components/ui";
-import { crewState, hhmm } from "@i-events/core";
+import { crewState, hhmm, type CrewMember } from "@i-events/core";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { clock, useItalyNow } from "./now";
 import { dayLabel } from "./format";
 import type { Option } from "./schedule";
 
-/** Someone expected on site, as shown: suppliers carry their service, colleagues and externals a role. */
-export type CrewMember = {
-  id: string;
-  kind: "supplier" | "staff" | "external";
-  day: string;
-  call_time: string | null;
-  checked_in_at: string | null;
-  name: string;
-  /** The service for suppliers, the role for the others. */
-  detail: string | null;
-  role: string | null;
-  phone: string | null;
-};
+export type { CrewMember };
 
 export function CrewStatus({ member, now }: { member: CrewMember; now: { day: string; time: string } | null }) {
   if (member.checked_in_at) return <span className="text-success">Arrivato alle {clock(member.checked_in_at)}</span>;

@@ -3,7 +3,7 @@
 import { syncCheckins } from "@/app/(app)/pro/eventi/run-of-show-actions";
 import { ContactActions } from "@/components/contacts/contact-actions";
 import { Button, Notice } from "@/components/ui";
-import { crewState, hhmm, scheduleTimeline, type ScheduleState } from "@i-events/core";
+import { crewState, hhmm, liveDay, scheduleTimeline, withPendingCheckins, type ScheduleState } from "@i-events/core";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { dequeue, enqueue, parseQueue, readQueue, subscribeOnline, subscribeQueue } from "./checkin-queue";
@@ -94,24 +94,14 @@ export function LiveRunOfShow({
 
   const [chosenDay, setChosenDay] = useState<string>();
   const today = now?.day;
-  const day = chosenDay ?? (today && days.includes(today) ? today : (days.find((d) => items.some((i) => i.day === d)) ?? days[0]));
+  const day = chosenDay ?? liveDay(days, items.map((i) => i.day), today ?? null);
 
   const timeline = now ? scheduleTimeline(items, now) : scheduleTimeline(items, { day: "1970-01-01", time: "00:00" });
   const ofDay = timeline.filter((t) => t.item.day === day);
   const current = timeline.filter((t) => t.state === "current");
   const next = timeline.find((t) => t.state === "next");
 
-  const members = crew
-    .filter((c) => c.day === day)
-    .map((c) => {
-      const pending = queue.find((q) => q.id === c.id);
-      return {
-        ...c,
-        checked_in_at: pending ? pending.at : c.checked_in_at,
-        pending: Boolean(pending),
-      };
-    })
-    .sort((a, b) => (now ? CREW_ORDER[crewState(a, now)] - CREW_ORDER[crewState(b, now)] : 0));
+  const members = withPendingCheckins(crew.filter((c) => c.day === day), queue).sort((a, b) => (now ? CREW_ORDER[crewState(a, now)] - CREW_ORDER[crewState(b, now)] : 0));
   const arrived = members.filter((m) => m.checked_in_at).length;
 
   const tap = (member: CrewMember) => {

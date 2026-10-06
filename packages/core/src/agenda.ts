@@ -49,6 +49,8 @@ export function formatEventDates(start: string | null, end: string | null): stri
 export function appRouteForLink(link: string | null): { pathname: string; params?: Record<string, string> } | null {
   if (!link) return null;
   const uuid = "([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})";
+  const day = new RegExp(`^/pro/eventi/${uuid}/live(?:[/?#].*)?$`).exec(link);
+  if (day) return { pathname: "/giornata/[id]", params: { id: day[1]! } };
   const event = new RegExp(`^/(?:pro|client)/eventi/${uuid}(?:[/?#].*)?$`).exec(link);
   if (event) return { pathname: "/evento/[id]", params: { id: event[1]! } };
   const booking = new RegExp(`^/supplier/richieste/${uuid}(?:[/?#].*)?$`).exec(link);
