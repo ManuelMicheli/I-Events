@@ -54,6 +54,11 @@ export default async function AgencyRequestPage({ params }: { params: Promise<{ 
         ? requested.map((category) => ({ category, description: getServiceCategory(category)?.name.it ?? category, amount: 0 }))
         : [{ category: "other", description: "", amount: 0 }];
   const open = request.status === "sent";
+  const { data: events, error: eventsError } =
+    proposal.status === "accepted"
+      ? await supabase.from("events").select("id, title").eq("proposal_id", proposal.id).order("start_date")
+      : { data: [], error: null };
+  if (eventsError) throw eventsError;
   const path = `/pro/richieste/${proposal.id}`;
 
   return (
@@ -69,7 +74,19 @@ export default async function AgencyRequestPage({ params }: { params: Promise<{ 
       </div>
 
       {request.status === "cancelled" && <Notice>L&apos;azienda ha annullato questa richiesta.</Notice>}
-      {proposal.status === "accepted" && <Notice tone="success">L&apos;azienda ha scelto la tua proposta. Trovi gli eventi nella tua area operativa.</Notice>}
+      {proposal.status === "accepted" && (
+        <Notice tone="success">
+          L&apos;azienda ha scelto la tua proposta.{" "}
+          {events.map((e, i) => (
+            <span key={e.id}>
+              {i > 0 && " · "}
+              <Link href={`/pro/eventi/${e.id}`} className="font-medium underline">
+                {events.length === 1 ? "Apri lo spazio evento" : e.title}
+              </Link>
+            </span>
+          ))}
+        </Notice>
+      )}
       {proposal.status === "rejected" && <Notice>L&apos;azienda ha scelto un&apos;altra proposta.</Notice>}
       {proposal.status === "revision_requested" && <Notice>L&apos;azienda ha chiesto modifiche: leggi i messaggi e invia una proposta aggiornata.</Notice>}
 

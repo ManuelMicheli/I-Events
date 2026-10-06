@@ -238,6 +238,83 @@ export type Database = {
           },
         ];
       };
+      event_bookings: {
+        Row: {
+          actual_cost: number | null;
+          contact_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          event_id: string;
+          id: string;
+          notes: string | null;
+          org_id: string;
+          planned_cost: number | null;
+          service_key: string;
+          status: Database["public"]["Enums"]["booking_status"];
+          updated_at: string;
+        };
+        Insert: {
+          actual_cost?: number | null;
+          contact_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          event_id: string;
+          id?: string;
+          notes?: string | null;
+          org_id: string;
+          planned_cost?: number | null;
+          service_key: string;
+          status?: Database["public"]["Enums"]["booking_status"];
+          updated_at?: string;
+        };
+        Update: {
+          actual_cost?: number | null;
+          contact_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          event_id?: string;
+          id?: string;
+          notes?: string | null;
+          org_id?: string;
+          planned_cost?: number | null;
+          service_key?: string;
+          status?: Database["public"]["Enums"]["booking_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_bookings_contact_id_fkey";
+            columns: ["contact_id"];
+            isOneToOne: false;
+            referencedRelation: "contacts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_bookings_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_bookings_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_bookings_service_key_fkey";
+            columns: ["service_key"];
+            isOneToOne: false;
+            referencedRelation: "service_categories";
+            referencedColumns: ["key"];
+          },
+        ];
+      };
       events: {
         Row: {
           agency_org_id: string;
@@ -1037,6 +1114,7 @@ export type Database = {
       valid_services: { Args: { p_services: string[] }; Returns: string[] };
     };
     Enums: {
+      booking_status: "to_book" | "requested" | "confirmed" | "cancelled";
       connection_status: "pending" | "active" | "revoked";
       event_status: "planning" | "preparing" | "live" | "completed" | "cancelled";
       member_role: "owner" | "admin" | "manager" | "member" | "approver";
@@ -1169,6 +1247,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      booking_status: ["to_book", "requested", "confirmed", "cancelled"],
       connection_status: ["pending", "active", "revoked"],
       event_status: ["planning", "preparing", "live", "completed", "cancelled"],
       member_role: ["owner", "admin", "manager", "member", "approver"],

@@ -24,6 +24,16 @@ export const PROPOSAL_STATUS_LABEL = {
   withdrawn: "Ritirata",
 } as const;
 
+export const EVENT_STATUS_LABEL = {
+  planning: "In pianificazione",
+  preparing: "In preparazione",
+  live: "In corso",
+  completed: "Concluso",
+  cancelled: "Annullato",
+} as const;
+
+export const BOOKING_STATUS_LABEL = { to_book: "Da prenotare", requested: "Richiesto", confirmed: "Confermato", cancelled: "Annullato" } as const;
+
 /** Maps Postgres errors raised by the RPCs to messages people can act on. */
 export function dbErrorMessage(error: { code?: string; message: string }): string {
   switch (error.code) {
