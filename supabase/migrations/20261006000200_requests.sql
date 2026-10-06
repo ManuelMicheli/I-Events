@@ -358,6 +358,19 @@ alter table public.proposals enable row level security;
 alter table public.messages enable row level security;
 alter table public.events enable row level security;
 
+-- An agency sees the clients that sent it a request, and a client sees the agencies it asked.
+create function public.shares_request_with(p_org uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from proposals p join requests r on r.id = p.request_id
+    where r.status <> 'draft'
+      and ((r.client_org_id = p_org and is_member(p.agency_org_id))
+        or (p.agency_org_id = p_org and is_member(r.client_org_id)))
+  );
+$$;
+create policy organizations_select_via_requests on public.organizations for select to authenticated
+  using (public.shares_request_with(id));
+
 create policy service_categories_select on public.service_categories for select to anon, authenticated using (active);
 
 create policy requests_select on public.requests for select to authenticated using (

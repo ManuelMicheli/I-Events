@@ -36,3 +36,35 @@ jobs:
       - run: bash supabase/tests/run.sh
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.119.0
+      - run: pnpm install --frozen-lockfile
+      - run: supabase start -x studio,imgproxy,vector,logflare,edge-runtime,supavisor,mailpit,realtime,storage-api,postgres-meta
+      - name: Point the web app at the local Supabase
+        run: |
+          supabase status -o json > /tmp/supabase.json
+          echo "NEXT_PUBLIC_SUPABASE_URL=$(jq -r .API_URL /tmp/supabase.json)" >> apps/web/.env.local
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$(jq -r .PUBLISHABLE_KEY /tmp/supabase.json)" >> apps/web/.env.local
+          echo "NEXT_PUBLIC_SITE_URL=http://localhost:3000" >> apps/web/.env.local
+      - name: Check generated database types are up to date
+        run: |
+          supabase gen types typescript --local > packages/db/src/database.types.ts
+          npx prettier --write packages/db/src/database.types.ts
+          git diff --exit-code packages/db/src/database.types.ts
+      - run: pnpm --filter @i-events/web build
+      - run: pnpm --filter @i-events/web exec playwright install --with-deps chromium
+      - run: |
+          pnpm --filter @i-events/web start &
+          npx wait-on http://localhost:3000 --timeout 60000
+          pnpm --filter @i-events/web test:e2e

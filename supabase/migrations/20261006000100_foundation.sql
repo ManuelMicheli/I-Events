@@ -32,7 +32,8 @@ create table public.organizations (
 
 create table public.memberships (
   org_id uuid not null references public.organizations (id) on delete cascade,
-  user_id uuid not null references auth.users (id) on delete cascade,
+  -- References profiles (which cascades from auth.users) so the API can embed member names.
+  user_id uuid not null references public.profiles (id) on delete cascade,
   role public.member_role not null,
   created_at timestamptz not null default now(),
   primary key (org_id, user_id)

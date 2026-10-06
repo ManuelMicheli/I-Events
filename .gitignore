@@ -11,3 +11,7 @@ dist
 coverage
 supabase/.temp
 supabase/.branches
+test-results
+playwright-report
+*.tsbuildinfo
+next-env.d.ts

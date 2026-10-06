@@ -49,6 +49,10 @@ select tests.ok(tests.error_of(format($$update public.requests set title = 'Camb
 
 select tests.login('owner@agency-c.test');
 select tests.ok(not exists (select 1 from public.requests where id = :'req'), 'other agencies see nothing');
+select tests.ok(not exists (select 1 from public.organizations where id = :'client'), 'other agencies do not see the client');
+
+select tests.login('owner@agency-b.test');
+select tests.ok(exists (select 1 from public.organizations where id = :'client'), 'marketplace agency sees the client that asked it');
 
 select tests.login('owner@agency-a.test');
 select tests.ok((select count(*) from public.request_items where request_id = :'req') = 2, 'agency reads the brief');
