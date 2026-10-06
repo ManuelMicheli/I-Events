@@ -1,6 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { crewState, hhmm, liveDay, scheduleTimeline, withPendingCheckins, type CrewMember, type ScheduleState } from "@i-events/core";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { crewState, hhmm, liveDay, scheduleTimeline, type CrewMember, type ScheduleState } from "@i-events/core";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useState, type ComponentProps } from "react";
 import { ActivityIndicator, Linking, Pressable, StyleSheet, View } from "react-native";
 import { Badge, LiveDot } from "@/components/badge";
@@ -12,7 +12,7 @@ import { Segmented } from "@/components/segmented";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T, type Tone } from "@/components/text";
 import { TextField } from "@/components/text-field";
-import { clearCheckinError, flushCheckins, recordCheckin, useCheckinQueue } from "@/lib/checkin-queue";
+import { clearCheckinError, crewOnPhone, flushCheckins, recordCheckin, settleSentCheckins, useCheckinQueue } from "@/lib/checkin-queue";
 import { fetchEventDay, readSavedDay, saveDay, type DayItem, type EventDay } from "@/lib/event-day";
 import { useActiveOrg } from "@/lib/session";
 import { useItalyNow } from "@/lib/use-italy-now";
@@ -47,8 +47,10 @@ export default function EventDayScreen() {
   const [tab, setTab] = useState<"schedule" | "crew">("schedule");
 
   const load = useCallback(async () => {
+    const since = Date.now();
     try {
       const day = await fetchEventDay(id, org.id);
+      settleSentCheckins(id, since);
       const savedAt = day ? await saveDay(org.id, day) : null;
       setS({ day, savedAt, error: null, loading: false, refreshing: false });
     } catch (error) {
@@ -120,9 +122,19 @@ export default function EventDayScreen() {
 
   const { event, days: eventDays, items, crew } = s.day;
   const days = eventDays.length > 0 ? eventDays : [now.day];
-  const day = chosenDay && days.includes(chosenDay) ? chosenDay : (liveDay(days, items.map((i) => i.day), now.day) ?? days[0]!);
+  const day =
+    chosenDay && days.includes(chosenDay)
+      ? chosenDay
+      : (liveDay(
+          days,
+          items.map((i) => i.day),
+          now.day,
+        ) ?? days[0]!);
   const timeline = scheduleTimeline(items, now);
-  const members = withPendingCheckins(crew.filter((c) => c.day === day), checkins.queue);
+  const members = crewOnPhone(
+    crew.filter((c) => c.day === day),
+    checkins,
+  );
   const arrived = members.filter((m) => m.checked_in_at).length;
   const place = [event.venue, event.city].filter(Boolean).join(", ");
 
@@ -148,6 +160,14 @@ export default function EventDayScreen() {
           </T>
         </View>
         <NowCard timeline={timeline} now={now} empty={items.length === 0} />
+        <Button
+          block
+          align="center"
+          icon="qr-code-outline"
+          label="Scansiona i pass"
+          accessibilityHint="Apre la fotocamera per fare il check-in con il QR del pass"
+          onPress={() => router.push({ pathname: "/scansiona/[id]", params: { id } })}
+        />
       </View>
 
       <View style={styles.body}>
@@ -198,9 +218,7 @@ function SyncBanner({
   const asOf = savedAt ? ` Dati aggiornati alle ${clock(savedAt)}.` : "";
   return (
     <>
-      {error && (
-        <Banner tone="danger" icon="alert-circle-outline" title="Un check-in non è stato salvato" body={error} onDismiss={onDismissError} />
-      )}
+      {error && <Banner tone="danger" icon="alert-circle-outline" title="Un check-in non è stato salvato" body={error} onDismiss={onDismissError} />}
       {!online ? (
         <Banner
           tone="warning"
@@ -315,7 +333,11 @@ function Schedule({ rows }: { rows: Row[] }) {
   const { c } = useTheme();
   if (rows.length === 0)
     return (
-      <EmptyState icon="list-outline" title="Niente in scaletta" body="Per questo giorno non ci sono momenti. La scaletta si prepara dallo spazio evento sul sito." />
+      <EmptyState
+        icon="list-outline"
+        title="Niente in scaletta"
+        body="Per questo giorno non ci sono momenti. La scaletta si prepara dallo spazio evento sul sito."
+      />
     );
   return (
     <Card style={styles.listCard}>
@@ -394,7 +416,11 @@ function Arrivals({
 
   if (members.length === 0)
     return (
-      <EmptyState icon="people-outline" title="Nessuno in elenco" body="Per questo giorno non ci sono arrivi. Fornitori e staff si aggiungono dallo spazio evento sul sito." />
+      <EmptyState
+        icon="people-outline"
+        title="Nessuno in elenco"
+        body="Per questo giorno non ci sono arrivi. Fornitori e staff si aggiungono dallo spazio evento sul sito."
+      />
     );
   return (
     <View style={styles.arrivals}>
@@ -402,7 +428,14 @@ function Arrivals({
         {arrived === members.length ? `Tutti arrivati: ${arrived} su ${members.length}.` : `${arrived} arrivati su ${members.length}.`}
       </T>
       {members.length > 8 && (
-        <TextField label="Cerca" placeholder="Nome, servizio o ruolo" value={query} onChangeText={setQuery} autoCorrect={false} returnKeyType="search" />
+        <TextField
+          label="Cerca"
+          placeholder="Nome, servizio o ruolo"
+          value={query}
+          onChangeText={setQuery}
+          autoCorrect={false}
+          returnKeyType="search"
+        />
       )}
       {visible.length === 0 ? (
         <T variant="callout" tone="secondary" style={styles.center}>
@@ -413,7 +446,12 @@ function Arrivals({
           {visible.map((m, i) => (
             <View key={m.id}>
               {i > 0 && <Divider />}
-              <CrewRow member={m} refused={refused[m.id]} now={now} onToggle={() => recordCheckin(eventId, { id: m.id, at: m.checked_in_at ? null : new Date().toISOString() })} />
+              <CrewRow
+                member={m}
+                refused={refused[m.id]}
+                now={now}
+                onToggle={() => recordCheckin(eventId, { id: m.id, at: m.checked_in_at ? null : new Date().toISOString() })}
+              />
             </View>
           ))}
         </Card>

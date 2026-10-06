@@ -26,7 +26,7 @@ export async function loadRunOfShow(eventId: string, orgId: string) {
       .order("starts_at"),
     supabase
       .from("event_crew")
-      .select("id, booking_id, user_id, name, role, phone, day, call_time, checked_in_at, profile:profiles(full_name)")
+      .select("id, booking_id, user_id, name, role, phone, day, call_time, checked_in_at, pass_token, profile:profiles(full_name)")
       .eq("event_id", eventId)
       .order("day")
       .order("call_time", { nullsFirst: false })

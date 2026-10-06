@@ -2,9 +2,10 @@ import { CrewRow, NewCrewForm } from "@/components/run-of-show/crew";
 import { dayLabel } from "@/components/run-of-show/format";
 import { NewScheduleItemForm, ScheduleItemRow, SuggestedScheduleForm } from "@/components/run-of-show/schedule";
 import { Button, ButtonLink, Card, Empty } from "@/components/ui";
+import { env } from "@/lib/env";
 import { loadRunOfShow } from "@/lib/run-of-show";
 import { requireOrg } from "@/lib/session";
-import { suggestedSchedule } from "@i-events/core";
+import { passUrl, suggestedSchedule } from "@i-events/core";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { addCrewFromBookings } from "../../run-of-show-actions";
@@ -85,7 +86,7 @@ export default async function RunOfShowPage({ params }: { params: Promise<{ id: 
                     {crew
                       .filter((c) => c.day === d)
                       .map((c) => (
-                        <CrewRow key={c.id} eventId={event.id} member={c} days={days} />
+                        <CrewRow key={c.id} eventId={event.id} member={c} days={days} passLink={c.pass ? passUrl(env.siteUrl, c.pass) : null} />
                       ))}
                   </ul>
                 </section>

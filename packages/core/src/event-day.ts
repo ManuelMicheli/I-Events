@@ -39,6 +39,8 @@ export type CrewMember = {
   detail: string | null;
   role: string | null;
   phone: string | null;
+  /** The token of the person's pass, for the QR code and the link; null when not loaded. */
+  pass: string | null;
 };
 
 export type CrewRow = {
@@ -52,6 +54,7 @@ export type CrewRow = {
   call_time: string | null;
   checked_in_at: string | null;
   profile: { full_name: string | null } | null;
+  pass_token?: string;
 };
 
 export type CrewBookingRow = {
@@ -66,7 +69,7 @@ const serviceName = (key: string) => getServiceCategory(key)?.name.it ?? key;
 export function crewMembers(rows: readonly CrewRow[], bookings: readonly CrewBookingRow[]): CrewMember[] {
   return rows.map((c) => {
     const booking = c.booking_id ? bookings.find((b) => b.id === c.booking_id) : undefined;
-    const base = { id: c.id, day: c.day, call_time: c.call_time, checked_in_at: c.checked_in_at, role: c.role };
+    const base = { id: c.id, day: c.day, call_time: c.call_time, checked_in_at: c.checked_in_at, role: c.role, pass: c.pass_token ?? null };
     if (booking) {
       return {
         ...base,
@@ -126,6 +129,14 @@ export function withPendingCheckins<T extends { id: string; checked_in_at: strin
   });
 }
 
+/** The crew with check-ins the server already took but the last load from the server did not include yet. */
+export function withSentCheckins<T extends { id: string; checked_in_at: string | null }>(crew: readonly T[], sent: readonly PendingCheckin[]): T[] {
+  return crew.map((c) => {
+    const s = sent.find((x) => x.id === c.id);
+    return s ? { ...c, checked_in_at: s.at } : c;
+  });
+}
+
 /**
  * What to do with a queued check-in after trying to send it, from the HTTP status. `retry`: no connection (0), the
  * session needs renewing (401), or the server is busy or down; it stays queued. `refused`: the server said no; it
@@ -142,4 +153,33 @@ export function keepDayOnPhone(e: { status: string; start_date: string | null; e
   if (!e.start_date || e.status === "completed" || e.status === "cancelled") return false;
   const last = e.end_date && e.end_date > e.start_date ? e.end_date : e.start_date;
   return last >= today && e.start_date <= addDays(today, 2);
+}
+
+/** Where a pass lives on the site: the QR code holds this link, so any phone camera opens it. */
+export const passUrl = (siteUrl: string, token: string) => `${siteUrl.replace(/\/$/, "")}/pass/${token}`;
+
+/** The short code printed under the QR, typed by hand when the camera cannot read it: "4F7A2C". */
+export const passCode = (token: string) => token.slice(0, 6).toUpperCase();
+
+/** What was scanned or typed: a whole pass (link or token) or the short code. Null when it is not a pass. */
+export function readPass(text: string): { token: string } | { code: string } | null {
+  const t = text.trim();
+  const link = /\/pass\/([0-9a-fA-F]{32})(?:[/?#].*)?$/.exec(t);
+  if (link) return { token: link[1]!.toLowerCase() };
+  if (/^[0-9a-fA-F]{32}$/.test(t)) return { token: t.toLowerCase() };
+  const code = t.replace(/[\s-]/g, "");
+  if (/^[0-9a-fA-F]{6}$/.test(code)) return { code: code.toLowerCase() };
+  return null;
+}
+
+/** The person a scanned pass belongs to among the event's crew; a short code must match exactly one pass. */
+export function findPass<T extends { pass: string | null }>(crew: readonly T[], pass: { token: string } | { code: string }): T | undefined {
+  if ("token" in pass) return crew.find((c) => c.pass === pass.token);
+  const found = crew.filter((c) => c.pass?.startsWith(pass.code));
+  return found.length === 1 ? found[0] : undefined;
+}
+
+/** Whether a pass for `day` is good now: on its day, or until 6 in the morning after it for evenings that run late. */
+export function passFitsNow(day: string, now: { day: string; time: string }): boolean {
+  return day === now.day || (day === addDays(now.day, -1) && now.time < "06:00");
 }
