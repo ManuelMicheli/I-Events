@@ -73,4 +73,10 @@ pnpm --filter @i-events/core catalog:sql
 - Il cliente lo vede in `/client/eventi/[id]`. Solo titolare, amministratore e approvatore spesa lo approvano o chiedono modifiche con `decide_event_quote`; gli altri vedono che è in attesa. Ogni passaggio arriva come notifica alla controparte.
 - L'ultimo preventivo approvato diventa il venduto del budget dell'evento, al posto della proposta.
 
+## Scaletta e giorno dell'evento
+
+- `/pro/eventi/[id]/scaletta`: la scaletta minuto per minuto (`event_schedule_items`), con luogo, fornitore e referente di ogni momento. Si può partire dalla scaletta tipo per i servizi dell'evento (`suggestedSchedule` in `packages/core/src/run-of-show.ts`), calcolata sull'orario di apertura porte.
+- Nella stessa pagina l'elenco di chi deve arrivare (`event_crew`): fornitori prenotati, colleghi e persone esterne, ognuno con l'orario di arrivo. I fornitori si aggiungono in un clic, con l'orario preso dalla scaletta.
+- `/pro/eventi/[id]/live` è la vista da telefono del giorno dell'evento: cosa succede adesso e dopo, chi è arrivato e chi è in ritardo, check-in con un tocco. Funziona anche offline: i check-in restano in coda sul dispositivo e partono quando torna la rete, conservando l'orario di arrivo reale (il database lo accetta solo nel passato e al massimo di due giorni). Un service worker (`public/sw.js`) tiene una copia della pagina; l'uscita dall'account la cancella.
+
 Gli stati cambiano solo tramite le funzioni `submit_request`, `submit_proposal`, `request_revision`, `accept_proposal` e `set_proposal_status`.
