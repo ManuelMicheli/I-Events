@@ -22,6 +22,7 @@ const NAV: Record<MyOrg["type"], { href: string; label: string }[]> = {
     { href: "/impostazioni/team", label: "Team" },
   ],
   supplier: [
+    { href: "/supplier/richieste", label: "Richieste" },
     { href: "/supplier", label: "Profilo" },
     { href: "/impostazioni/team", label: "Team" },
   ],

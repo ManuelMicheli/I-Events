@@ -104,3 +104,13 @@ export async function deleteContact(form: FormData) {
   revalidatePath("/pro/rubrica");
   redirect("/pro/rubrica");
 }
+
+/** Creates (or renews) the link the supplier behind a contact uses to claim its I-Events account. */
+export async function inviteSupplier(form: FormData) {
+  await requireOrg("agency");
+  const id = z.uuid().parse(form.get("id"));
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("invite_supplier", { p_contact: id });
+  if (error) throw new Error(dbErrorMessage(error));
+  revalidatePath(`/pro/rubrica/${id}`);
+}

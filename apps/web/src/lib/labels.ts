@@ -59,3 +59,10 @@ export function dbErrorMessage(error: { code?: string; message: string }): strin
       return "Qualcosa non ha funzionato. Riprova.";
   }
 }
+
+export const SUPPLIER_BUCKET_LABEL = {
+  to_answer: "Da rispondere",
+  answered: "In attesa dell'agenzia",
+  confirmed: "Confermate",
+  closed: "Annullate e concluse",
+} as const;

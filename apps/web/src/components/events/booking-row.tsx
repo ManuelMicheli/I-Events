@@ -4,10 +4,20 @@ import { deleteBooking, saveBooking, type BookingState } from "@/app/(app)/pro/e
 import { ContactActions } from "@/components/contacts/contact-actions";
 import { Button, Input, Select } from "@/components/ui";
 import { BOOKING_STATUS_LABEL } from "@/lib/labels";
-import { BOOKING_STATUSES, getServiceCategory, type BookingStatus } from "@i-events/core";
+import { BOOKING_STATUSES, formatEuro, getServiceCategory, type BookingStatus } from "@i-events/core";
+import Link from "next/link";
 import { useActionState, useState } from "react";
 
-export type BookingContact = { id: string; name: string; company: string | null; phone: string | null; email: string | null; services: string[] };
+export type BookingContact = {
+  id: string;
+  name: string;
+  company: string | null;
+  phone: string | null;
+  email: string | null;
+  services: string[];
+  /** Set when the supplier has its own I-Events account. */
+  supplier_org_id: string | null;
+};
 export type Booking = {
   id: string;
   service_key: string;
@@ -17,6 +27,10 @@ export type Booking = {
   planned_cost: number | null;
   actual_cost: number | null;
   notes: string | null;
+  /** The supplier's answer, when it is on I-Events. */
+  supplier_response: string | null;
+  supplier_price: number | null;
+  supplier_note: string | null;
 };
 
 const contactLabel = (c: BookingContact) => (c.company && c.company !== c.name ? `${c.name} (${c.company})` : c.name);
@@ -40,7 +54,7 @@ export function BookingRow({ eventId, booking, contacts }: { eventId: string; bo
         <input type="hidden" name="service_key" value={booking.service_key} />
         <div className="flex flex-col gap-1.5 text-sm">
           <span className="font-medium">{name}</span>
-          <Input name="description" aria-label={`Dettaglio ${name}`} defaultValue={booking.description ?? ""} placeholder="Dettaglio (facoltativo)" maxLength={300} />
+          <Input name="description" aria-label={`Dettaglio ${name}`} defaultValue={booking.description ?? ""} placeholder="Dettaglio, visibile al fornitore (facoltativo)" maxLength={300} />
         </div>
         <label className="flex flex-col gap-1.5 text-sm">
           <span className="text-muted">Fornitore</span>
@@ -110,6 +124,7 @@ export function BookingRow({ eventId, booking, contacts }: { eventId: string; bo
           </Button>
         </div>
       </form>
+      <SupplierAnswer booking={booking} contact={contacts.find((c) => c.id === booking.contact_id)} />
       {state.error && <p className="mt-2 text-sm text-danger">{state.error}</p>}
       {state.saved && !state.error && (
         <p role="status" className="mt-2 text-sm text-success">
@@ -117,5 +132,34 @@ export function BookingRow({ eventId, booking, contacts }: { eventId: string; bo
         </p>
       )}
     </li>
+  );
+}
+
+/** What the supplier said, or that it is waiting for them; suppliers not on I-Events can be invited. */
+function SupplierAnswer({ booking, contact }: { booking: Booking; contact?: BookingContact }) {
+  if (!contact || (booking.status !== "requested" && booking.status !== "confirmed")) return null;
+  if (!contact.supplier_org_id) {
+    return booking.status === "requested" ? (
+      <p className="mt-2 text-sm text-muted">
+        {contact.name} non è ancora su I-Events.{" "}
+        <Link href={`/pro/rubrica/${contact.id}`} className="underline">
+          Invitalo
+        </Link>{" "}
+        per ricevere la risposta qui.
+      </p>
+    ) : null;
+  }
+  if (!booking.supplier_response) {
+    return booking.status === "requested" ? (
+      <p className="mt-2 text-sm text-muted">Richiesta inviata a {contact.name} su I-Events, in attesa di risposta.</p>
+    ) : null;
+  }
+  const available = booking.supplier_response === "available";
+  return (
+    <p role="note" className={`mt-2 text-sm ${available ? "text-success" : "text-danger"}`}>
+      {available ? `${contact.name} è disponibile` : `${contact.name} non è disponibile`}
+      {available && booking.supplier_price !== null && ` a ${formatEuro(booking.supplier_price)}`}
+      {booking.supplier_note && <span className="text-muted">: “{booking.supplier_note}”</span>}
+    </p>
   );
 }

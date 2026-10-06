@@ -10,7 +10,7 @@ const TYPES = [
   { value: "supplier", title: "Fornitore", text: "DJ, sicurezza, service, catering: fatti trovare dalle agenzie." },
 ] as const;
 
-export function OnboardingForm({ next }: { next?: string }) {
+export function OnboardingForm({ next, defaultType }: { next?: string; defaultType?: (typeof TYPES)[number]["value"] }) {
   const [state, action, pending] = useActionState<FormState, FormData>(createOrganization, {});
   return (
     <form action={action} className="flex flex-col gap-6">
@@ -19,7 +19,7 @@ export function OnboardingForm({ next }: { next?: string }) {
         <legend className="mb-2 text-sm font-medium">Che tipo di account vuoi creare?</legend>
         {TYPES.map((t) => (
           <label key={t.value} className="flex cursor-pointer gap-3 rounded-ui border border-border p-4 has-[:checked]:border-accent">
-            <input type="radio" name="type" value={t.value} required className="mt-1" />
+            <input type="radio" name="type" value={t.value} required defaultChecked={t.value === defaultType} className="mt-1" />
             <span>
               <span className="block font-medium">{t.title}</span>
               <span className="block text-sm text-muted">{t.text}</span>

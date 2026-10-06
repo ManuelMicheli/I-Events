@@ -306,4 +306,62 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await expect(beta.page.getByText("1 di 2 arrivati")).toBeVisible();
   await beta.page.getByRole("button", { name: "Annulla check-in di Vigilanza Rossi" }).click();
   await expect(beta.page.getByText("0 di 2 arrivati")).toBeVisible();
+
+  // Supplier accounts: Beta asks its caterer, then invites them to I-Events from the address book.
+  await beta.page.goto("/pro/rubrica/importa");
+  await beta.page.getByLabel("Contatti da incollare").fill("Gusto Catering 333 7778899");
+  await beta.page.getByRole("button", { name: "Riconosci contatti" }).click();
+  await beta.page.getByLabel("Servizio di Gusto Catering").selectOption("catering");
+  await beta.page.getByRole("button", { name: "Importa 1 contatto" }).click();
+  await expect(beta.page.getByText("1 nuovo contatto")).toBeVisible();
+  await beta.page.goto(eventUrl);
+  const cateringRow = beta.page.getByRole("listitem", { name: "Catering e bar" });
+  await cateringRow.getByLabel("Fornitore Catering e bar").selectOption({ label: "Gusto Catering" });
+  await cateringRow.getByLabel("Dettaglio Catering e bar").fill("Buffet per 120 persone");
+  await cateringRow.getByLabel("Stato Catering e bar").selectOption("requested");
+  await cateringRow.getByRole("button", { name: "Salva Catering e bar" }).click();
+  await expect(cateringRow.getByText("Catering e bar salvato.")).toBeVisible();
+  await expect(cateringRow).toContainText("Gusto Catering non è ancora su I-Events");
+  await cateringRow.getByRole("link", { name: "Invitalo" }).click();
+  await beta.page.getByRole("button", { name: "Invita su I-Events" }).click();
+  await expect(beta.page.getByRole("link", { name: "Manda l'invito su WhatsApp" })).toHaveAttribute("href", /^https:\/\/wa\.me\/393337778899\?text=/);
+  const supplierInvite = new URL((await beta.page.locator("code").textContent())!).pathname;
+
+  // The caterer signs up from the link as a supplier, claims the contact and finds the request waiting.
+  const caterer = await (await browser.newContext()).newPage();
+  await caterer.goto(supplierInvite);
+  await caterer.getByRole("link", { name: "Accedi o registrati" }).click();
+  await signUp(caterer, "Marta Gusto", `gusto-${run}@example.test`);
+  await expect(caterer.getByText(`Beta ${run}`)).toBeVisible();
+  await caterer.getByRole("link", { name: "Crea l'account fornitore" }).click();
+  await expect(caterer.getByRole("radio", { name: /Fornitore/ })).toBeChecked();
+  await caterer.getByLabel("Nome", { exact: true }).fill(`Gusto Srl ${run}`);
+  await caterer.getByRole("button", { name: "Crea account" }).click();
+  await expect(caterer).toHaveURL(/\/invito\//);
+  await caterer.getByRole("button", { name: "Accetta" }).click();
+  await expect(caterer).toHaveURL(/\/supplier\/richieste$/);
+  await expect(caterer.getByText("1 richiesta aspetta la tua risposta.")).toBeVisible();
+  await caterer.getByRole("link", { name: title }).click();
+  await expect(caterer.getByText("Buffet per 120 persone")).toBeVisible();
+  await expect(caterer.getByText("Margine")).toBeHidden();
+  await caterer.getByRole("radio", { name: "Sì, sono disponibile" }).check();
+  await caterer.getByLabel("Il tuo prezzo €").fill("1700");
+  await caterer.getByLabel("Messaggio per l'agenzia").fill("Bevande incluse");
+  await caterer.getByRole("button", { name: "Invia risposta" }).click();
+  await expect(caterer.getByText("Risposta inviata all'agenzia.")).toBeVisible();
+
+  // Beta sees the answer on the event and confirms; the caterer gets its schedule.
+  await beta.page.goto("/notifiche");
+  await beta.page.getByRole("link", { name: `Gusto Srl ${run} è disponibile` }).click();
+  await expect(cateringRow.getByRole("note")).toHaveText(`Gusto Catering è disponibile a 1700,00 €: “Bevande incluse”`);
+  await cateringRow.getByLabel("Stato Catering e bar").selectOption("confirmed");
+  await cateringRow.getByRole("button", { name: "Salva Catering e bar" }).click();
+  await expect(cateringRow.getByText("Catering e bar salvato.")).toBeVisible();
+
+  await caterer.goto("/notifiche");
+  await caterer.getByRole("link", { name: `Beta ${run} ti ha confermato` }).click();
+  const times = caterer.locator("section", { has: caterer.getByRole("heading", { name: "I tuoi orari" }) });
+  await expect(times).toContainText("16:30–18:00Arrivo catering e allestimento buffet");
+  await expect(times).toContainText("19:30–21:30Servizio catering");
+  await expect(times).not.toContainText("Discorso");
 });

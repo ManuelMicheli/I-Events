@@ -14,7 +14,7 @@ export default async function AddressBookPage({ searchParams }: { searchParams: 
   const supabase = await createClient();
   let query = supabase
     .from("contacts")
-    .select("id, name, company, role_title, email, phone, city, services, rating", { count: "exact" })
+    .select("id, name, company, role_title, email, phone, city, services, rating, supplier_org_id", { count: "exact" })
     .eq("org_id", org.id)
     .order("name")
     .limit(200);
@@ -73,6 +73,7 @@ export default async function AddressBookPage({ searchParams }: { searchParams: 
                       {c.name}
                     </Link>
                     {c.company && <span className="ml-2 text-muted">{c.company}</span>}
+                    {c.supplier_org_id && <span className="ml-2 rounded-ui border border-border px-1.5 text-xs">Su I-Events</span>}
                     <span className="block text-muted">
                       {[c.services.map((s) => getServiceCategory(s)?.name.it).filter(Boolean).join(", "), c.city, c.rating ? "★".repeat(c.rating) : null]
                         .filter(Boolean)
