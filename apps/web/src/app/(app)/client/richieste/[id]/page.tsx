@@ -82,7 +82,9 @@ export default async function ClientRequestPage({ params }: { params: Promise<{ 
           <ul className="divide-y divide-border text-sm">
             {events.map((e) => (
               <li key={e.id} className="flex justify-between py-2">
-                <span>{e.title}</span>
+                <Link href={`/client/eventi/${e.id}`} className="underline">
+                  {e.title}
+                </Link>
                 <span className="text-muted">
                   {[e.start_date && dateFmt.format(new Date(`${e.start_date}T12:00:00`)), e.city].filter(Boolean).join(" · ") || "Da definire"}
                 </span>

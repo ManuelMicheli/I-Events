@@ -17,6 +17,7 @@ const NAV: Record<MyOrg["type"], { href: string; label: string }[]> = {
   ],
   client: [
     { href: "/client", label: "Richieste" },
+    { href: "/client/eventi", label: "Eventi" },
     { href: "/impostazioni/collegamenti", label: "Agenzie collegate" },
     { href: "/impostazioni/team", label: "Team" },
   ],
