@@ -31,6 +31,8 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
           </p>
           <AcceptForm token={token} kind="member" orgs={[]} />
         </>
+      ) : invite.kind === "supplier" ? (
+        <SupplierInvite token={token} agencyName={invite.org_name} />
       ) : (
         <ConnectionInvite token={token} orgName={invite.org_name} orgType={invite.org_type} />
       )}
@@ -58,6 +60,26 @@ async function ConnectionInvite({ token, orgName, orgType }: { token: string; or
         </>
       ) : (
         <AcceptForm token={token} kind="connection" orgs={orgs.map((o) => ({ id: o.id, name: o.name }))} />
+      )}
+    </>
+  );
+}
+
+async function SupplierInvite({ token, agencyName }: { token: string; agencyName: string }) {
+  const orgs = (await getMyOrgs()).filter((o) => o.type === "supplier" && (o.role === "owner" || o.role === "admin"));
+  return (
+    <>
+      <p>
+        L&apos;agenzia <strong>{agencyName}</strong> lavora con te e ti invita su I-Events: riceverai qui le sue richieste per gli eventi,
+        potrai rispondere con disponibilità e prezzo e vedrai i tuoi orari il giorno dell&apos;evento.
+      </p>
+      {orgs.length === 0 ? (
+        <>
+          <Notice>Per accettare crea l&apos;account della tua attività.</Notice>
+          <ButtonLink href={`/onboarding?tipo=supplier&next=${encodeURIComponent(`/invito/${token}`)}`}>Crea l&apos;account fornitore</ButtonLink>
+        </>
+      ) : (
+        <AcceptForm token={token} kind="supplier" orgs={orgs.map((o) => ({ id: o.id, name: o.name }))} />
       )}
     </>
   );

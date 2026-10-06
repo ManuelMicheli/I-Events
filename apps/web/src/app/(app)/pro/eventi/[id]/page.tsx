@@ -52,11 +52,11 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes, quotesRes, scheduleRes, crewRes] = await Promise.all([
     supabase
       .from("event_bookings")
-      .select("id, service_key, description, contact_id, status, planned_cost, actual_cost, notes")
+      .select("id, service_key, description, contact_id, status, planned_cost, actual_cost, notes, supplier_response, supplier_price, supplier_note")
       .eq("event_id", id)
       .order("created_at")
       .order("id"),
-    supabase.from("contacts").select("id, name, company, phone, email, services").eq("org_id", org.id).order("name").limit(2000),
+    supabase.from("contacts").select("id, name, company, phone, email, services, supplier_org_id").eq("org_id", org.id).order("name").limit(2000),
     supabase.from("proposals").select("lines").eq("id", event.proposal_id).single(),
     supabase.from("events").select("id", { count: "exact", head: true }).eq("proposal_id", event.proposal_id),
     supabase
@@ -76,7 +76,12 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   ]);
   for (const r of [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes, quotesRes, scheduleRes, crewRes]) if (r.error) throw r.error;
 
-  const bookings: Booking[] = bookingsRes.data!.map((b) => ({ ...b, planned_cost: num(b.planned_cost), actual_cost: num(b.actual_cost) }));
+  const bookings: Booking[] = bookingsRes.data!.map((b) => ({
+    ...b,
+    planned_cost: num(b.planned_cost),
+    actual_cost: num(b.actual_cost),
+    supplier_price: num(b.supplier_price),
+  }));
   const quotes = quotesRes.data!;
   const draft = quotes.find((q) => q.status === "draft");
   const sent = quotes.filter((q) => q.status !== "draft") as SentQuote[];

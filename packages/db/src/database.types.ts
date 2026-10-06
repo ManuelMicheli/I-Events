@@ -250,9 +250,15 @@ export type Database = {
           notes: string | null;
           org_id: string;
           planned_cost: number | null;
+          requested_at: string | null;
+          responded_at: string | null;
           service_key: string;
           status: Database["public"]["Enums"]["booking_status"];
+          supplier_note: string | null;
+          supplier_price: number | null;
+          supplier_response: string | null;
           updated_at: string;
+          booking_supplier_org: string | null;
         };
         Insert: {
           actual_cost?: number | null;
@@ -265,8 +271,13 @@ export type Database = {
           notes?: string | null;
           org_id: string;
           planned_cost?: number | null;
+          requested_at?: string | null;
+          responded_at?: string | null;
           service_key: string;
           status?: Database["public"]["Enums"]["booking_status"];
+          supplier_note?: string | null;
+          supplier_price?: number | null;
+          supplier_response?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -280,8 +291,13 @@ export type Database = {
           notes?: string | null;
           org_id?: string;
           planned_cost?: number | null;
+          requested_at?: string | null;
+          responded_at?: string | null;
           service_key?: string;
           status?: Database["public"]["Enums"]["booking_status"];
+          supplier_note?: string | null;
+          supplier_price?: number | null;
+          supplier_response?: string | null;
           updated_at?: string;
         };
         Relationships: [
@@ -1332,6 +1348,64 @@ export type Database = {
           },
         ];
       };
+      supplier_invitations: {
+        Row: {
+          accepted_at: string | null;
+          contact_id: string;
+          created_at: string;
+          expires_at: string;
+          id: string;
+          invited_by: string | null;
+          org_id: string;
+          supplier_org_id: string | null;
+          token: string;
+        };
+        Insert: {
+          accepted_at?: string | null;
+          contact_id: string;
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          invited_by?: string | null;
+          org_id: string;
+          supplier_org_id?: string | null;
+          token?: string;
+        };
+        Update: {
+          accepted_at?: string | null;
+          contact_id?: string;
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          invited_by?: string | null;
+          org_id?: string;
+          supplier_org_id?: string | null;
+          token?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "supplier_invitations_contact_id_fkey";
+            columns: ["contact_id"];
+            isOneToOne: false;
+            referencedRelation: "contacts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supplier_invitations_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supplier_invitations_supplier_org_id_fkey";
+            columns: ["supplier_org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -1340,6 +1414,11 @@ export type Database = {
       accept_connection: { Args: { p_org: string; p_token: string }; Returns: string };
       accept_member_invitation: { Args: { p_token: string }; Returns: string };
       accept_proposal: { Args: { p_proposal: string }; Returns: string[] };
+      accept_supplier_invitation: { Args: { p_org: string; p_token: string }; Returns: string };
+      booking_supplier_org: {
+        Args: { b: Database["public"]["Tables"]["event_bookings"]["Row"] };
+        Returns: string;
+      };
       can_edit_request: { Args: { p_request: string }; Returns: boolean };
       can_read_attachment: { Args: { p_proposal: string; p_request: string }; Returns: boolean };
       can_read_request: { Args: { p_request: string }; Returns: boolean };
@@ -1389,6 +1468,8 @@ export type Database = {
         };
         Returns: string;
       };
+      invite_supplier: { Args: { p_contact: string }; Returns: string };
+      is_booking_supplier: { Args: { p_booking: string }; Returns: boolean };
       is_connected: { Args: { a: string; b: string }; Returns: boolean };
       is_member: {
         Args: { roles?: Database["public"]["Enums"]["member_role"][]; target: string };
@@ -1420,6 +1501,10 @@ export type Database = {
         }[];
       };
       request_revision: { Args: { p_note: string; p_proposal: string }; Returns: undefined };
+      respond_to_booking: {
+        Args: { p_available: boolean; p_booking: string; p_note?: string; p_price?: number };
+        Returns: undefined;
+      };
       save_request_draft: {
         Args: { p_client_org: string; p_payload: Json; p_request?: string };
         Returns: string;
@@ -1435,6 +1520,45 @@ export type Database = {
         Returns: number;
       };
       submit_request: { Args: { p_agencies: string[]; p_request: string }; Returns: number };
+      supplier_agencies: {
+        Args: { p_org: string };
+        Returns: {
+          agency_name: string;
+          open_requests: number;
+        }[];
+      };
+      supplier_booking_schedule: {
+        Args: { p_booking: string };
+        Returns: {
+          day: string;
+          ends_at: string;
+          kind: string;
+          location: string;
+          starts_at: string;
+          title: string;
+        }[];
+      };
+      supplier_bookings: {
+        Args: { p_org: string };
+        Returns: {
+          agency_name: string;
+          city: string;
+          description: string;
+          end_date: string;
+          event_status: Database["public"]["Enums"]["event_status"];
+          event_title: string;
+          id: string;
+          requested_at: string;
+          responded_at: string;
+          service_key: string;
+          start_date: string;
+          status: Database["public"]["Enums"]["booking_status"];
+          supplier_note: string;
+          supplier_price: number;
+          supplier_response: string;
+          venue: string;
+        }[];
+      };
       valid_services: { Args: { p_services: string[] }; Returns: string[] };
     };
     Enums: {

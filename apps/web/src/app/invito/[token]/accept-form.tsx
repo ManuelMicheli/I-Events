@@ -4,14 +4,14 @@ import { Button, Field, Notice, Select } from "@/components/ui";
 import { useActionState } from "react";
 import { acceptInvitation, type AcceptState } from "./actions";
 
-export function AcceptForm({ token, kind, orgs }: { token: string; kind: "member" | "connection"; orgs: { id: string; name: string }[] }) {
+export function AcceptForm({ token, kind, orgs }: { token: string; kind: "member" | "connection" | "supplier"; orgs: { id: string; name: string }[] }) {
   const [state, action, pending] = useActionState<AcceptState, FormData>(acceptInvitation, {});
   return (
     <form action={action} className="flex flex-col gap-4">
       <input type="hidden" name="token" value={token} />
       <input type="hidden" name="kind" value={kind} />
-      {kind === "connection" && orgs.length > 1 && (
-        <Field label="Collega con">
+      {kind !== "member" && orgs.length > 1 && (
+        <Field label={kind === "supplier" ? "Con l'account" : "Collega con"}>
           <Select name="orgId">
             {orgs.map((o) => (
               <option key={o.id} value={o.id}>
@@ -21,7 +21,7 @@ export function AcceptForm({ token, kind, orgs }: { token: string; kind: "member
           </Select>
         </Field>
       )}
-      {kind === "connection" && orgs.length === 1 && <input type="hidden" name="orgId" value={orgs[0]!.id} />}
+      {kind !== "member" && orgs.length === 1 && <input type="hidden" name="orgId" value={orgs[0]!.id} />}
       {state.error && <Notice tone="error">{state.error}</Notice>}
       <Button type="submit" disabled={pending}>
         Accetta

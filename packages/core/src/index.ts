@@ -13,3 +13,4 @@ export * from "./jev";
 export * from "./events";
 export * from "./tasks";
 export * from "./run-of-show";
+export * from "./suppliers";

@@ -79,4 +79,10 @@ pnpm --filter @i-events/core catalog:sql
 - Nella stessa pagina l'elenco di chi deve arrivare (`event_crew`): fornitori prenotati, colleghi e persone esterne, ognuno con l'orario di arrivo. I fornitori si aggiungono in un clic, con l'orario preso dalla scaletta.
 - `/pro/eventi/[id]/live` è la vista da telefono del giorno dell'evento: cosa succede adesso e dopo, chi è arrivato e chi è in ritardo, check-in con un tocco. Funziona anche offline: i check-in restano in coda sul dispositivo e partono quando torna la rete, conservando l'orario di arrivo reale (il database lo accetta solo nel passato e al massimo di due giorni). Un service worker (`public/sw.js`) tiene una copia della pagina; l'uscita dall'account la cancella.
 
+## Account dei fornitori
+
+- Dalla scheda di un contatto in rubrica l'agenzia crea un link d'invito (`invite_supplier`) da mandare su WhatsApp o per email. Il fornitore crea il suo account fornitore e rivendica il contatto (`accept_supplier_invitation`): da lì `contacts.supplier_org_id` collega i due.
+- Le prenotazioni richieste o confermate a quel contatto arrivano in `/supplier/richieste`, con notifica. Il fornitore legge solo quello che gli serve tramite `supplier_bookings` e `supplier_booking_schedule`, mai la tabella: costi, note interne e cliente restano dell'agenzia.
+- Il fornitore risponde con `respond_to_booking`: disponibile, con prezzo e messaggio, oppure no. L'agenzia vede la risposta sulla riga del servizio e il prezzo diventa il costo previsto se non ne aveva uno. Una volta confermato, il fornitore vede l'orario di arrivo e i suoi momenti della scaletta.
+
 Gli stati cambiano solo tramite le funzioni `submit_request`, `submit_proposal`, `request_revision`, `accept_proposal` e `set_proposal_status`.

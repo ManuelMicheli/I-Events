@@ -18,6 +18,12 @@ export async function acceptInvitation(_: AcceptState, form: FormData): Promise<
     const { data, error } = await supabase.rpc("accept_member_invitation", { p_token: token });
     if (error) return { error: error.code === "42501" ? "Questo invito è stato inviato a un'altra email." : dbErrorMessage(error) };
     orgId = data;
+  } else if (kind === "supplier") {
+    orgId = String(form.get("orgId") ?? "");
+    const { error } = await supabase.rpc("accept_supplier_invitation", { p_token: token, p_org: orgId });
+    if (error) return { error: dbErrorMessage(error) };
+    (await cookies()).set(ACTIVE_ORG_COOKIE, orgId, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 365 });
+    redirect("/supplier/richieste");
   } else {
     orgId = String(form.get("orgId") ?? "");
     const { error } = await supabase.rpc("accept_connection", { p_token: token, p_org: orgId });
