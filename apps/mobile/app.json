@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "I-Events",
+    "slug": "i-events",
+    "scheme": "ievents",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
+    "backgroundColor": "#F5F3EF",
+    "ios": {
+      "bundleIdentifier": "app.ievents.mobile",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "app.ievents.mobile",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1C1B19"
+      }
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F5F3EF",
+          "dark": { "backgroundColor": "#121110" }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
