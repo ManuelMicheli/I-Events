@@ -19,10 +19,10 @@ export default async function ContactPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ salvato?: string }>;
+  searchParams: Promise<{ salvato?: string; aggiunto?: string }>;
 }) {
   const { id } = await params;
-  const { salvato } = await searchParams;
+  const { salvato, aggiunto } = await searchParams;
   const org = await requireOrg("agency");
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const supabase = await createClient();
@@ -50,6 +50,7 @@ export default async function ContactPage({
         <ContactActions name={contact.name} phone={contact.phone} email={contact.email} />
       </div>
       {salvato && <Notice tone="success">Contatto salvato.</Notice>}
+      {aggiunto && <Notice tone="success">Aggiunto alla rubrica. Ora puoi sceglierlo per i servizi dei tuoi eventi.</Notice>}
       <SupplierAccountCard
         contactId={contact.id}
         name={contact.name}

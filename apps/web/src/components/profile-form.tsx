@@ -35,6 +35,14 @@ export function ProfileForm({ profile, canEdit }: { profile: Tables<"marketplace
           <Field label="Sito web">
             <Input name="website" type="url" defaultValue={profile.website ?? ""} />
           </Field>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Email pubblica" hint="Visibile a chi vede il tuo profilo nel marketplace">
+              <Input name="email" type="email" defaultValue={profile.email ?? ""} maxLength={200} />
+            </Field>
+            <Field label="Telefono pubblico" hint="Per farti chiamare o scrivere su WhatsApp">
+              <Input name="phone" type="tel" defaultValue={profile.phone ?? ""} maxLength={40} />
+            </Field>
+          </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" name="isListed" defaultChecked={profile.is_listed} />
             Mostra il profilo nel marketplace

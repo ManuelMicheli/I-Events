@@ -73,6 +73,8 @@ pnpm --filter @i-events/core catalog:sql
 - Il cliente lo vede in `/client/eventi/[id]`. Solo titolare, amministratore e approvatore spesa lo approvano o chiedono modifiche con `decide_event_quote`; gli altri vedono che è in attesa. Ogni passaggio arriva come notifica alla controparte.
 - L'ultimo preventivo approvato diventa il venduto del budget dell'evento, al posto della proposta.
 
+Gli stati cambiano solo tramite le funzioni `submit_request`, `submit_proposal`, `request_revision`, `accept_proposal` e `set_proposal_status`.
+
 ## Scaletta e giorno dell'evento
 
 - `/pro/eventi/[id]/scaletta`: la scaletta minuto per minuto (`event_schedule_items`), con luogo, fornitore e referente di ogni momento. Si può partire dalla scaletta tipo per i servizi dell'evento (`suggestedSchedule` in `packages/core/src/run-of-show.ts`), calcolata sull'orario di apertura porte.
@@ -85,4 +87,9 @@ pnpm --filter @i-events/core catalog:sql
 - Le prenotazioni richieste o confermate a quel contatto arrivano in `/supplier/richieste`, con notifica. Il fornitore legge solo quello che gli serve tramite `supplier_bookings` e `supplier_booking_schedule`, mai la tabella: costi, note interne e cliente restano dell'agenzia.
 - Il fornitore risponde con `respond_to_booking`: disponibile, con prezzo e messaggio, oppure no. L'agenzia vede la risposta sulla riga del servizio e il prezzo diventa il costo previsto se non ne aveva uno. Una volta confermato, il fornitore vede l'orario di arrivo e i suoi momenti della scaletta.
 
-Gli stati cambiano solo tramite le funzioni `submit_request`, `submit_proposal`, `request_revision`, `accept_proposal` e `set_proposal_status`.
+## Marketplace
+
+- Agenzie e fornitori con il profilo visibile compaiono nella ricerca (`search_marketplace`): per parole, servizio e zona (città o regioni coperte). Le aziende cercano agenzie in `/client/agenzie`, le agenzie cercano fornitori in `/pro/fornitori`.
+- Dal profilo di un'agenzia l'azienda apre una nuova richiesta con quell'agenzia già scelta. Dal profilo di un fornitore l'agenzia lo aggiunge alla rubrica (`add_marketplace_supplier`), già collegato al suo account: un contatto con la stessa email o lo stesso telefono viene collegato invece di essere duplicato.
+- Il profilo può mostrare email e telefono pubblici, e su ogni scheda compaiono da quando è su I-Events e quanti eventi ha concluso.
+
