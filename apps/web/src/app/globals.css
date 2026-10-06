@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+/*
+ * Neutral design tokens. The visual design is being produced separately: replace these values
+ * (and the components in src/components/ui.tsx) without touching the screens.
+ */
+:root {
+  --color-bg: #ffffff;
+  --color-surface: #f6f6f7;
+  --color-border: #e3e3e6;
+  --color-text: #111113;
+  --color-muted: #6b6b73;
+  --color-accent: #111113;
+  --color-accent-text: #ffffff;
+  --color-danger: #b42318;
+  --color-success: #067647;
+  --radius: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0e0e10;
+    --color-surface: #18181b;
+    --color-border: #2a2a2e;
+    --color-text: #f4f4f5;
+    --color-muted: #a1a1aa;
+    --color-accent: #f4f4f5;
+    --color-accent-text: #0e0e10;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-border: var(--color-border);
+  --color-text: var(--color-text);
+  --color-muted: var(--color-muted);
+  --color-accent: var(--color-accent);
+  --color-accent-text: var(--color-accent-text);
+  --color-danger: var(--color-danger);
+  --color-success: var(--color-success);
+  --radius-ui: var(--radius);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}

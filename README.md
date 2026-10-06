@@ -8,7 +8,8 @@ Il piano di prodotto completo è nel documento di progetto su Claude.
 | Percorso | Contenuto |
 | --- | --- |
 | `apps/web` | Next.js: aree PRO, CLIENT, SUPPLIER e pagine pubbliche |
-| `apps/mobile` | Expo (iOS e Android) |
+| `apps/mobile` | Expo (iOS e Android), in arrivo |
+| `packages/db` | Tipi TypeScript generati dallo schema del database |
 | `packages/core` | Regole condivise: catalogo servizi, validazione richieste, stati, permessi, piani |
 | `supabase/migrations` | Schema del database, permessi (RLS) e funzioni che cambiano gli stati |
 | `supabase/seed` | Catalogo servizi (generato da `packages/core`) |
@@ -18,11 +19,16 @@ Il piano di prodotto completo è nel documento di progetto su Claude.
 
 ```bash
 pnpm install
-pnpm test          # test di packages/core
-pnpm db:test       # test del database su un Postgres locale (DATABASE_URL)
-npx supabase start # stack Supabase locale (Docker)
-pnpm dev
+npx supabase start                              # stack Supabase locale (Docker)
+cp apps/web/.env.example apps/web/.env.local    # inserisci API_URL e PUBLISHABLE_KEY stampati da supabase start
+pnpm dev                                        # http://localhost:3000
+
+pnpm test                                       # test di packages/core
+pnpm db:test                                    # test del database su un Postgres locale (DATABASE_URL)
+pnpm --filter @i-events/web test:e2e            # test end-to-end (app avviata + Supabase locale)
 ```
+
+Dopo una nuova migrazione: `npx supabase db reset` e `pnpm --filter @i-events/db gen:types`.
 
 Dopo aver cambiato il catalogo servizi in `packages/core/src/services.ts`:
 
