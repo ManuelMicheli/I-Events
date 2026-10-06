@@ -1,5 +1,7 @@
 import { BookingRow, type Booking } from "@/components/events/booking-row";
 import { EventDetailsForm, EventStatusActions } from "@/components/events/event-controls";
+import { QuoteEditor } from "@/components/quotes/quote-editor";
+import { QuoteHistory, type SentQuote } from "@/components/quotes/quote-history";
 import { NewTaskForm } from "@/components/tasks/new-task-form";
 import { TaskBoard } from "@/components/tasks/task-board";
 import { Button, Card, Empty, Select } from "@/components/ui";
@@ -13,6 +15,7 @@ import {
   formatEuro,
   getServiceCategory,
   SERVICE_CATALOG,
+  soldLines as pickSoldLines,
   suggestedTasks,
   todayInItaly,
   type ProposalLine,
@@ -22,6 +25,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { addSuggestedTasks } from "../../attivita/actions";
 import { addBooking } from "../actions";
+import { createQuoteDraft } from "../quote-actions";
 
 export const metadata: Metadata = { title: "Evento" };
 
@@ -44,7 +48,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   if (error) throw error;
   if (!event) notFound();
 
-  const [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes] = await Promise.all([
+  const [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes, quotesRes] = await Promise.all([
     supabase
       .from("event_bookings")
       .select("id, service_key, description, contact_id, status, planned_cost, actual_cost, notes")
@@ -61,12 +65,20 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
       .order("due_date", { nullsFirst: false })
       .order("created_at"),
     supabase.from("memberships").select("user_id, profiles(full_name)").eq("org_id", org.id).order("created_at"),
+    supabase
+      .from("event_quotes")
+      .select("id, version, status, lines, total_amount, note, decision_note, sent_at, decided_at")
+      .eq("event_id", id)
+      .order("version", { ascending: false, nullsFirst: true }),
   ]);
-  for (const r of [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes]) if (r.error) throw r.error;
+  for (const r of [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes, quotesRes]) if (r.error) throw r.error;
 
   const bookings: Booking[] = bookingsRes.data!.map((b) => ({ ...b, planned_cost: num(b.planned_cost), actual_cost: num(b.actual_cost) }));
-  // A campaign is priced as a whole: the selling price of a single stage is not known.
-  const soldLines = siblingsRes.count === 1 ? ((proposalRes.data!.lines ?? []) as ProposalLine[]) : null;
+  const quotes = quotesRes.data!;
+  const draft = quotes.find((q) => q.status === "draft");
+  const sent = quotes.filter((q) => q.status !== "draft") as SentQuote[];
+  const sold = pickSoldLines(quotes, (proposalRes.data!.lines ?? []) as ProposalLine[], siblingsRes.count === 1);
+  const soldLines = sold?.lines ?? null;
   const budget = eventBudget(bookings, soldLines);
   const canManage = ["owner", "admin", "manager"].includes(org.role);
   const moves = EVENT_STATUSES.filter((s) => canMoveEvent(event.status, s));
@@ -126,9 +138,11 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
           </div>
         </dl>
         <p className="mt-3 text-sm text-muted">
-          {soldLines
-            ? "Il margine usa il costo reale dove c'è, altrimenti quello previsto."
-            : "Questo evento fa parte di una campagna venduta in un'unica proposta: il venduto è nella proposta della campagna."}
+          {sold?.source === "quote"
+            ? `Venduto secondo il preventivo approvato (versione ${sold.version}). Il margine usa il costo reale dove c'è, altrimenti quello previsto.`
+            : sold
+              ? "Venduto secondo la proposta accettata, finché il cliente non approva un preventivo. Il margine usa il costo reale dove c'è, altrimenti quello previsto."
+              : "Questo evento fa parte di una campagna venduta in un'unica proposta: il venduto compare quando il cliente approva il preventivo di questo evento."}
         </p>
         {budget.rows.length > 0 && (
           <table className="mt-4 w-full text-left text-sm">
@@ -152,6 +166,36 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
             </tbody>
           </table>
         )}
+      </Card>
+
+      <Card title="Preventivo per il cliente">
+        <div className="flex flex-col gap-6">
+          {draft ? (
+            <QuoteEditor
+              key={draft.id}
+              quoteId={draft.id}
+              eventId={event.id}
+              initialLines={draft.lines as ProposalLine[]}
+              initialNote={draft.note ?? ""}
+              nextVersion={(sent[0]?.version ?? 0) + 1}
+            />
+          ) : (
+            <form action={createQuoteDraft} className="flex flex-wrap items-center gap-3 text-sm">
+              <input type="hidden" name="eventId" value={event.id} />
+              <span className="flex-1 text-muted">
+                {sent.length === 0
+                  ? "Prepara il preventivo dettagliato di questo evento e mandalo al cliente: lo approva il suo responsabile della spesa."
+                  : sent[0]!.status === "sent"
+                    ? "Il cliente sta valutando l'ultima versione. Puoi comunque prepararne una nuova."
+                    : "Per cambiare il preventivo prepara una nuova versione: parte dall'ultima inviata."}
+              </span>
+              <Button type="submit" variant={sent.length === 0 ? "primary" : "secondary"}>
+                {sent.length === 0 ? "Prepara il preventivo" : "Nuova versione"}
+              </Button>
+            </form>
+          )}
+          {sent.length > 0 && <QuoteHistory quotes={sent} />}
+        </div>
       </Card>
 
       <Card

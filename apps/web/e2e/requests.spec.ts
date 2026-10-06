@@ -203,4 +203,46 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await expect(beta.page.getByRole("region", { name: "Fatte" })).toContainText("Chiamare il cliente per i badge");
   await beta.page.getByRole("link", { name: "Tutto il team" }).click();
   await expect(beta.page.getByRole("region", { name: "Più avanti" })).toContainText("Confermare il menu e le intolleranze");
+
+  // Quote: Beta sends the detailed quote, the client asks for a change, then approves version 2.
+  beta.page.on("dialog", (d) => d.accept());
+  client.on("dialog", (d) => d.accept());
+  await beta.page.goto("/pro/eventi");
+  await beta.page.getByRole("link", { name: title }).click();
+  await expect(beta.page).toHaveURL(/\/pro\/eventi\/[0-9a-f-]+$/);
+  const eventUrl = new URL(beta.page.url()).pathname;
+  const quote = beta.page.locator("section", { has: beta.page.getByRole("heading", { name: "Preventivo per il cliente" }) });
+  await quote.getByRole("button", { name: "Prepara il preventivo" }).click();
+  await expect(quote.getByLabel("Importo voce 1")).toHaveValue("1200");
+  await quote.getByLabel("Importo voce 2").fill("2700");
+  await quote.getByRole("button", { name: "Invia al cliente per l'approvazione" }).click();
+  await expect(quote.getByRole("region", { name: "Versione 1" })).toContainText("Da approvare");
+
+  await client.goto("/notifiche");
+  await client.getByRole("link", { name: `Preventivo da approvare da Beta ${run}` }).click();
+  await expect(client.getByRole("heading", { level: 1, name: title })).toBeVisible();
+  await client.getByRole("button", { name: "Chiedi modifiche" }).click();
+  await client.getByLabel("Cosa vuoi cambiare?").fill("Potete fare uno sconto sulla sicurezza?");
+  await client.getByRole("button", { name: "Invia richiesta di modifica" }).click();
+  await expect(client.getByText("Hai chiesto modifiche")).toBeVisible();
+
+  await beta.page.reload();
+  await expect(quote.getByText("Potete fare uno sconto sulla sicurezza?")).toBeVisible();
+  await quote.getByRole("button", { name: "Nuova versione" }).click();
+  await expect(quote.getByLabel("Importo voce 2")).toHaveValue("2700");
+  await quote.getByLabel("Importo voce 1").fill("1100");
+  await quote.getByRole("button", { name: "Invia al cliente per l'approvazione" }).click();
+  await expect(quote.getByRole("region", { name: "Versione 2" })).toContainText("Da approvare");
+
+  await client.goto("/client/eventi");
+  await expect(client.getByRole("row", { name: new RegExp(`${title}.*Da approvare`) })).toBeVisible();
+  await client.getByRole("link", { name: title }).click();
+  await expect(client.getByRole("region", { name: "Versione 2" })).toContainText(/3800,00/);
+  await client.getByRole("button", { name: "Approva il preventivo" }).click();
+  await expect(client.getByText("Preventivo approvato.")).toBeVisible();
+
+  // Beta's budget now follows the approved quote: sold 3800, forecast cost 2750, margin 1050.
+  await beta.page.goto(eventUrl);
+  await expect(beta.page.getByText("Venduto secondo il preventivo approvato (versione 2)", { exact: false })).toBeVisible();
+  await expect(beta.page.getByRole("definition").filter({ hasText: "%" })).toHaveText(/^1050,00\s€28%$/);
 });

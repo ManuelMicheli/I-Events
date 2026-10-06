@@ -67,4 +67,10 @@ pnpm --filter @i-events/core catalog:sql
 - Da un evento senza attività si può partire dalla checklist tipica dei suoi servizi (`suggestedTasks` in `packages/core/src/tasks.ts`), con le scadenze calcolate sulla data dell'evento.
 - Le attività sono raggruppate come una timeline: in ritardo, oggi, prossimi 7 giorni, più avanti, senza scadenza, fatte. `/pro/attivita` mostra le proprie attività su tutti gli eventi, o quelle di tutto il team. Chi e quando ha completato un'attività lo registra il database.
 
+## Preventivo dell'evento
+
+- Dopo l'assegnazione l'agenzia prepara per ogni evento il preventivo dettagliato (`event_quotes`): parte dalla proposta accettata, o dai servizi dell'evento per le tappe di una campagna, e lo invia al cliente con `send_event_quote`. Ogni invio è una nuova versione e sostituisce quelle ancora aperte; una versione inviata non si modifica più.
+- Il cliente lo vede in `/client/eventi/[id]`. Solo titolare, amministratore e approvatore spesa lo approvano o chiedono modifiche con `decide_event_quote`; gli altri vedono che è in attesa. Ogni passaggio arriva come notifica alla controparte.
+- L'ultimo preventivo approvato diventa il venduto del budget dell'evento, al posto della proposta.
+
 Gli stati cambiano solo tramite le funzioni `submit_request`, `submit_proposal`, `request_revision`, `accept_proposal` e `set_proposal_status`.

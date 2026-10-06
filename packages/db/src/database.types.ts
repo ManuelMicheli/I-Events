@@ -315,6 +315,85 @@ export type Database = {
           },
         ];
       };
+      event_quotes: {
+        Row: {
+          client_org_id: string;
+          created_at: string;
+          created_by: string | null;
+          decided_at: string | null;
+          decided_by: string | null;
+          decision_note: string | null;
+          event_id: string;
+          id: string;
+          lines: NonNullable<Json>;
+          note: string | null;
+          org_id: string;
+          sent_at: string | null;
+          status: Database["public"]["Enums"]["quote_status"];
+          total_amount: number;
+          updated_at: string;
+          version: number | null;
+        };
+        Insert: {
+          client_org_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision_note?: string | null;
+          event_id: string;
+          id?: string;
+          lines?: NonNullable<Json>;
+          note?: string | null;
+          org_id: string;
+          sent_at?: string | null;
+          status?: Database["public"]["Enums"]["quote_status"];
+          total_amount?: number;
+          updated_at?: string;
+          version?: number | null;
+        };
+        Update: {
+          client_org_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision_note?: string | null;
+          event_id?: string;
+          id?: string;
+          lines?: NonNullable<Json>;
+          note?: string | null;
+          org_id?: string;
+          sent_at?: string | null;
+          status?: Database["public"]["Enums"]["quote_status"];
+          total_amount?: number;
+          updated_at?: string;
+          version?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_quotes_client_org_id_fkey";
+            columns: ["client_org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_quotes_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_quotes_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       event_tasks: {
         Row: {
           assignee_id: string | null;
@@ -1126,6 +1205,10 @@ export type Database = {
         };
         Returns: string;
       };
+      decide_event_quote: {
+        Args: { p_approve: boolean; p_note?: string; p_quote: string };
+        Returns: undefined;
+      };
       finish_notification_emails: {
         Args: { p_ids: string[]; p_status: string };
         Returns: undefined;
@@ -1178,6 +1261,7 @@ export type Database = {
         Args: { p_client_org: string; p_payload: Json; p_request?: string };
         Returns: string;
       };
+      send_event_quote: { Args: { p_quote: string }; Returns: number };
       set_proposal_status: {
         Args: { p_proposal: string; p_status: Database["public"]["Enums"]["proposal_status"] };
         Returns: undefined;
@@ -1207,6 +1291,7 @@ export type Database = {
         | "rejected"
         | "declined"
         | "withdrawn";
+      quote_status: "draft" | "sent" | "approved" | "changes_requested" | "superseded";
       request_kind: "single" | "campaign";
       request_status: "draft" | "sent" | "awarded" | "cancelled";
       subscription_status: "trialing" | "active" | "past_due" | "canceled";
@@ -1341,6 +1426,7 @@ export const Constants = {
         "declined",
         "withdrawn",
       ],
+      quote_status: ["draft", "sent", "approved", "changes_requested", "superseded"],
       request_kind: ["single", "campaign"],
       request_status: ["draft", "sent", "awarded", "cancelled"],
       subscription_status: ["trialing", "active", "past_due", "canceled"],

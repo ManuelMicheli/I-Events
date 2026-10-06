@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ProposalLine } from "./proposals";
+import { proposalLineSchema, type ProposalLine } from "./proposals";
 import { SERVICE_KEYS } from "./services";
 
 /** Where a supplier booking stands: still to find, asked, confirmed, or dropped. */
@@ -75,4 +75,30 @@ export function eventBudget(bookings: readonly Costed[], soldLines: readonly Pic
     confirmed: live.filter((b) => b.status === "confirmed").length,
     open: live.filter((b) => b.status !== "confirmed").length,
   };
+}
+
+/** Event quote lifecycle: the agency sends versions, the client's approvers decide on the latest. */
+export const QUOTE_STATUSES = ["draft", "sent", "approved", "changes_requested", "superseded"] as const;
+export type QuoteStatus = (typeof QUOTE_STATUSES)[number];
+
+export const quoteSchema = z.object({
+  lines: z.array(proposalLineSchema).min(1, "Aggiungi almeno una voce").max(200),
+  note: z.string().trim().max(5000).optional(),
+});
+export type QuoteInput = z.infer<typeof quoteSchema>;
+
+type QuoteLike = { status: QuoteStatus; version: number | null; lines: unknown };
+
+/**
+ * What the event is sold for: the latest approved quote, or else the accepted proposal when it
+ * covers this event alone (a campaign proposal prices all its stages together).
+ */
+export function soldLines(
+  quotes: readonly QuoteLike[],
+  proposalLines: readonly ProposalLine[],
+  proposalCoversOnlyThisEvent: boolean,
+): { lines: ProposalLine[]; source: "quote" | "proposal"; version?: number } | null {
+  const approved = quotes.filter((q) => q.status === "approved").sort((a, b) => (b.version ?? 0) - (a.version ?? 0))[0];
+  if (approved) return { lines: approved.lines as ProposalLine[], source: "quote", version: approved.version ?? undefined };
+  return proposalCoversOnlyThisEvent ? { lines: [...proposalLines], source: "proposal" } : null;
 }
