@@ -48,4 +48,11 @@ pnpm --filter @i-events/core catalog:sql
 - Le notifiche nascono da trigger nel database (nuova richiesta, proposta, modifiche, decisione, messaggi) e si vedono in `/notifiche`.
 - `GET /api/cron/notifications` invia a ogni persona un riepilogo email delle notifiche non lette, tramite Resend. Va chiamato dallo scheduler con `Authorization: Bearer $CRON_SECRET` (su Vercel lo fa `apps/web/vercel.json` ogni 10 minuti; i cron così frequenti richiedono il piano Pro). Servono `SUPABASE_SECRET_KEY`, `CRON_SECRET`, `RESEND_API_KEY` ed `EMAIL_FROM`; senza Resend le notifiche restano solo nell'app.
 
+## Rubrica e import contatti
+
+- Ogni agenzia ha una rubrica privata di fornitori (`contacts`) in `/pro/rubrica`, con chiamata, WhatsApp ed email a un tocco.
+- L'import accetta CSV (anche export di Excel italiano con `;` e di Google Contacts), Excel `.xlsx`, vCard `.vcf` e testo incollato. Le colonne vengono riconosciute in automatico, i doppioni nel file vengono uniti e a ogni contatto viene proposto un servizio del catalogo.
+- `import_contacts` unisce con i contatti già presenti per email o telefono: completa i campi vuoti e aggiunge servizi, non sovrascrive mai.
+- La proposta dei servizi passa da `getServiceClassifier()` in `apps/web/src/lib/service-classifier.ts`: oggi usa regole per parole chiave, in seguito si potrà collegare un modello (per esempio Jev) senza toccare il flusso di import.
+
 Gli stati cambiano solo tramite le funzioni `submit_request`, `submit_proposal`, `request_revision`, `accept_proposal` e `set_proposal_status`.

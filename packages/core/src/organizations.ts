@@ -22,6 +22,7 @@ export const PERMISSIONS = [
   "proposals.decide",
   "proposals.submit",
   "events.manage",
+  "contacts.delete",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -30,8 +31,8 @@ const ALL: readonly Permission[] = PERMISSIONS;
 const MATRIX: Record<OrgType, Partial<Record<MemberRole, readonly Permission[]>>> = {
   agency: {
     owner: ALL,
-    admin: ["org.manage", "members.invite", "connections.manage", "proposals.submit", "events.manage"],
-    manager: ["proposals.submit", "events.manage"],
+    admin: ["org.manage", "members.invite", "connections.manage", "proposals.submit", "events.manage", "contacts.delete"],
+    manager: ["proposals.submit", "events.manage", "contacts.delete"],
     member: ["events.manage"],
   },
   client: {

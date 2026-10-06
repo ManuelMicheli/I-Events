@@ -160,6 +160,84 @@ export type Database = {
           },
         ];
       };
+      contacts: {
+        Row: {
+          city: string | null;
+          company: string | null;
+          created_at: string;
+          created_by: string | null;
+          email: string | null;
+          id: string;
+          name: string;
+          notes: string | null;
+          org_id: string;
+          phone: string | null;
+          rating: number | null;
+          regions: string[];
+          role_title: string | null;
+          services: string[];
+          source: string;
+          supplier_org_id: string | null;
+          updated_at: string;
+          website: string | null;
+        };
+        Insert: {
+          city?: string | null;
+          company?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          email?: string | null;
+          id?: string;
+          name: string;
+          notes?: string | null;
+          org_id: string;
+          phone?: string | null;
+          rating?: number | null;
+          regions?: string[];
+          role_title?: string | null;
+          services?: string[];
+          source?: string;
+          supplier_org_id?: string | null;
+          updated_at?: string;
+          website?: string | null;
+        };
+        Update: {
+          city?: string | null;
+          company?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          email?: string | null;
+          id?: string;
+          name?: string;
+          notes?: string | null;
+          org_id?: string;
+          phone?: string | null;
+          rating?: number | null;
+          regions?: string[];
+          role_title?: string | null;
+          services?: string[];
+          source?: string;
+          supplier_org_id?: string | null;
+          updated_at?: string;
+          website?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "contacts_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contacts_supplier_org_id_fkey";
+            columns: ["supplier_org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       events: {
         Row: {
           agency_org_id: string;
@@ -898,6 +976,7 @@ export type Database = {
         Args: { p_ids: string[]; p_status: string };
         Returns: undefined;
       };
+      import_contacts: { Args: { p_org: string; p_rows: Json; p_source?: string }; Returns: Json };
       invite_connection: {
         Args: { p_email?: string; p_from_org: string; p_message?: string; p_target_org?: string };
         Returns: string;
@@ -955,6 +1034,7 @@ export type Database = {
         Returns: number;
       };
       submit_request: { Args: { p_agencies: string[]; p_request: string }; Returns: number };
+      valid_services: { Args: { p_services: string[] }; Returns: string[] };
     };
     Enums: {
       connection_status: "pending" | "active" | "revoked";
