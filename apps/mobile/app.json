@@ -17,7 +17,10 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1C1B19"
-      }
+      },
+      "blockedPermissions": [
+        "android.permission.WRITE_CONTACTS"
+      ]
     },
     "web": {
       "output": "single",
@@ -32,6 +35,12 @@
           "icon": "./assets/notification-icon.png",
           "color": "#FF4626",
           "defaultChannel": "default"
+        }
+      ],
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "I-Events legge la rubrica solo quando scegli i fornitori da importare."
         }
       ],
       [

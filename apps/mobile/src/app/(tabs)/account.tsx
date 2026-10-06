@@ -1,4 +1,5 @@
 import { ORG_TYPE_LABEL, ROLE_LABEL } from "@i-events/core";
+import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -34,6 +35,15 @@ export default function AccountScreen() {
       </Card>
 
       <PushSetting />
+
+      {activeOrg?.type === "agency" && (
+        <Section title="Rubrica fornitori">
+          <T variant="callout" tone="secondary">
+            Aggiungi alla rubrica di {activeOrg.name} i fornitori che hai già nel telefono.
+          </T>
+          <Button variant="secondary" icon="people-outline" label="Importa dal telefono" onPress={() => router.push("/importa-contatti")} />
+        </Section>
+      )}
 
       <Section title="Organizzazioni">
         <Card style={styles.list}>
