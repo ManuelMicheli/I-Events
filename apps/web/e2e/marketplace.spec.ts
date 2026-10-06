@@ -1,6 +1,12 @@
 import { expect, test, type Browser } from "@playwright/test";
 
 const run = Date.now();
+// A 1×1 PNG.
+const png = (name: string) => ({
+  name,
+  mimeType: "image/png",
+  buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64"),
+});
 
 async function signUpWithOrg(browser: Browser, person: string, email: string, type: RegExp, org: string) {
   const page = await (await browser.newContext()).newPage();
@@ -28,6 +34,26 @@ test("companies find agencies and agencies find suppliers in the marketplace", a
   await dj.getByRole("button", { name: "Salva" }).click();
   await expect(dj.getByText("Profilo salvato.")).toBeVisible();
 
+  // A past job with a photo, and a few days off.
+  await dj.getByRole("button", { name: "Aggiungi un lavoro" }).click();
+  await dj.getByLabel("Nome del lavoro").fill("Gala aziendale 800 ospiti");
+  await dj.getByLabel("Dove").fill("Torino");
+  await dj.getByLabel("Quando").fill("2026-05");
+  await dj.getByRole("button", { name: "Aggiungi al portfolio" }).click();
+  const job = dj.getByRole("listitem", { name: "Gala aziendale 800 ospiti" });
+  await expect(job).toContainText("Torino · maggio 2026");
+  await job.getByLabel("Aggiungi foto a Gala aziendale 800 ospiti").setInputFiles(png("gala.png"));
+  await expect(job.getByRole("img", { name: "Gala aziendale 800 ospiti, foto 1" })).toBeVisible();
+  await expect(job.getByText("Copertina")).toBeVisible();
+
+  await dj.getByRole("link", { name: "Disponibilità" }).click();
+  await dj.getByLabel("Dal", { exact: true }).fill("2027-09-10");
+  await dj.getByLabel(/^Al/).fill("2027-09-12");
+  await dj.getByLabel("Nota per te").fill("Ferie");
+  await dj.getByRole("button", { name: "Segna come non disponibile" }).click();
+  await expect(dj.getByText("10–12 set")).toBeVisible();
+  await expect(dj.getByText("Ferie")).toBeVisible();
+
   // An agency finds the DJ by service and area and adds them to its address book.
   const agency = await signUpWithOrg(browser, "Anna Regia", `regia-${run}@example.test`, /Agenzia di eventi/, `Regia ${run}`);
   await expect(agency).toHaveURL(/\/pro$/);
@@ -37,8 +63,18 @@ test("companies find agencies and agencies find suppliers in the marketplace", a
   await agency.getByLabel("Zona").fill("lombardia");
   await agency.getByRole("button", { name: "Cerca" }).click();
   await expect(agency.getByText("1 risultato")).toBeVisible();
+  await agency.getByLabel("Libero il").fill("2027-09-11");
+  await agency.getByRole("button", { name: "Cerca" }).click();
+  await expect(agency.getByText("Nessun fornitore libero in quella data con questi filtri.")).toBeVisible();
+  await agency.getByLabel("Libero il").fill("2027-09-13");
+  await agency.getByRole("button", { name: "Cerca" }).click();
   await agency.getByRole("link", { name: `Luca Sound ${run}` }).click();
   await expect(agency.getByRole("heading", { level: 1, name: `Luca Sound ${run}` })).toBeVisible();
+  await expect(agency.getByText("Libero in tutte le date.")).toBeVisible();
+  const photo = agency.getByRole("img", { name: "Gala aziendale 800 ospiti, foto 1" });
+  await expect(photo).toBeVisible();
+  expect(await photo.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(1);
+  await expect(agency.getByText("Ancora nessuna recensione.")).toBeVisible();
   await expect(agency.getByRole("link", { name: `WhatsApp a Luca Sound ${run}` })).toHaveAttribute("href", "https://wa.me/393339876543");
   await agency.getByRole("button", { name: "Aggiungi alla rubrica" }).click();
   await expect(agency.getByText("Aggiunto alla rubrica.")).toBeVisible();

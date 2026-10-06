@@ -1,6 +1,7 @@
 import { MarketplaceProfile } from "@/components/marketplace/profile";
 import { Button } from "@/components/ui";
 import { requireOrg } from "@/lib/session";
+import { loadProfileExtras } from "@/lib/profiles";
 import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -17,17 +18,15 @@ export default async function SupplierProfilePage({ params }: { params: Promise<
   if (error) throw error;
   const profile = data[0];
   if (!profile || profile.type !== "supplier") notFound();
-  const { data: contact, error: e2 } = await supabase
-    .from("contacts")
-    .select("id")
-    .eq("org_id", org.id)
-    .eq("supplier_org_id", profile.org_id)
-    .limit(1)
-    .maybeSingle();
+  const [{ data: contact, error: e2 }, extras] = await Promise.all([
+    supabase.from("contacts").select("id").eq("org_id", org.id).eq("supplier_org_id", profile.org_id).limit(1).maybeSingle(),
+    loadProfileExtras(supabase, profile.org_id, true),
+  ]);
   if (e2) throw e2;
   return (
     <MarketplaceProfile
       profile={profile}
+      extras={extras}
       back={
         <Link href="/pro/fornitori" className="text-sm text-muted underline">
           Trova fornitori

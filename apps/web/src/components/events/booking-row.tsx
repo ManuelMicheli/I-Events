@@ -4,7 +4,7 @@ import { deleteBooking, saveBooking, type BookingState } from "@/app/(app)/pro/e
 import { ContactActions } from "@/components/contacts/contact-actions";
 import { Button, Input, Select } from "@/components/ui";
 import { BOOKING_STATUS_LABEL } from "@/lib/labels";
-import { BOOKING_STATUSES, formatEuro, getServiceCategory, type BookingStatus } from "@i-events/core";
+import { BOOKING_STATUSES, dayRanges, formatEuro, getServiceCategory, rangeLabel, type BookingStatus } from "@i-events/core";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 
@@ -33,10 +33,24 @@ export type Booking = {
   supplier_note: string | null;
 };
 
-const contactLabel = (c: BookingContact) => (c.company && c.company !== c.name ? `${c.name} (${c.company})` : c.name);
+const contactLabel = (c: BookingContact, busy: boolean) =>
+  (c.company && c.company !== c.name ? `${c.name} (${c.company})` : c.name) + (busy ? " · già impegnato" : "");
 
-/** One service of the event: who supplies it, where the booking stands, and what it costs. */
-export function BookingRow({ eventId, booking, contacts }: { eventId: string; booking: Booking; contacts: BookingContact[] }) {
+/**
+ * One service of the event: who supplies it, where the booking stands, and what it costs.
+ * `busy` lists, per contact on I-Events, the days of this event it is already taken.
+ */
+export function BookingRow({
+  eventId,
+  booking,
+  contacts,
+  busy = {},
+}: {
+  eventId: string;
+  booking: Booking;
+  contacts: BookingContact[];
+  busy?: Record<string, string[]>;
+}) {
   const [state, action, pending] = useActionState<BookingState, FormData>(saveBooking, {});
   const [contactId, setContactId] = useState(booking.contact_id ?? "");
   const service = getServiceCategory(booking.service_key);
@@ -64,7 +78,7 @@ export function BookingRow({ eventId, booking, contacts }: { eventId: string; bo
               <optgroup label={`Fanno ${name.toLowerCase()}`}>
                 {matching.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {contactLabel(c)}
+                    {contactLabel(c, Boolean(busy[c.id]))}
                   </option>
                 ))}
               </optgroup>
@@ -73,13 +87,18 @@ export function BookingRow({ eventId, booking, contacts }: { eventId: string; bo
               <optgroup label="Altri contatti">
                 {others.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {contactLabel(c)}
+                    {contactLabel(c, Boolean(busy[c.id]))}
                   </option>
                 ))}
               </optgroup>
             )}
           </Select>
           {f.contact_id && <span className="text-danger">{f.contact_id}</span>}
+          {chosen && busy[chosen.id] && (
+            <span role="note" className="text-danger">
+              Risulta già impegnato: {dayRanges(busy[chosen.id]!).map(rangeLabel).join(", ")}. Verifica con il fornitore.
+            </span>
+          )}
           {chosen && <ContactActions name={chosen.name} phone={chosen.phone} email={chosen.email} />}
         </label>
         <label className="flex flex-col gap-1.5 text-sm">

@@ -53,6 +53,8 @@ async function answerRequest(page: Page, title: string, amounts: [string, string
 }
 
 test("client sends a request to two agencies, compares proposals and accepts one", async ({ browser }) => {
+  // The whole life of an event, from the request to the reviews.
+  test.setTimeout(150_000);
   const alfa = await agencyWithInvite(browser, "Alfa");
   const beta = await agencyWithInvite(browser, "Beta");
 
@@ -364,4 +366,36 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await expect(times).toContainText("16:30–18:00Arrivo catering e allestimento buffet");
   await expect(times).toContainText("19:30–21:30Servizio catering");
   await expect(times).not.toContainText("Discorso");
+
+  // The event ends: Beta reviews the caterer, the client reviews Beta, and Beta answers.
+  await beta.page.goto(eventUrl);
+  await beta.page.getByRole("button", { name: "Evento in corso" }).click();
+  await beta.page.getByRole("button", { name: "Segna come concluso" }).click();
+  const supplierReview = beta.page.getByRole("form", { name: "Recensione per Gusto Catering" });
+  await supplierReview.getByRole("radio", { name: /^5 stelle/ }).check();
+  await supplierReview.getByLabel("Racconta com'è andata").fill("Buffet impeccabile, puntuali.");
+  await supplierReview.getByRole("button", { name: "Pubblica la recensione" }).click();
+  await expect(supplierReview.getByText("Grazie, recensione pubblicata.")).toBeVisible();
+  await caterer.goto("/supplier");
+  await expect(caterer.locator("#recensioni")).toContainText("Buffet impeccabile, puntuali.");
+  await expect(caterer.locator("#recensioni")).toContainText(`Beta ${run}`);
+
+  await client.goto("/notifiche");
+  await client.getByRole("link", { name: `Com'è andato ${title}?` }).click();
+  const agencyReview = client.getByRole("form", { name: `Recensione per Beta ${run}` });
+  await agencyReview.getByRole("radio", { name: /^4 stelle/ }).check();
+  await agencyReview.getByLabel("Racconta com'è andata").fill("Organizzazione precisa.");
+  await agencyReview.getByRole("button", { name: "Pubblica la recensione" }).click();
+  await expect(agencyReview.getByText("Grazie, recensione pubblicata.")).toBeVisible();
+
+  await beta.page.goto("/pro/profilo");
+  const received = beta.page.locator("#recensioni");
+  await expect(received).toContainText("4,0 · 1 recensione");
+  await expect(received).toContainText("Organizzazione precisa.");
+  await received.getByRole("button", { name: "Rispondi" }).click();
+  await received.getByLabel("La tua risposta").fill("Grazie, alla prossima!");
+  await received.getByRole("button", { name: "Pubblica" }).click();
+  await expect(received.getByText("Grazie, alla prossima!")).toBeVisible();
+  await client.reload();
+  await expect(client.getByText("Grazie, alla prossima!")).toBeVisible();
 });

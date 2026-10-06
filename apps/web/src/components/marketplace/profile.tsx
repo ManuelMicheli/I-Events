@@ -1,5 +1,9 @@
 import { ContactActions } from "@/components/contacts/contact-actions";
+import { PortfolioGallery } from "@/components/profiles/portfolio-gallery";
+import { RatingBadge, ReviewList } from "@/components/profiles/reviews";
 import { Card } from "@/components/ui";
+import type { ProfileExtras } from "@/lib/profiles";
+import { rangeLabel } from "@i-events/core";
 import type { ReactNode } from "react";
 import { serviceNames } from "./search";
 
@@ -20,7 +24,17 @@ export type MarketplaceProfileData = {
 const yearFmt = new Intl.DateTimeFormat("it-IT", { month: "long", year: "numeric" });
 
 /** A listed agency or supplier as others see it, with the viewer's next step in `action`. */
-export function MarketplaceProfile({ profile, back, action }: { profile: MarketplaceProfileData; back: ReactNode; action: ReactNode }) {
+export function MarketplaceProfile({
+  profile,
+  extras,
+  back,
+  action,
+}: {
+  profile: MarketplaceProfileData;
+  extras: ProfileExtras;
+  back: ReactNode;
+  action: ReactNode;
+}) {
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -28,6 +42,9 @@ export function MarketplaceProfile({ profile, back, action }: { profile: Marketp
           {back}
           <h1 className="text-2xl font-semibold">{profile.name}</h1>
           <p className="text-sm text-muted">{[profile.city, profile.headline].filter(Boolean).join(" · ")}</p>
+          <a href="#recensioni" className="no-underline">
+            <RatingBadge avg={extras.rating.avg} count={extras.rating.count} />
+          </a>
         </div>
         {action}
       </div>
@@ -62,6 +79,23 @@ export function MarketplaceProfile({ profile, back, action }: { profile: Marketp
           </div>
         </div>
       </Card>
+      {extras.busy && (
+        <Card title="Disponibilità nei prossimi tre mesi">
+          <p className="text-sm">
+            {extras.busy.length === 0 ? "Libero in tutte le date." : `Già impegnato: ${extras.busy.map(rangeLabel).join(", ")}.`}
+          </p>
+        </Card>
+      )}
+      {extras.portfolio.length > 0 && (
+        <Card title="Portfolio">
+          <PortfolioGallery items={extras.portfolio} />
+        </Card>
+      )}
+      <section id="recensioni">
+        <Card title="Recensioni" action={<RatingBadge avg={extras.rating.avg} count={extras.rating.count} />}>
+          <ReviewList reviews={extras.reviews} empty="Ancora nessuna recensione." />
+        </Card>
+      </section>
     </>
   );
 }

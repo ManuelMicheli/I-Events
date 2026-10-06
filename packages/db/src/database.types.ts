@@ -1019,6 +1019,95 @@ export type Database = {
         };
         Relationships: [];
       };
+      portfolio_items: {
+        Row: {
+          city: string | null;
+          client_name: string | null;
+          created_at: string;
+          created_by: string | null;
+          description: string;
+          happened_on: string | null;
+          id: string;
+          org_id: string;
+          title: string;
+        };
+        Insert: {
+          city?: string | null;
+          client_name?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string;
+          happened_on?: string | null;
+          id?: string;
+          org_id: string;
+          title: string;
+        };
+        Update: {
+          city?: string | null;
+          client_name?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string;
+          happened_on?: string | null;
+          id?: string;
+          org_id?: string;
+          title?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_items_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      portfolio_photos: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          item_id: string;
+          org_id: string;
+          position: number;
+          storage_path: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          item_id: string;
+          org_id: string;
+          position?: number;
+          storage_path: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          item_id?: string;
+          org_id?: string;
+          position?: number;
+          storage_path?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_photos_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "portfolio_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "portfolio_photos_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           avatar_url: string | null;
@@ -1289,6 +1378,80 @@ export type Database = {
           },
         ];
       };
+      reviews: {
+        Row: {
+          author_id: string | null;
+          author_org_id: string;
+          booking_id: string | null;
+          comment: string;
+          created_at: string;
+          event_id: string;
+          id: string;
+          rating: number;
+          replied_at: string | null;
+          reply: string | null;
+          subject_org_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          author_id?: string | null;
+          author_org_id: string;
+          booking_id?: string | null;
+          comment?: string;
+          created_at?: string;
+          event_id: string;
+          id?: string;
+          rating: number;
+          replied_at?: string | null;
+          reply?: string | null;
+          subject_org_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          author_id?: string | null;
+          author_org_id?: string;
+          booking_id?: string | null;
+          comment?: string;
+          created_at?: string;
+          event_id?: string;
+          id?: string;
+          rating?: number;
+          replied_at?: string | null;
+          reply?: string | null;
+          subject_org_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "reviews_author_org_id_fkey";
+            columns: ["author_org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reviews_booking_id_fkey";
+            columns: ["booking_id"];
+            isOneToOne: false;
+            referencedRelation: "event_bookings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reviews_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reviews_subject_org_id_fkey";
+            columns: ["subject_org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       service_categories: {
         Row: {
           active: boolean;
@@ -1412,6 +1575,44 @@ export type Database = {
           },
         ];
       };
+      supplier_unavailability: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          ends_on: string;
+          id: string;
+          note: string | null;
+          org_id: string;
+          starts_on: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          ends_on: string;
+          id?: string;
+          note?: string | null;
+          org_id: string;
+          starts_on: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          ends_on?: string;
+          id?: string;
+          note?: string | null;
+          org_id?: string;
+          starts_on?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "supplier_unavailability_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -1426,6 +1627,7 @@ export type Database = {
         Args: { b: Database["public"]["Tables"]["event_bookings"]["Row"] };
         Returns: string;
       };
+      can_edit_portfolio: { Args: { p_org: string }; Returns: boolean };
       can_edit_request: { Args: { p_request: string }; Returns: boolean };
       can_read_attachment: { Args: { p_proposal: string; p_request: string }; Returns: boolean };
       can_read_request: { Args: { p_request: string }; Returns: boolean };
@@ -1458,6 +1660,13 @@ export type Database = {
         Args: { p_approve: boolean; p_note?: string; p_quote: string };
         Returns: undefined;
       };
+      event_busy_contacts: {
+        Args: { p_event: string };
+        Returns: {
+          contact_id: string;
+          days: string[];
+        }[];
+      };
       finish_notification_emails: {
         Args: { p_ids: string[]; p_status: string };
         Returns: undefined;
@@ -1478,9 +1687,20 @@ export type Database = {
       invite_supplier: { Args: { p_contact: string }; Returns: string };
       is_booking_supplier: { Args: { p_booking: string }; Returns: boolean };
       is_connected: { Args: { a: string; b: string }; Returns: boolean };
+      is_listed: { Args: { p_org: string }; Returns: boolean };
       is_member: {
         Args: { roles?: Database["public"]["Enums"]["member_role"][]; target: string };
         Returns: boolean;
+      };
+      leave_review: {
+        Args: {
+          p_author: string;
+          p_comment?: string;
+          p_event: string;
+          p_rating: number;
+          p_subject: string;
+        };
+        Returns: string;
       };
       log_activity: {
         Args: {
@@ -1504,6 +1724,8 @@ export type Database = {
           name: string;
           org_id: string;
           phone: string;
+          rating_avg: number;
+          rating_count: number;
           regions: string[];
           services: string[];
           type: Database["public"]["Enums"]["org_type"];
@@ -1515,6 +1737,26 @@ export type Database = {
         Args: { p_body: string; p_kind: string; p_link: string; p_org: string; p_title: string };
         Returns: undefined;
       };
+      org_rating: {
+        Args: { p_org: string };
+        Returns: {
+          rating_avg: number;
+          rating_count: number;
+        }[];
+      };
+      org_reviews: {
+        Args: { p_limit?: number; p_org: string };
+        Returns: {
+          author_name: string;
+          author_type: Database["public"]["Enums"]["org_type"];
+          comment: string;
+          created_at: string;
+          id: string;
+          rating: number;
+          replied_at: string;
+          reply: string;
+        }[];
+      };
       preview_invitation: {
         Args: { p_token: string };
         Returns: {
@@ -1525,10 +1767,18 @@ export type Database = {
           valid: boolean;
         }[];
       };
+      reply_to_review: { Args: { p_reply: string; p_review: string }; Returns: undefined };
       request_revision: { Args: { p_note: string; p_proposal: string }; Returns: undefined };
       respond_to_booking: {
         Args: { p_available: boolean; p_booking: string; p_note?: string; p_price?: number };
         Returns: undefined;
+      };
+      reviewable_for: {
+        Args: { p_author: string; p_event: string };
+        Returns: {
+          booking_id: string;
+          subject_org_id: string;
+        }[];
       };
       save_request_draft: {
         Args: { p_client_org: string; p_payload: Json; p_request?: string };
@@ -1537,6 +1787,7 @@ export type Database = {
       search_marketplace: {
         Args: {
           p_area?: string;
+          p_date?: string;
           p_from_org?: string;
           p_limit?: number;
           p_query?: string;
@@ -1550,6 +1801,8 @@ export type Database = {
           headline: string;
           name: string;
           org_id: string;
+          rating_avg: number;
+          rating_count: number;
           regions: string[];
           services: string[];
           slug: string;
@@ -1603,6 +1856,20 @@ export type Database = {
           supplier_price: number;
           supplier_response: string;
           venue: string;
+        }[];
+      };
+      supplier_busy: {
+        Args: { p_except_event?: string; p_from: string; p_supplier: string; p_to: string };
+        Returns: {
+          booked: boolean;
+          day: string;
+        }[];
+      };
+      supplier_busy_days: {
+        Args: { p_from: string; p_supplier: string; p_to: string };
+        Returns: {
+          booked: boolean;
+          day: string;
         }[];
       };
       valid_services: { Args: { p_services: string[] }; Returns: string[] };

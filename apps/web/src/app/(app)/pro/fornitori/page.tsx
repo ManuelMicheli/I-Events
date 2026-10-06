@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = { title: "Trova fornitori" };
 
-export default async function FindSuppliersPage({ searchParams }: { searchParams: Promise<{ q?: string; servizio?: string; zona?: string }> }) {
+export default async function FindSuppliersPage({ searchParams }: { searchParams: Promise<{ q?: string; servizio?: string; zona?: string; data?: string }> }) {
   const org = await requireOrg("agency");
   const filters = readFilters(await searchParams);
   const supabase = await createClient();
@@ -16,6 +16,7 @@ export default async function FindSuppliersPage({ searchParams }: { searchParams
     p_query: filters.q,
     p_service: filters.servizio,
     p_area: filters.zona,
+    p_date: filters.data || undefined,
   });
   if (error) throw error;
   return (
@@ -26,7 +27,7 @@ export default async function FindSuppliersPage({ searchParams }: { searchParams
           Fornitori con un profilo pubblico su I-Events. Aggiungili alla rubrica e le tue richieste arrivano direttamente nel loro account.
         </p>
       </div>
-      <MarketplaceSearchForm filters={filters} placeholder="Cerca per nome, specialità o parola chiave" />
+      <MarketplaceSearchForm filters={filters} placeholder="Cerca per nome, specialità o parola chiave" withDate />
       <MarketplaceResults
         results={data}
         hrefBase="/pro/fornitori"
@@ -37,7 +38,7 @@ export default async function FindSuppliersPage({ searchParams }: { searchParams
             </Link>
           ) : null
         }
-        empty="Nessun fornitore trovato con questi filtri."
+        empty={filters.data ? "Nessun fornitore libero in quella data con questi filtri." : "Nessun fornitore trovato con questi filtri."}
       />
     </>
   );
