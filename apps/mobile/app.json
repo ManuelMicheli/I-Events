@@ -19,7 +19,8 @@
         "backgroundColor": "#1C1B19"
       },
       "blockedPermissions": [
-        "android.permission.WRITE_CONTACTS"
+        "android.permission.WRITE_CONTACTS",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -41,6 +42,14 @@
         "expo-contacts",
         {
           "contactsPermission": "I-Events legge la rubrica solo quando scegli i fornitori da importare."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "I-Events usa la fotocamera solo per leggere il QR dei pass all'ingresso.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ],
       [

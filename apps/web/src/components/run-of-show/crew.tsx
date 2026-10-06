@@ -3,7 +3,7 @@
 import { addCrew, deleteCrew, syncCheckins, updateCrew, type RosState } from "@/app/(app)/pro/eventi/run-of-show-actions";
 import { ContactActions } from "@/components/contacts/contact-actions";
 import { Button, Field, Input, Select } from "@/components/ui";
-import { crewState, hhmm, type CrewMember } from "@i-events/core";
+import { crewState, hhmm, passCode, whatsappUrl, type CrewMember } from "@i-events/core";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { clock, useItalyNow } from "./now";
 import { dayLabel } from "./format";
@@ -17,7 +17,7 @@ export function CrewStatus({ member, now }: { member: CrewMember; now: { day: st
   return <span className="text-muted">{member.call_time ? `Atteso alle ${hhmm(member.call_time)}` : "Atteso"}</span>;
 }
 
-export function CrewRow({ eventId, member, days }: { eventId: string; member: CrewMember; days: string[] }) {
+export function CrewRow({ eventId, member, days, passLink }: { eventId: string; member: CrewMember; days: string[]; passLink: string | null }) {
   const [state, action, pending] = useActionState<RosState, FormData>(updateCrew, {});
   const [saving, startSaving] = useTransition();
   const [error, setError] = useState<string>();
@@ -38,6 +38,7 @@ export function CrewRow({ eventId, member, days }: { eventId: string; member: Cr
           <p className="font-medium">{member.name}</p>
           <p className="text-muted">{[member.detail, member.kind === "staff" ? "Team" : null].filter(Boolean).join(" · ")}</p>
           <ContactActions name={member.name} phone={member.phone} email={null} />
+          {passLink && member.pass && <PassLinks name={member.name} phone={member.phone} link={passLink} code={passCode(member.pass)} />}
         </div>
         <div className="flex flex-col items-end gap-1">
           <CrewStatus member={member} now={now} />
@@ -97,6 +98,32 @@ export function CrewRow({ eventId, member, days }: { eventId: string; member: Cr
         </form>
       </details>
     </li>
+  );
+}
+
+/** The person's pass: open it, or send its link on WhatsApp so they show the QR at the entrance. */
+function PassLinks({ name, phone, link, code }: { name: string; phone: string | null; link: string; code: string }) {
+  const text = `Ciao ${name}, questo è il tuo pass per l'evento: mostra il QR all'ingresso. ${link}`;
+  return (
+    <span className="mt-1 flex flex-wrap items-center gap-3 text-sm">
+      <span className="font-mono text-muted" aria-label={`Codice pass ${code.split("").join(" ")}`}>
+        Pass {code}
+      </span>
+      <a href={link} target="_blank" rel="noreferrer" className="underline" aria-label={`Apri il pass di ${name}`}>
+        Apri il pass
+      </a>
+      {phone && (
+        <a
+          href={`${whatsappUrl(phone)}?text=${encodeURIComponent(text)}`}
+          target="_blank"
+          rel="noreferrer"
+          className="underline"
+          aria-label={`Invia il pass a ${name} su WhatsApp`}
+        >
+          Invia su WhatsApp
+        </a>
+      )}
+    </span>
   );
 }
 

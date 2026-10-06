@@ -1,8 +1,18 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { checkinSyncOutcome, dbErrorMessage, dequeueCheckins, enqueueCheckin, parseCheckinQueue, type PendingCheckin } from "@i-events/core";
+import {
+  checkinSyncOutcome,
+  dbErrorMessage,
+  dequeueCheckins,
+  enqueueCheckin,
+  parseCheckinQueue,
+  withPendingCheckins,
+  withSentCheckins,
+  type PendingCheckin,
+} from "@i-events/core";
 import * as Network from "expo-network";
 import { useEffect, useSyncExternalStore } from "react";
 import { AppState } from "react-native";
+import { saveCheckinsInDay } from "./event-day";
 import { supabase } from "./supabase";
 
 /**
@@ -18,10 +28,12 @@ export type CheckinQueueState = {
   error: string | null;
   /** The people whose last check-in the server refused, with the reason. */
   refused: Record<string, string>;
+  /** Check-ins the server took since the day was last loaded from it, with when they were sent. */
+  sent: Record<string, { at: string | null; sentAt: number }>;
   syncing: boolean;
 };
 
-const EMPTY: CheckinQueueState = { queue: [], error: null, refused: {}, syncing: false };
+const EMPTY: CheckinQueueState = { queue: [], error: null, refused: {}, sent: {}, syncing: false };
 const states = new Map<string, CheckinQueueState>();
 const loading = new Map<string, Promise<void>>();
 const flushing = new Map<string, Promise<void>>();
@@ -33,7 +45,8 @@ function set(eventId: string, patch: Partial<CheckinQueueState>) {
   const next = { ...get(eventId), ...patch };
   states.set(eventId, next);
   if (patch.queue) {
-    const write = next.queue.length === 0 ? AsyncStorage.removeItem(PREFIX + eventId) : AsyncStorage.setItem(PREFIX + eventId, JSON.stringify(next.queue));
+    const write =
+      next.queue.length === 0 ? AsyncStorage.removeItem(PREFIX + eventId) : AsyncStorage.setItem(PREFIX + eventId, JSON.stringify(next.queue));
     write.catch(() => {});
   }
   for (const l of listeners) l();
@@ -79,6 +92,8 @@ export function flushCheckins(eventId: string): Promise<void> {
       const done: PendingCheckin[] = [];
       let error: string | null = null;
       const refused = { ...get(eventId).refused };
+      const sent = { ...get(eventId).sent };
+      const saved: PendingCheckin[] = [];
       for (const e of entries) {
         tried.add(key(e));
         const res = await supabase.from("event_crew").update({ checked_in_at: e.at }).eq("id", e.id).eq("event_id", eventId);
@@ -89,12 +104,16 @@ export function flushCheckins(eventId: string): Promise<void> {
           continue;
         }
         done.push(e);
-          if (outcome === "refused") {
+        if (outcome === "sent") {
+          sent[e.id] = { at: e.at, sentAt: Date.now() };
+          saved.push(e);
+        } else {
           error = res.error ? dbErrorMessage(res.error) : "Il server non l'ha accettato.";
           refused[e.id] = error;
         }
       }
-      set(eventId, { queue: dequeueCheckins(get(eventId).queue, done), refused, ...(error ? { error } : {}) });
+      set(eventId, { queue: dequeueCheckins(get(eventId).queue, done), refused, sent, ...(error ? { error } : {}) });
+      void saveCheckinsInDay(eventId, saved);
     }
     if (get(eventId).syncing) set(eventId, { syncing: false });
   })().finally(() => flushing.delete(eventId));
@@ -124,6 +143,22 @@ export function useCheckinQueue(eventId: string): CheckinQueueState {
     },
     () => get(eventId),
   );
+}
+
+/** The current state of an event's check-ins, for code that runs outside rendering (a camera callback). */
+export const checkinState = (eventId: string): CheckinQueueState => get(eventId);
+
+/** The crew as the phone knows it now: the last load from the server, plus what was sent since and what waits. */
+export function crewOnPhone<T extends { id: string; checked_in_at: string | null }>(crew: readonly T[], s: CheckinQueueState) {
+  const sent = Object.entries(s.sent).map(([id, v]) => ({ id, at: v.at }));
+  return withPendingCheckins(withSentCheckins(crew, sent), s.queue);
+}
+
+/** After a load from the server that started at `since`: check-ins sent before it are in the loaded data. */
+export function settleSentCheckins(eventId: string, since: number) {
+  const sent = get(eventId).sent;
+  const kept = Object.fromEntries(Object.entries(sent).filter(([, v]) => v.sentAt >= since));
+  if (Object.keys(kept).length !== Object.keys(sent).length) set(eventId, { sent: kept });
 }
 
 export function clearCheckinError(eventId: string) {

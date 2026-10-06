@@ -344,6 +344,7 @@ export type Database = {
           id: string;
           name: string | null;
           org_id: string;
+          pass_token: string;
           phone: string | null;
           role: string | null;
           updated_at: string;
@@ -361,6 +362,7 @@ export type Database = {
           id?: string;
           name?: string | null;
           org_id: string;
+          pass_token?: string;
           phone?: string | null;
           role?: string | null;
           updated_at?: string;
@@ -378,6 +380,7 @@ export type Database = {
           id?: string;
           name?: string | null;
           org_id?: string;
+          pass_token?: string;
           phone?: string | null;
           role?: string | null;
           updated_at?: string;
@@ -1707,6 +1710,22 @@ export type Database = {
           p_type: Database["public"]["Enums"]["org_type"];
         };
         Returns: string;
+      };
+      crew_pass: {
+        Args: { p_token: string };
+        Returns: {
+          agency_name: string;
+          call_time: string;
+          checked_in_at: string;
+          city: string;
+          day: string;
+          event_status: Database["public"]["Enums"]["event_status"];
+          event_title: string;
+          person: string;
+          role: string;
+          service_key: string;
+          venue: string;
+        }[];
       };
       decide_event_quote: {
         Args: { p_approve: boolean; p_note?: string; p_quote: string };

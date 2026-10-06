@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { crewMembers, eventDays, getServiceCategory, type CrewMember } from "@i-events/core";
+import { crewMembers, eventDays, getServiceCategory, withSentCheckins, type CrewMember } from "@i-events/core";
 import { supabase } from "./supabase";
 
 export type DayItem = {
@@ -46,7 +46,7 @@ export async function fetchEventDay(eventId: string, orgId: string): Promise<Eve
       .order("starts_at"),
     supabase
       .from("event_crew")
-      .select("id, booking_id, user_id, name, role, phone, day, call_time, checked_in_at, profile:profiles(full_name)")
+      .select("id, booking_id, user_id, name, role, phone, day, call_time, checked_in_at, pass_token, profile:profiles(full_name)")
       .eq("event_id", eventId)
       .order("day")
       .order("call_time", { nullsFirst: false })
@@ -66,7 +66,11 @@ export async function fetchEventDay(eventId: string, orgId: string): Promise<Eve
   };
   const referentOf = (id: string | null) => (id ? (membersRes.data!.find((m) => m.user_id === id)?.profiles?.full_name ?? null) : null);
 
-  const items = itemsRes.data!.map(({ booking_id, assignee_id, ...i }) => ({ ...i, supplier: supplierOf(booking_id), referent: referentOf(assignee_id) }));
+  const items = itemsRes.data!.map(({ booking_id, assignee_id, ...i }) => ({
+    ...i,
+    supplier: supplierOf(booking_id),
+    referent: referentOf(assignee_id),
+  }));
   const crew = crewMembers(crewRes.data!, bookings);
   const days = eventDays(event.start_date, event.end_date, [...items.map((i) => i.day), ...crew.map((c) => c.day)]);
   return {
@@ -78,7 +82,7 @@ export async function fetchEventDay(eventId: string, orgId: string): Promise<Eve
 }
 
 const PREFIX = "ie-day-";
-type Saved = { v: 1; orgId: string; savedAt: string; day: EventDay };
+type Saved = { v: 2; orgId: string; savedAt: string; day: EventDay };
 
 /** The copy kept on the phone from the last time the day loaded, for this organization only. */
 export async function readSavedDay(eventId: string, orgId: string): Promise<{ day: EventDay; savedAt: string } | null> {
@@ -86,7 +90,7 @@ export async function readSavedDay(eventId: string, orgId: string): Promise<{ da
     const raw = await AsyncStorage.getItem(PREFIX + eventId);
     if (!raw) return null;
     const s = JSON.parse(raw) as Saved;
-    return s.v === 1 && s.orgId === orgId && s.day?.event?.id === eventId ? { day: s.day, savedAt: s.savedAt } : null;
+    return s.v === 2 && s.orgId === orgId && s.day?.event?.id === eventId ? { day: s.day, savedAt: s.savedAt } : null;
   } catch {
     return null;
   }
@@ -94,9 +98,24 @@ export async function readSavedDay(eventId: string, orgId: string): Promise<{ da
 
 export async function saveDay(orgId: string, day: EventDay): Promise<string> {
   const savedAt = new Date().toISOString();
-  const s: Saved = { v: 1, orgId, savedAt, day };
+  const s: Saved = { v: 2, orgId, savedAt, day };
   await AsyncStorage.setItem(PREFIX + day.event.id, JSON.stringify(s)).catch(() => {});
   return savedAt;
+}
+
+/** Writes check-ins the server took into the saved copy, so the day reopens right even without signal. */
+export async function saveCheckinsInDay(eventId: string, sent: readonly { id: string; at: string | null }[]): Promise<void> {
+  if (sent.length === 0) return;
+  try {
+    const raw = await AsyncStorage.getItem(PREFIX + eventId);
+    if (!raw) return;
+    const s = JSON.parse(raw) as Saved;
+    if (s.v !== 2) return;
+    s.day.crew = withSentCheckins(s.day.crew, sent);
+    await AsyncStorage.setItem(PREFIX + eventId, JSON.stringify(s));
+  } catch {
+    // The next load from the server brings them anyway.
+  }
 }
 
 /** Keeps a copy of the day on the phone ahead of time, so it opens even where the venue has no signal. */

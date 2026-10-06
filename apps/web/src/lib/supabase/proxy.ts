@@ -3,8 +3,11 @@ import type { Database } from "@i-events/db";
 import { NextResponse, type NextRequest } from "next/server";
 import { env } from "../env";
 
-/** Public paths that never require a session (/api/app: mobile app endpoints, which check the bearer token themselves). */
-const PUBLIC_PREFIXES = ["/", "/login", "/auth", "/invito", "/eventi", "/api/cron", "/api/app"];
+/**
+ * Public paths that never require a session (/api/app: mobile app endpoints, which check the bearer token themselves;
+ * /pass: crew passes, opened from the link by people without an account).
+ */
+const PUBLIC_PREFIXES = ["/", "/login", "/auth", "/invito", "/eventi", "/api/cron", "/api/app", "/pass"];
 
 function isPublic(pathname: string) {
   return PUBLIC_PREFIXES.some((p) => (p === "/" ? pathname === "/" : pathname === p || pathname.startsWith(`${p}/`)));

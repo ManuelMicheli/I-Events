@@ -275,6 +275,21 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await expect(beta.page.getByText("0 di 2 arrivati")).toBeVisible();
   await expect(beta.page.getByRole("link", { name: "WhatsApp a Sara Bianchi" })).toHaveAttribute("href", "https://wa.me/393331234567");
 
+  // Sara gets her pass on WhatsApp and opens it without an account: the QR to show at the entrance.
+  const sendPass = beta.page.getByRole("link", { name: "Invia il pass a Sara Bianchi su WhatsApp" });
+  await expect(sendPass).toHaveAttribute("href", /^https:\/\/wa\.me\/393331234567\?text=.*%2Fpass%2F[0-9a-f]{32}$/);
+  const passLink = await beta.page.getByRole("link", { name: "Apri il pass di Sara Bianchi" }).getAttribute("href");
+  const guest = await browser.newPage();
+  await guest.goto(passLink!);
+  const pass = guest.getByRole("article", { name: "Pass di Sara Bianchi" });
+  await expect(pass).toContainText("Hostess");
+  await expect(pass).toContainText("18:30");
+  await expect(pass.getByRole("img", { name: "Codice QR del pass" }).locator("svg")).toBeVisible();
+  await expect(pass).toContainText(passLink!.slice(-32, -26).toUpperCase());
+  await guest.goto(passLink!.replace(/[0-9a-f]{32}$/, "0".repeat(32)));
+  await expect(guest.getByRole("heading", { name: "Pass non trovato" })).toBeVisible();
+  await guest.close();
+
   // On the day, from a phone at 18:20: the briefing is on, security is late. Check-ins work offline.
   const runOfShow = new URL(beta.page.url()).pathname;
   const phone = await beta.page.context().newPage();

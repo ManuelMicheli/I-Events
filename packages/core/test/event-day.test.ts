@@ -4,11 +4,17 @@ import {
   crewMembers,
   dequeueCheckins,
   enqueueCheckin,
+  findPass,
   eventDays,
   keepDayOnPhone,
   liveDay,
   parseCheckinQueue,
+  passCode,
+  passFitsNow,
+  passUrl,
+  readPass,
   withPendingCheckins,
+  withSentCheckins,
   type CrewRow,
 } from "../src";
 
@@ -137,5 +143,55 @@ describe("event day", () => {
     expect(keepDayOnPhone(e("2027-06-10", "2027-06-12"), "2027-06-13")).toBe(false);
     expect(keepDayOnPhone(e("2027-06-12", null, "cancelled"), "2027-06-12")).toBe(false);
     expect(keepDayOnPhone(e(null), "2027-06-12")).toBe(false);
+  });
+
+  it("reads passes from the QR code or the short code", () => {
+    const token = "4f7a2c0123456789abcdef0123456789";
+    expect(passUrl("https://i-events.app/", token)).toBe(`https://i-events.app/pass/${token}`);
+    expect(passCode(token)).toBe("4F7A2C");
+    expect(readPass(`https://i-events.app/pass/${token}`)).toEqual({ token });
+    expect(readPass(`https://i-events.app/pass/${token.toUpperCase()}?utm=wa`)).toEqual({ token });
+    expect(readPass(` ${token} `)).toEqual({ token });
+    expect(readPass("4F7 A2C")).toEqual({ code: "4f7a2c" });
+    expect(readPass("https://example.com/biglietto/123")).toBeNull();
+    expect(readPass("4F7A2")).toBeNull();
+    expect(readPass("")).toBeNull();
+  });
+
+  it("finds whose pass it is", () => {
+    const crew = [
+      { id: "a", pass: "4f7a2c0123456789abcdef0123456789" },
+      { id: "b", pass: "99aa000000000000000000000000000b" },
+      { id: "c", pass: "99aa000000000000000000000000000c" },
+      { id: "d", pass: null },
+    ];
+    expect(findPass(crew, { token: "4f7a2c0123456789abcdef0123456789" })?.id).toBe("a");
+    expect(findPass(crew, { code: "4f7a2c" })?.id).toBe("a");
+    expect(findPass(crew, { code: "99aa00" })).toBeUndefined();
+    expect(findPass(crew, { token: "ffffffffffffffffffffffffffffffff" })).toBeUndefined();
+  });
+
+  it("accepts a pass on its day and through the night after it", () => {
+    expect(passFitsNow("2027-06-12", { day: "2027-06-12", time: "09:00" })).toBe(true);
+    expect(passFitsNow("2027-06-12", { day: "2027-06-13", time: "01:30" })).toBe(true);
+    expect(passFitsNow("2027-06-12", { day: "2027-06-13", time: "07:00" })).toBe(false);
+    expect(passFitsNow("2027-06-13", { day: "2027-06-12", time: "23:00" })).toBe(false);
+  });
+
+  it("keeps check-ins already sent until the next load includes them", () => {
+    const crew = [
+      { id: "a", checked_in_at: null },
+      { id: "b", checked_in_at: "2027-06-12T15:00:00Z" },
+    ];
+    expect(
+      withSentCheckins(crew, [
+        { id: "a", at: "2027-06-12T16:00:00Z" },
+        { id: "b", at: null },
+      ]),
+    ).toEqual([
+      { id: "a", checked_in_at: "2027-06-12T16:00:00Z" },
+      { id: "b", checked_in_at: null },
+    ]);
+    expect(withSentCheckins(crew, [])).toEqual(crew);
   });
 });
