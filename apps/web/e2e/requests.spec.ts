@@ -30,9 +30,13 @@ async function agencyWithInvite(browser: Browser, name: string) {
   return { page, invite: new URL(link).pathname };
 }
 
-async function answerRequest(page: Page, title: string, amounts: [string, string]) {
-  await page.goto("/pro");
-  await page.getByRole("link", { name: title }).click();
+const pdf = (name: string) => ({ name, mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4\n% I-Events test\n") });
+
+async function answerRequest(page: Page, title: string, amounts: [string, string], file?: string) {
+  // The agency arrives from its notification, which opens the report directly.
+  await page.goto("/notifiche");
+  await page.getByRole("link", { name: /Nuova richiesta da Brand/ }).click();
+  await expect(page).toHaveURL(/\/pro\/richieste\//);
   await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
   await expect(page.getByText("Addetti alla sicurezza")).toBeVisible();
   await page.getByRole("button", { name: "Prendi in carico" }).click();
@@ -40,6 +44,10 @@ async function answerRequest(page: Page, title: string, amounts: [string, string
   await page.getByLabel("Sintesi per l'azienda").fill("Squadra completa con coordinatore dedicato.");
   await page.getByLabel("Importo").nth(0).fill(amounts[0]);
   await page.getByLabel("Importo").nth(1).fill(amounts[1]);
+  if (file) {
+    await page.getByLabel("Aggiungi file").setInputFiles(pdf(file));
+    await expect(page.getByRole("link", { name: file })).toBeVisible();
+  }
   await page.getByRole("button", { name: "Invia proposta all'azienda" }).click();
   await expect(page.getByText("Proposta inviata", { exact: true })).toBeVisible();
 }
@@ -79,6 +87,8 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await client.getByLabel("Formula *").selectOption("buffet");
   await client.getByRole("button", { name: "Avanti" }).click();
   await client.getByLabel("Richieste libere").fill("Vorremmo un angolo per le foto con il prodotto.");
+  await client.getByLabel("Aggiungi file").setInputFiles(pdf("Planimetria sala è.pdf"));
+  await expect(client.getByRole("link", { name: "Planimetria sala è.pdf" })).toBeVisible();
   await client.getByRole("button", { name: "Avanti" }).click();
   await client.getByLabel(new RegExp(`Alfa ${run}`)).check();
   await client.getByLabel(new RegExp(`Beta ${run}`)).check();
@@ -88,7 +98,11 @@ test("client sends a request to two agencies, compares proposals and accepts one
   const requestUrl = new URL(client.url()).pathname;
 
   // Both agencies read the brief and answer.
-  await answerRequest(alfa.page, title, ["1500", "3000"]);
+  await alfa.page.reload();
+  await expect(alfa.page.getByRole("link", { name: "Notifiche, 1 non lette" })).toBeVisible();
+  await answerRequest(alfa.page, title, ["1500", "3000"], "Preventivo Alfa.pdf");
+  const brief = alfa.page.getByRole("link", { name: "Planimetria sala è.pdf" });
+  expect((await alfa.page.request.get((await brief.getAttribute("href"))!)).status()).toBe(200);
   await answerRequest(beta.page, title, ["1200", "2500"]);
   await alfa.page.getByLabel("Messaggio").fill("Il parcheggio per i fornitori è disponibile?");
   await alfa.page.getByRole("button", { name: "Invia", exact: true }).click();
@@ -98,6 +112,11 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await client.goto(requestUrl);
   await expect(client.getByRole("heading", { name: "Confronto voce per voce" })).toBeVisible();
   await expect(client.getByRole("row", { name: new RegExp(`Beta ${run}.*più bassa`) })).toBeVisible();
+  await expect(client.getByRole("link", { name: "Preventivo Alfa.pdf" })).toBeVisible();
+  await client.goto("/notifiche");
+  await expect(client.getByText(`Nuova proposta da Alfa ${run}`)).toBeVisible();
+  await expect(client.getByText(`Nuovo messaggio da Alfa ${run}`)).toBeVisible();
+  await client.goto(requestUrl);
   await client.locator("summary", { hasText: `Alfa ${run}` }).click();
   await expect(client.getByText("Il parcheggio per i fornitori è disponibile?")).toBeVisible();
   const alfaCard = client.locator("section", { has: client.getByRole("heading", { name: new RegExp(`Proposta di Alfa ${run}`) }) });

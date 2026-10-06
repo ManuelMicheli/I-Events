@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { env } from "../env";
 
 /** Public paths that never require a session. */
-const PUBLIC_PREFIXES = ["/", "/login", "/auth", "/invito", "/eventi"];
+const PUBLIC_PREFIXES = ["/", "/login", "/auth", "/invito", "/eventi", "/api/cron"];
 
 function isPublic(pathname: string) {
   return PUBLIC_PREFIXES.some((p) => (p === "/" ? pathname === "/" : pathname === p || pathname.startsWith(`${p}/`)));

@@ -1,3 +1,4 @@
+import { Attachments } from "@/components/attachments/attachments";
 import { BriefView } from "@/components/brief/brief-view";
 import { MessageThread } from "@/components/messages";
 import { ProposalLines } from "@/components/proposal-lines";
@@ -166,6 +167,9 @@ export default async function ClientRequestPage({ params }: { params: Promise<{ 
         <Card key={p.id} title={`Proposta di ${p.agency?.name} · versione ${p.version}`} action={<span className="text-sm text-muted">{PROPOSAL_STATUS_LABEL[p.status]}</span>}>
           {p.summary && <p className="mb-4 whitespace-pre-wrap text-sm">{p.summary}</p>}
           <ProposalLines lines={p.lines} total={p.total} />
+          <div className="mt-4">
+            <Attachments requestId={id} proposalId={p.id} canWrite={false} path={path} title="Allegati della proposta" />
+          </div>
           {open && p.status === "submitted" && (
             <div className="mt-4">
               <DecisionForms proposalId={p.id} requestId={id} agencyName={p.agency?.name ?? "questa agenzia"} />
@@ -189,6 +193,7 @@ export default async function ClientRequestPage({ params }: { params: Promise<{ 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Il tuo brief</h2>
         <BriefView request={request} />
+        <Attachments requestId={id} canWrite={open} path={path} title="I tuoi allegati" emptyText="Nessun allegato. Puoi aggiungerne finché la richiesta è aperta." />
       </section>
     </>
   );

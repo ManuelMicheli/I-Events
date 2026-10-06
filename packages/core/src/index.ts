@@ -6,3 +6,5 @@ export * from "./requests";
 export * from "./invitations";
 export * from "./answers";
 export * from "./proposals";
+export * from "./attachments";
+export * from "./notifications";

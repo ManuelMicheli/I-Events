@@ -4,7 +4,7 @@ import { dbErrorMessage } from "@/lib/labels";
 import { draftToPayload } from "@/lib/requests";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
-import { normalizeDraft, requestDraftSchema, submissionIssues } from "@i-events/core";
+import { ATTACHMENTS_BUCKET, normalizeDraft, requestDraftSchema, submissionIssues } from "@i-events/core";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -60,6 +60,9 @@ export async function deleteDraft(form: FormData) {
   await requireOrg("client");
   const id = z.uuid().parse(form.get("id"));
   const supabase = await createClient();
+  // Files first: the rows that grant access to them go away with the request.
+  const { data: files } = await supabase.from("request_attachments").select("storage_path").eq("request_id", id);
+  if (files?.length) await supabase.storage.from(ATTACHMENTS_BUCKET).remove(files.map((f) => f.storage_path));
   const { error } = await supabase.from("requests").delete().eq("id", id).eq("status", "draft");
   if (error) throw error;
   revalidatePath("/client");
