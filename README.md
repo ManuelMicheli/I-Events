@@ -55,4 +55,10 @@ pnpm --filter @i-events/core catalog:sql
 - `import_contacts` unisce con i contatti già presenti per email o telefono: completa i campi vuoti e aggiunge servizi, non sovrascrive mai.
 - La proposta dei servizi passa da `getServiceClassifier()` in `apps/web/src/lib/service-classifier.ts`. Con `TYPESAFE_API_KEY` impostata usa Jev (TypeSafe AI): ogni contatto diventa una domanda a scelta sulle categorie del catalogo, fino a 32 contatti per richiesta. Se Jev risponde con un errore, non è sicuro o supera il tempo massimo (12 secondi per tutto l'import), per quel contatto restano le regole per parole chiave, che sono anche l'unico metodo senza chiave. Facoltativi: `TYPESAFE_MODEL` (predefinito `jev-latest`) e `TYPESAFE_BASE_URL`.
 
+## Spazio di lavoro dell'evento
+
+- Quando il cliente accetta una proposta, ogni evento creato parte con una prenotazione per ciascun servizio richiesto nel brief (`event_bookings`). L'agenzia ne può aggiungere o togliere.
+- Per ogni servizio l'agenzia sceglie un fornitore dalla rubrica, segue lo stato (da prenotare, richiesto, confermato, annullato) e segna costo previsto e reale. Un servizio si può confermare solo dopo aver scelto il fornitore.
+- `/pro/eventi/[id]` mostra il budget: venduto al cliente (le voci della proposta accettata, solo per eventi singoli), costi e margine stimato. Fornitori e costi restano interni all'agenzia: il cliente non li vede.
+
 Gli stati cambiano solo tramite le funzioni `submit_request`, `submit_proposal`, `request_revision`, `accept_proposal` e `set_proposal_status`.

@@ -144,4 +144,43 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await expect(alfa.page.getByText("L'azienda ha scelto un'altra proposta.")).toBeVisible();
   await beta.page.reload();
   await expect(beta.page.getByText("L'azienda ha scelto la tua proposta.", { exact: false })).toBeVisible();
+  const proposalUrl = new URL(beta.page.url()).pathname;
+
+  // Beta runs the event: picks its security supplier from the address book and tracks costs.
+  await beta.page.goto("/pro/rubrica/importa");
+  await beta.page.getByLabel("Contatti da incollare").fill("Vigilanza Rossi 333 4445566");
+  await beta.page.getByRole("button", { name: "Riconosci contatti" }).click();
+  await expect(beta.page.getByLabel("Servizio di Vigilanza Rossi")).toHaveValue("security");
+  await beta.page.getByRole("button", { name: "Importa 1 contatto" }).click();
+  await expect(beta.page.getByText("1 nuovo contatto")).toBeVisible();
+
+  await beta.page.goto(proposalUrl);
+  await beta.page.getByRole("link", { name: "Apri lo spazio evento" }).click();
+  await expect(beta.page.getByRole("heading", { level: 1, name: title })).toBeVisible();
+  await expect(beta.page.getByText("0 di 2 confermati")).toBeVisible();
+  const security = beta.page.getByRole("listitem", { name: "Sicurezza e steward" });
+  await security.getByLabel("Fornitore Sicurezza e steward").selectOption({ label: "Vigilanza Rossi" });
+  await expect(security.getByRole("link", { name: "WhatsApp a Vigilanza Rossi" })).toBeVisible();
+  await security.getByLabel("Stato Sicurezza e steward").selectOption("confirmed");
+  await security.getByLabel("Costo previsto Sicurezza e steward").fill("900");
+  await security.getByLabel("Costo reale Sicurezza e steward").fill("950");
+  await security.getByRole("button", { name: "Salva Sicurezza e steward" }).click();
+  await expect(security.getByText("Sicurezza e steward salvato.")).toBeVisible();
+  const catering = beta.page.getByRole("listitem", { name: "Catering e bar" });
+  await catering.getByLabel("Stato Catering e bar").selectOption("confirmed");
+  await catering.getByRole("button", { name: "Salva Catering e bar" }).click();
+  await expect(catering.getByText("Scegli prima il fornitore")).toBeVisible();
+  await catering.getByLabel("Stato Catering e bar").selectOption("to_book");
+  await catering.getByLabel("Costo previsto Catering e bar").fill("1800");
+  await catering.getByRole("button", { name: "Salva Catering e bar" }).click();
+  await expect(catering.getByText("Catering e bar salvato.")).toBeVisible();
+
+  // Sold 3700 (1200 + 2500), forecast cost 950 + 1800: margin 950.
+  await beta.page.reload();
+  await expect(beta.page.getByText("1 di 2 confermati")).toBeVisible();
+  await expect(beta.page.getByRole("definition").filter({ hasText: "%" })).toHaveText(/^950,00\s€26%$/);
+  await beta.page.getByRole("button", { name: "Passa in preparazione" }).click();
+  await expect(beta.page.getByText("In preparazione", { exact: true })).toBeVisible();
+  await beta.page.goto("/pro/eventi");
+  await expect(beta.page.getByRole("row", { name: new RegExp(`${title}.*1/2 confermati.*In preparazione`) })).toBeVisible();
 });
