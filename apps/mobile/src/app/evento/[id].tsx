@@ -1,8 +1,9 @@
-import { agendaSection, formatEventDates, getServiceCategory, todayInItaly } from "@i-events/core";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { agendaSection, formatEventDates, getServiceCategory, keepDayOnPhone, todayInItaly } from "@i-events/core";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
+import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
-import { Badge } from "@/components/badge";
+import { Badge, LiveDot } from "@/components/badge";
 import { Button } from "@/components/button";
 import { Card, TicketDivider } from "@/components/card";
 import { Divider, InfoRow } from "@/components/rows";
@@ -10,6 +11,7 @@ import { Screen, Section } from "@/components/screen";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
 import { fetchEvent } from "@/lib/data";
+import { prefetchEventDay } from "@/lib/event-day";
 import { env } from "@/lib/env";
 import { useActiveOrg } from "@/lib/session";
 import { bookingStatusLook, eventStatusLook, quoteStatusLook } from "@/lib/status-look";
@@ -21,6 +23,12 @@ export default function EventScreen() {
   const org = useActiveOrg();
   const q = useQuery(`event:${id}:${org.id}`, () => fetchEvent(id, org.id));
   const e = q.data;
+  const keepDay = e?.side === "agency" && keepDayOnPhone(e, todayInItaly());
+
+  // Around the event, the day is saved on the phone now, while there is signal.
+  useEffect(() => {
+    if (keepDay) void prefetchEventDay(id, org.id);
+  }, [keepDay, id, org.id]);
 
   if (q.loading)
     return (
@@ -66,6 +74,26 @@ export default function EventScreen() {
           <InfoRow label={e.side === "agency" ? "Cliente" : "Agenzia"} value={e.side === "agency" ? e.client.name : e.agency.name} />
         </View>
       </Card>
+
+      {e.side === "agency" && (
+        <Card>
+          <View style={styles.dayHead}>
+            {live && <LiveDot />}
+            <T variant="bodyStrong" style={styles.flex}>
+              Giornata dell&apos;evento
+            </T>
+          </View>
+          <T variant="callout" tone="secondary">
+            Scaletta e check-in degli arrivi, anche senza rete: restano sul telefono e partono appena torna la connessione.
+          </T>
+          <Button
+            variant={live ? "primary" : "secondary"}
+            icon="today-outline"
+            label="Apri la giornata"
+            onPress={() => router.push({ pathname: "/giornata/[id]", params: { id: e.id } })}
+          />
+        </Card>
+      )}
 
       {e.side === "agency" && (
         <Section
@@ -135,4 +163,5 @@ const styles = StyleSheet.create({
   booking: { gap: space[1], paddingVertical: space[3] },
   bookingHead: { flexDirection: "row", alignItems: "flex-start", gap: space[3] },
   flex: { flex: 1 },
+  dayHead: { flexDirection: "row", alignItems: "center", gap: space[2] },
 });

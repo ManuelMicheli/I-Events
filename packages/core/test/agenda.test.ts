@@ -51,6 +51,8 @@ describe("notification links in the app", () => {
     expect(appRouteForLink(`/pro/eventi/${id}`)).toEqual({ pathname: "/evento/[id]", params: { id } });
     expect(appRouteForLink(`/client/eventi/${id}`)).toEqual({ pathname: "/evento/[id]", params: { id } });
     expect(appRouteForLink(`/pro/eventi/${id}/scaletta`)).toEqual({ pathname: "/evento/[id]", params: { id } });
+    expect(appRouteForLink(`/pro/eventi/${id}/live`)).toEqual({ pathname: "/giornata/[id]", params: { id } });
+    expect(appRouteForLink(`/pro/eventi/${id}/live?giorno=2`)).toEqual({ pathname: "/giornata/[id]", params: { id } });
     expect(appRouteForLink(`/supplier/richieste/${id}`)).toEqual({ pathname: "/richiesta/[id]", params: { id } });
     expect(appRouteForLink("/supplier/richieste")).toEqual({ pathname: "/" });
   });

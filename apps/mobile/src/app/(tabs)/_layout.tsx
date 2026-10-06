@@ -1,6 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useCheckinAutoSync } from "@/lib/checkin-queue";
 import { usePushNotifications } from "@/lib/open-notification";
 import { useActiveOrg } from "@/lib/session";
 import { useUnreadCount } from "@/lib/unread";
@@ -15,6 +16,7 @@ export default function TabsLayout() {
   const org = useActiveOrg();
   const unread = useUnreadCount();
   usePushNotifications();
+  useCheckinAutoSync();
   const insets = useSafeAreaInsets();
   const home = org.type === "supplier" ? "Richieste" : "Eventi";
   return (

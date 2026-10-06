@@ -1,25 +1,8 @@
 import "server-only";
-import type { CrewMember } from "@/components/run-of-show/crew";
 import type { ScheduleItem } from "@/components/run-of-show/schedule";
 import { createClient } from "@/lib/supabase/server";
-import { getServiceCategory, todayInItaly } from "@i-events/core";
+import { crewMembers, eventDays, getServiceCategory, todayInItaly } from "@i-events/core";
 import { notFound } from "next/navigation";
-
-const addDays = (d: string, n: number) => {
-  const x = new Date(`${d}T12:00:00Z`);
-  x.setUTCDate(x.getUTCDate() + n);
-  return x.toISOString().slice(0, 10);
-};
-
-/** The event's days: from start to end date (at most two weeks), plus any day already planned. */
-function eventDays(start: string | null, end: string | null, used: string[]) {
-  const days = new Set(used);
-  if (start) {
-    const last = end && end > start ? end : start;
-    for (let d = start, i = 0; d <= last && i < 14; d = addDays(d, 1), i++) days.add(d);
-  }
-  return [...days].sort();
-}
 
 /** Everything the run of show pages need for one of the agency's events. */
 export async function loadRunOfShow(eventId: string, orgId: string) {
@@ -72,32 +55,7 @@ export async function loadRunOfShow(eventId: string, orgId: string) {
     label: m.profiles?.full_name || "Collega senza nome",
   }));
 
-  const crew: CrewMember[] = crewRes.data!.map((c) => {
-    const booking = c.booking_id ? bookingRows.find((b) => b.id === c.booking_id) : undefined;
-    const base = {
-      id: c.id,
-      day: c.day,
-      call_time: c.call_time,
-      checked_in_at: c.checked_in_at,
-      role: c.role,
-    };
-    if (booking) {
-      return {
-        ...base,
-        kind: "supplier",
-        name: booking.contact?.company || booking.contact?.name || serviceName(booking.service_key),
-        detail: [serviceName(booking.service_key), c.role].filter(Boolean).join(" · "),
-        phone: booking.contact?.phone ?? null,
-      };
-    }
-    return {
-      ...base,
-      kind: c.user_id ? "staff" : "external",
-      name: c.user_id ? c.profile?.full_name || "Collega senza nome" : (c.name ?? ""),
-      detail: c.role,
-      phone: c.phone,
-    };
-  });
+  const crew = crewMembers(crewRes.data!, bookingRows);
   const items: ScheduleItem[] = itemsRes.data!;
   const days = eventDays(event.start_date, event.end_date, [...items.map((i) => i.day), ...crew.map((c) => c.day)]);
   const listedBookings = new Set(crewRes.data!.map((c) => `${c.day}|${c.booking_id}`));

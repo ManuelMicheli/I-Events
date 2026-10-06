@@ -7,6 +7,7 @@ import { ActivityIndicator, FlatList, Linking, Pressable, ScrollView, StyleSheet
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/button";
 import { ListRow } from "@/components/rows";
+import { Segmented } from "@/components/segmented";
 import { Sheet } from "@/components/sheet";
 import { T } from "@/components/text";
 import { InlineError, TextField } from "@/components/text-field";
@@ -377,30 +378,6 @@ function ContactRow({ contact, selected, onToggle, onEdit }: { contact: ContactD
   );
 }
 
-function Segmented<V extends string>({ value, options, onChange }: { value: V; options: { value: V; label: string }[]; onChange: (v: V) => void }) {
-  const { c } = useTheme();
-  return (
-    <View style={[styles.segmented, { backgroundColor: c.bgSubtle }]} accessibilityRole="tablist">
-      {options.map((o) => {
-        const on = o.value === value;
-        return (
-          <Pressable
-            key={o.value}
-            onPress={() => onChange(o.value)}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: on }}
-            style={[styles.segment, on && { backgroundColor: c.bgSurface, borderColor: c.borderDefault }]}
-          >
-            <T variant={on ? "calloutStrong" : "callout"} tone={on ? "primary" : "secondary"} style={styles.center}>
-              {o.label}
-            </T>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
 function ServicesSheet({ contact, onChange, onClose }: { contact: ContactDraft | null; onChange: (s: ServiceKey[]) => void; onClose: () => void }) {
   const current = contact?.services ?? [];
   return (
@@ -430,17 +407,6 @@ const styles = StyleSheet.create({
   iconCircle: { width: 64, height: 64, borderRadius: radius.full, alignItems: "center", justifyContent: "center", marginBottom: space[2] },
   list: { paddingHorizontal: space[4], paddingBottom: space[6] },
   listHeader: { gap: space[4], paddingTop: space[4], paddingBottom: space[3] },
-  segmented: { flexDirection: "row", borderRadius: radius.md, padding: space[1], gap: space[1] },
-  segment: {
-    flex: 1,
-    minHeight: control.touch,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: space[2],
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: "transparent",
-  },
   row: { flexDirection: "row", alignItems: "center", gap: space[1] },
   rowMain: {
     flex: 1,

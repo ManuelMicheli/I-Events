@@ -1,10 +1,12 @@
 "use client";
 
+import { dequeueCheckins, enqueueCheckin, parseCheckinQueue, type PendingCheckin } from "@i-events/core";
+
 /**
  * Check-ins waiting to reach the server, kept on the device so they survive a dropped connection
  * or a closed tab. One entry per person: the latest tap wins.
  */
-export type PendingCheckin = { id: string; at: string | null };
+export type { PendingCheckin };
 
 const key = (eventId: string) => `ie-checkins-${eventId}`;
 const listeners = new Set<() => void>();
@@ -17,14 +19,7 @@ export function readQueue(eventId: string): string {
   }
 }
 
-export function parseQueue(raw: string): PendingCheckin[] {
-  try {
-    const v = JSON.parse(raw);
-    return Array.isArray(v) ? v.filter((e) => typeof e?.id === "string" && (e.at === null || typeof e.at === "string")) : [];
-  } catch {
-    return [];
-  }
-}
+export const parseQueue = parseCheckinQueue;
 
 function writeQueue(eventId: string, entries: PendingCheckin[]) {
   try {
@@ -37,15 +32,12 @@ function writeQueue(eventId: string, entries: PendingCheckin[]) {
 }
 
 export function enqueue(eventId: string, entry: PendingCheckin) {
-  writeQueue(eventId, [...parseQueue(readQueue(eventId)).filter((e) => e.id !== entry.id), entry]);
+  writeQueue(eventId, enqueueCheckin(parseQueue(readQueue(eventId)), entry));
 }
 
 /** Drops the entries that were sent, unless they changed in the meantime. */
 export function dequeue(eventId: string, sent: PendingCheckin[]) {
-  writeQueue(
-    eventId,
-    parseQueue(readQueue(eventId)).filter((e) => !sent.some((s) => s.id === e.id && s.at === e.at)),
-  );
+  writeQueue(eventId, dequeueCheckins(parseQueue(readQueue(eventId)), sent));
 }
 
 export function subscribeQueue(onChange: () => void) {

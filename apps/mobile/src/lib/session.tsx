@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Session } from "@supabase/supabase-js";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { pickActiveOrg, type MyOrg } from "./active-org";
+import { forgetSavedDays } from "./event-day";
 import { unregisterPushToken } from "./push";
 import { supabase } from "./supabase";
 
@@ -88,6 +89,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     await unregisterPushToken().catch(() => {});
     await supabase.auth.signOut();
     await AsyncStorage.removeItem(ACTIVE_ORG_KEY).catch(() => {});
+    await forgetSavedDays();
     setSavedOrgId(null);
   }, []);
 

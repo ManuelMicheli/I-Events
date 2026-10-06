@@ -1,11 +1,13 @@
-import { agendaSections, formatEventDates, getServiceCategory, todayInItaly, type AgendaSection, type SupplierRequestBucket } from "@i-events/core";
+import { agendaSections, formatEventDates, getServiceCategory, keepDayOnPhone, todayInItaly, type AgendaSection, type SupplierRequestBucket } from "@i-events/core";
 import { router } from "expo-router";
+import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { EventCard } from "@/components/event-card";
 import { OrgSwitcher } from "@/components/org-switcher";
 import { Screen, Section } from "@/components/screen";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { fetchAgencyEvents, fetchClientEvents, fetchSupplierRequests, type SupplierRequest } from "@/lib/data";
+import { prefetchEventDay } from "@/lib/event-day";
 import { useActiveOrg, type MyOrgType } from "@/lib/session";
 import { eventStatusLook, quoteStatusLook, supplierBucketLook } from "@/lib/status-look";
 import { useQuery } from "@/lib/use-query";
@@ -25,6 +27,13 @@ type EventRow = Awaited<ReturnType<typeof fetchAgencyEvents>>[number] | Awaited<
 function EventsHome({ orgId, side }: { orgId: string; side: Exclude<MyOrgType, "supplier"> }) {
   const q = useQuery<EventRow[]>(`events:${side}:${orgId}`, () => (side === "agency" ? fetchAgencyEvents(orgId) : fetchClientEvents(orgId)));
   const sections = q.data ? agendaSections(q.data, todayInItaly()) : null;
+
+  // The agency's events of these days are saved on the phone while there is signal, ready for the venue.
+  const toKeep = side === "agency" && q.data ? q.data.filter((e) => keepDayOnPhone(e, todayInItaly())).map((e) => e.id) : [];
+  const toKeepKey = toKeep.join(",");
+  useEffect(() => {
+    for (const id of toKeepKey ? toKeepKey.split(",") : []) void prefetchEventDay(id, orgId);
+  }, [toKeepKey, orgId]);
 
   const detail = (e: EventRow) => {
     if ("bookings" in e) return e.bookings.total > 0 ? `${e.bookings.confirmed} su ${e.bookings.total} fornitori confermati` : undefined;
