@@ -4,6 +4,7 @@ import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button } from "@/components/button";
 import { Card } from "@/components/card";
+import { PushSetting } from "@/components/push-prompt";
 import { Divider, ListRow } from "@/components/rows";
 import { Screen, Section } from "@/components/screen";
 import { T } from "@/components/text";
@@ -31,6 +32,8 @@ export default function AccountScreen() {
           {session?.user.email}
         </T>
       </Card>
+
+      <PushSetting />
 
       <Section title="Organizzazioni">
         <Card style={styles.list}>

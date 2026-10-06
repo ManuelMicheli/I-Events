@@ -936,6 +936,8 @@ export type Database = {
           kind: string;
           link: string | null;
           org_id: string;
+          push_status: string;
+          pushed_at: string | null;
           read_at: string | null;
           title: string;
           user_id: string;
@@ -949,6 +951,8 @@ export type Database = {
           kind: string;
           link?: string | null;
           org_id: string;
+          push_status?: string;
+          pushed_at?: string | null;
           read_at?: string | null;
           title: string;
           user_id: string;
@@ -962,6 +966,8 @@ export type Database = {
           kind?: string;
           link?: string | null;
           org_id?: string;
+          push_status?: string;
+          pushed_at?: string | null;
           read_at?: string | null;
           title?: string;
           user_id?: string;
@@ -1194,6 +1200,38 @@ export type Database = {
             columns: ["request_id"];
             isOneToOne: false;
             referencedRelation: "requests";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      push_tokens: {
+        Row: {
+          created_at: string;
+          last_seen_at: string;
+          platform: string;
+          token: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          last_seen_at?: string;
+          platform: string;
+          token: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          last_seen_at?: string;
+          platform?: string;
+          token?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "push_tokens_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -1647,6 +1685,20 @@ export type Database = {
           user_id: string;
         }[];
       };
+      claim_notification_pushes: {
+        Args: { p_limit?: number };
+        Returns: {
+          body: string;
+          id: string;
+          kind: string;
+          link: string;
+          org_id: string;
+          title: string;
+          tokens: string[];
+          unread: number;
+          user_id: string;
+        }[];
+      };
       create_organization: {
         Args: {
           p_city?: string;
@@ -1668,6 +1720,10 @@ export type Database = {
         }[];
       };
       finish_notification_emails: {
+        Args: { p_ids: string[]; p_status: string };
+        Returns: undefined;
+      };
+      finish_notification_pushes: {
         Args: { p_ids: string[]; p_status: string };
         Returns: undefined;
       };
@@ -1767,6 +1823,8 @@ export type Database = {
           valid: boolean;
         }[];
       };
+      register_push_token: { Args: { p_platform: string; p_token: string }; Returns: undefined };
+      remove_push_tokens: { Args: { p_tokens: string[] }; Returns: undefined };
       reply_to_review: { Args: { p_reply: string; p_review: string }; Returns: undefined };
       request_revision: { Args: { p_note: string; p_proposal: string }; Returns: undefined };
       respond_to_booking: {
@@ -1872,6 +1930,7 @@ export type Database = {
           day: string;
         }[];
       };
+      unregister_push_token: { Args: { p_token: string }; Returns: undefined };
       valid_services: { Args: { p_services: string[] }; Returns: string[] };
     };
     Enums: {

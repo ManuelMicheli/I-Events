@@ -55,6 +55,7 @@ pnpm --filter @i-events/core catalog:sql
 - Gli allegati stanno nel bucket privato `attachments` di Supabase Storage. Ogni file ha una riga in `request_attachments` e Storage concede lettura, caricamento e rimozione solo a chi può farlo su quella riga.
 - Le notifiche nascono da trigger nel database (nuova richiesta, proposta, modifiche, decisione, messaggi) e si vedono in `/notifiche`.
 - `GET /api/cron/notifications` invia a ogni persona un riepilogo email delle notifiche non lette, tramite Resend. Va chiamato dallo scheduler con `Authorization: Bearer $CRON_SECRET` (su Vercel lo fa `apps/web/vercel.json` ogni 10 minuti; i cron così frequenti richiedono il piano Pro). Servono `SUPABASE_SECRET_KEY`, `CRON_SECRET`, `RESEND_API_KEY` ed `EMAIL_FROM`; senza Resend le notifiche restano solo nell'app.
+- `GET /api/cron/push` invia le stesse notifiche come push ai telefoni dove l'app è aperta con quell'account, tramite il servizio push di Expo, ogni minuto (stesso `CRON_SECRET`). Partono solo le notifiche non lette di meno di un'ora; i telefoni dove l'app è stata disinstallata vengono dimenticati. `EXPO_ACCESS_TOKEN` serve solo se nel progetto Expo è attiva la sicurezza dei push.
 
 ## Rubrica e import contatti
 
@@ -112,4 +113,5 @@ Gli stati cambiano solo tramite le funzioni `submit_request`, `submit_proposal`,
 
 - `apps/mobile` è un'app Expo Router che parla direttamente con Supabase, con la sessione dell'utente e le stesse regole (RLS e RPC) del sito. Etichette, stati e logica condivisa vengono da `packages/core`.
 - Accesso con email e password, scelta dell'organizzazione attiva (ricordata sul dispositivo), eventi dell'agenzia o dell'azienda divisi in corso, in programma e conclusi, richieste ricevute dal fornitore, notifiche e account. Le notifiche aprono la schermata dell'app quando esiste (`appRouteForLink` in `packages/core`), altrimenti la pagina del sito.
+- Notifiche push: l'app chiede il permesso dalla schermata Notifiche (o dall'account), registra il telefono con `register_push_token` e lo toglie all'uscita; toccando una push si apre la schermata giusta nell'organizzazione giusta e il numero sull'icona segue le notifiche da leggere. Per ricevere push servono un progetto EAS (`npx eas init` in `apps/mobile` scrive `extra.eas.projectId` in `app.json`) e, su Android, una development build: Expo Go non riceve più push su Android. Le credenziali Apple e Firebase si configurano con `eas credentials`.
 - Lo stile è Carta (`apps/mobile/src/theme/tokens.ts`): i contrasti di ogni coppia testo e sfondo, in chiaro e scuro, sono verificati dai test. Geist Mono è inclusa; General Sans va aggiunta in `apps/mobile/assets/fonts` e attivata in `fonts.sans`, finché manca si usa il carattere di sistema.

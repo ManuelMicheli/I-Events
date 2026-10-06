@@ -1,5 +1,6 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { AppState } from "react-native";
+import { setAppBadge } from "./push";
 import { supabase } from "./supabase";
 
 /** Unread notifications for the tab bar badge, shared by every screen that changes them. */
@@ -10,6 +11,7 @@ export async function refreshUnread() {
   const { count: n, error } = await supabase.from("notifications").select("id", { count: "exact", head: true }).is("read_at", null);
   if (error) return;
   count = n ?? 0;
+  setAppBadge(count);
   for (const l of listeners) l();
 }
 
