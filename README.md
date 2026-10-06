@@ -93,3 +93,9 @@ Gli stati cambiano solo tramite le funzioni `submit_request`, `submit_proposal`,
 - Dal profilo di un'agenzia l'azienda apre una nuova richiesta con quell'agenzia già scelta. Dal profilo di un fornitore l'agenzia lo aggiunge alla rubrica (`add_marketplace_supplier`), già collegato al suo account: un contatto con la stessa email o lo stesso telefono viene collegato invece di essere duplicato.
 - Il profilo può mostrare email e telefono pubblici, e su ogni scheda compaiono da quando è su I-Events e quanti eventi ha concluso.
 
+
+## Portfolio, recensioni e disponibilità
+
+- Agenzie e fornitori raccolgono nel portfolio i lavori passati con le foto (al massimo 30 lavori e 12 foto ciascuno). Le foto stanno nel bucket pubblico `portfolio`, ma si caricano solo al percorso di una riga di `portfolio_photos` creata da un titolare o amministratore.
+- Quando un evento è concluso l'azienda recensisce l'agenzia e l'agenzia i fornitori su I-Events che aveva confermato (`leave_review`); chi è recensito risponde dal proprio profilo (`reply_to_review`). Sul profilo pubblico compaiono media, recensioni e nome dell'organizzazione che le ha scritte, mai l'evento.
+- Il fornitore segna i giorni in cui non è disponibile in `/supplier/disponibilita`; i giorni degli eventi confermati si aggiungono da soli. Le agenzie vedono solo che è impegnato (`supplier_busy_days`), possono cercare fornitori liberi in una data e, nello spazio evento, vedono chi tra i fornitori in rubrica è già impegnato in quelle date (`event_busy_contacts`).

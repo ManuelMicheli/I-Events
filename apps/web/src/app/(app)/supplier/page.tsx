@@ -1,4 +1,6 @@
 import { ProfileForm } from "@/components/profile-form";
+import { OwnProfileExtras } from "@/components/profiles/own-profile";
+import { loadProfileExtras } from "@/lib/profiles";
 import { Card } from "@/components/ui";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
@@ -16,6 +18,7 @@ export default async function SupplierHome() {
   ]);
   if (error) throw error;
   if (e2) throw e2;
+  const extras = await loadProfileExtras(supabase, org.id, false);
   return (
     <>
       <div>
@@ -39,6 +42,7 @@ export default async function SupplierHome() {
         </Card>
       )}
       <ProfileForm profile={profile} canEdit={org.role === "owner" || org.role === "admin"} />
+      <OwnProfileExtras extras={extras} canEdit={org.role === "owner" || org.role === "admin"} />
     </>
   );
 }

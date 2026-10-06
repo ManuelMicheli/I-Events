@@ -1,3 +1,4 @@
+import { ReviewForm } from "@/components/profiles/review-forms";
 import { QuoteDecision } from "@/components/quotes/quote-decision";
 import { QuoteHistory, type SentQuote } from "@/components/quotes/quote-history";
 import { Card, Empty, Notice } from "@/components/ui";
@@ -22,19 +23,30 @@ export default async function ClientEventPage({ params }: { params: Promise<{ id
   const supabase = await createClient();
   const { data: event, error } = await supabase
     .from("events")
-    .select("id, title, status, start_date, end_date, city, venue, request_id, agency:organizations!events_agency_org_id_fkey(name)")
+    .select("id, title, status, start_date, end_date, city, venue, request_id, agency_org_id, agency:organizations!events_agency_org_id_fkey(name)")
     .eq("id", id)
     .eq("client_org_id", org.id)
     .maybeSingle();
   if (error) throw error;
   if (!event) notFound();
 
-  const { data, error: e2 } = await supabase
-    .from("event_quotes")
-    .select("id, version, status, lines, total_amount, note, decision_note, sent_at, decided_at")
-    .eq("event_id", id)
-    .order("version", { ascending: false });
+  const [{ data, error: e2 }, { data: review, error: e3 }] = await Promise.all([
+    supabase
+      .from("event_quotes")
+      .select("id, version, status, lines, total_amount, note, decision_note, sent_at, decided_at")
+      .eq("event_id", id)
+      .order("version", { ascending: false }),
+    supabase
+      .from("reviews")
+      .select("rating, comment, reply")
+      .eq("event_id", id)
+      .eq("author_org_id", org.id)
+      .eq("subject_org_id", event.agency_org_id)
+      .maybeSingle(),
+  ]);
   if (e2) throw e2;
+  if (e3) throw e3;
+  const canReview = ["owner", "admin", "manager", "approver"].includes(org.role);
   const quotes = data as SentQuote[];
   const latest = quotes[0];
   const canDecide = can(org.type, org.role, "proposals.decide");
@@ -52,6 +64,26 @@ export default async function ClientEventPage({ params }: { params: Promise<{ id
         </div>
         <span className="rounded-ui border border-border px-3 py-1 text-sm">{EVENT_STATUS_LABEL[event.status]}</span>
       </div>
+
+      {event.status === "completed" && (
+        <section id="recensione">
+          <Card title={review ? "La tua recensione" : `Com'è andata con ${event.agency.name}?`}>
+            {canReview ? (
+              <ReviewForm eventId={event.id} subjectId={event.agency_org_id} subjectName={event.agency.name} existing={review} />
+            ) : review ? (
+              <p className="text-sm">La tua azienda ha lasciato {review.rating} stelle su 5.</p>
+            ) : (
+              <p className="text-sm text-muted">La recensione la lascia un responsabile della tua azienda.</p>
+            )}
+            {review?.reply && (
+              <blockquote className="mt-4 border-l-2 border-border pl-3 text-sm">
+                <span className="text-muted">Risposta di {event.agency.name}: </span>
+                {review.reply}
+              </blockquote>
+            )}
+          </Card>
+        </section>
+      )}
 
       <Card title="Preventivo">
         {!latest ? (

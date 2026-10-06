@@ -1,4 +1,6 @@
 import { ProfileForm } from "@/components/profile-form";
+import { OwnProfileExtras } from "@/components/profiles/own-profile";
+import { loadProfileExtras } from "@/lib/profiles";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
@@ -10,6 +12,7 @@ export default async function AgencyProfile() {
   const supabase = await createClient();
   const { data: profile, error } = await supabase.from("marketplace_profiles").select("*").eq("org_id", org.id).single();
   if (error) throw error;
+  const extras = await loadProfileExtras(supabase, org.id, false);
   return (
     <>
       <div>
@@ -17,6 +20,7 @@ export default async function AgencyProfile() {
         <p className="text-muted">Se il profilo è visibile, le aziende possono trovarti e inviarti richieste anche senza invito.</p>
       </div>
       <ProfileForm profile={profile} canEdit={org.role === "owner" || org.role === "admin"} />
+      <OwnProfileExtras extras={extras} canEdit={org.role === "owner" || org.role === "admin"} />
     </>
   );
 }

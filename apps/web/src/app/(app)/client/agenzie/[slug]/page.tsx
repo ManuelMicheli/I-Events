@@ -1,6 +1,7 @@
 import { MarketplaceProfile } from "@/components/marketplace/profile";
 import { ButtonLink } from "@/components/ui";
 import { requireOrg } from "@/lib/session";
+import { loadProfileExtras } from "@/lib/profiles";
 import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -16,9 +17,11 @@ export default async function AgencyProfilePage({ params }: { params: Promise<{ 
   if (error) throw error;
   const profile = data[0];
   if (!profile || profile.type !== "agency") notFound();
+  const extras = await loadProfileExtras(supabase, profile.org_id, false);
   return (
     <MarketplaceProfile
       profile={profile}
+      extras={extras}
       back={
         <Link href="/client/agenzie" className="text-sm text-muted underline">
           Trova agenzie

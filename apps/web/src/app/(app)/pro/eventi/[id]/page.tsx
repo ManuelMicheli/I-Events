@@ -1,4 +1,5 @@
 import { BookingRow, type Booking } from "@/components/events/booking-row";
+import { ReviewForm } from "@/components/profiles/review-forms";
 import { EventDetailsForm, EventStatusActions } from "@/components/events/event-controls";
 import { QuoteEditor } from "@/components/quotes/quote-editor";
 import { QuoteHistory, type SentQuote } from "@/components/quotes/quote-history";
@@ -49,7 +50,8 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   if (error) throw error;
   if (!event) notFound();
 
-  const [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes, quotesRes, scheduleRes, crewRes] = await Promise.all([
+  const completed = event.status === "completed";
+  const [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes, quotesRes, scheduleRes, crewRes, busyRes, reviewsRes, reviewableRes] = await Promise.all([
     supabase
       .from("event_bookings")
       .select("id, service_key, description, contact_id, status, planned_cost, actual_cost, notes, supplier_response, supplier_price, supplier_note")
@@ -73,8 +75,12 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
       .order("version", { ascending: false, nullsFirst: true }),
     supabase.from("event_schedule_items").select("day, starts_at, title").eq("event_id", id).order("day").order("starts_at"),
     supabase.from("event_crew").select("checked_in_at").eq("event_id", id),
+    supabase.rpc("event_busy_contacts", { p_event: id }),
+    supabase.from("reviews").select("author_org_id, subject_org_id, rating, comment, reply").eq("event_id", id),
+    completed ? supabase.rpc("reviewable_for", { p_event: id, p_author: org.id }) : Promise.resolve({ data: [], error: null }),
   ]);
-  for (const r of [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes, quotesRes, scheduleRes, crewRes]) if (r.error) throw r.error;
+  for (const r of [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes, quotesRes, scheduleRes, crewRes, busyRes, reviewsRes, reviewableRes])
+    if (r.error) throw r.error;
 
   const bookings: Booking[] = bookingsRes.data!.map((b) => ({
     ...b,
@@ -106,6 +112,15 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const openTasks = tasks.filter((t) => !t.done_at).length;
   const schedule = scheduleRes.data!;
   const crew = crewRes.data!;
+  const busy = Object.fromEntries(busyRes.data!.map((b) => [b.contact_id, b.days]));
+  const reviews = reviewsRes.data!;
+  const clientReview = reviews.find((r) => r.author_org_id !== org.id);
+  const supplierName = (orgId: string) => contactsRes.data!.find((c) => c.supplier_org_id === orgId)?.company || contactsRes.data!.find((c) => c.supplier_org_id === orgId)?.name || "Fornitore";
+  const toReview = reviewableRes.data!.map((r) => ({
+    id: r.subject_org_id,
+    name: supplierName(r.subject_org_id),
+    existing: reviews.find((x) => x.author_org_id === org.id && x.subject_org_id === r.subject_org_id) ?? null,
+  }));
   const marginPct = budget.margin !== null && budget.sold ? Math.round((budget.margin / budget.sold) * 100) : null;
 
   return (
@@ -124,6 +139,32 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
       </div>
 
       {canManage && <EventStatusActions eventId={event.id} moves={moves} />}
+
+      {completed && (toReview.length > 0 || clientReview) && (
+        <section id="recensioni">
+          <Card title="Recensioni">
+            <div className="flex flex-col gap-6">
+              {clientReview && (
+                <div className="flex flex-col gap-1 text-sm">
+                  <p className="font-medium">
+                    {event.client.name} vi ha dato {clientReview.rating} {clientReview.rating === 1 ? "stella" : "stelle"} su 5
+                  </p>
+                  {clientReview.comment && <p className="whitespace-pre-line">{clientReview.comment}</p>}
+                  <Link href="/pro/profilo#recensioni" className="underline">
+                    {clientReview.reply ? "Vedi la risposta sul profilo" : "Rispondi dal profilo"}
+                  </Link>
+                </div>
+              )}
+              {toReview.length > 0 && (
+                <p className="text-sm text-muted">Com&apos;è andata con i fornitori? Le recensioni aiutano altre agenzie a sceglierli.</p>
+              )}
+              {toReview.map((s) => (
+                <ReviewForm key={s.id} eventId={event.id} subjectId={s.id} subjectName={s.name} existing={s.existing} />
+              ))}
+            </div>
+          </Card>
+        </section>
+      )}
 
       <Card title="Budget">
         <dl className="grid gap-4 sm:grid-cols-4">
@@ -279,7 +320,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         ) : (
           <ul className="divide-y divide-border">
             {bookings.map((b) => (
-              <BookingRow key={b.id} eventId={event.id} booking={b} contacts={contactsRes.data!} />
+              <BookingRow key={b.id} eventId={event.id} booking={b} contacts={contactsRes.data!} busy={busy} />
             ))}
           </ul>
         )}
