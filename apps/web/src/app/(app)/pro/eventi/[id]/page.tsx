@@ -1,13 +1,26 @@
 import { BookingRow, type Booking } from "@/components/events/booking-row";
 import { EventDetailsForm, EventStatusActions } from "@/components/events/event-controls";
+import { NewTaskForm } from "@/components/tasks/new-task-form";
+import { TaskBoard } from "@/components/tasks/task-board";
 import { Button, Card, Empty, Select } from "@/components/ui";
 import { EVENT_STATUS_LABEL } from "@/lib/labels";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
-import { canMoveEvent, EVENT_STATUSES, eventBudget, formatEuro, getServiceCategory, SERVICE_CATALOG, type ProposalLine } from "@i-events/core";
+import {
+  canMoveEvent,
+  EVENT_STATUSES,
+  eventBudget,
+  formatEuro,
+  getServiceCategory,
+  SERVICE_CATALOG,
+  suggestedTasks,
+  todayInItaly,
+  type ProposalLine,
+} from "@i-events/core";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { addSuggestedTasks } from "../../attivita/actions";
 import { addBooking } from "../actions";
 
 export const metadata: Metadata = { title: "Evento" };
@@ -31,7 +44,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   if (error) throw error;
   if (!event) notFound();
 
-  const [bookingsRes, contactsRes, proposalRes, siblingsRes] = await Promise.all([
+  const [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes] = await Promise.all([
     supabase
       .from("event_bookings")
       .select("id, service_key, description, contact_id, status, planned_cost, actual_cost, notes")
@@ -41,8 +54,15 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
     supabase.from("contacts").select("id, name, company, phone, email, services").eq("org_id", org.id).order("name").limit(2000),
     supabase.from("proposals").select("lines").eq("id", event.proposal_id).single(),
     supabase.from("events").select("id", { count: "exact", head: true }).eq("proposal_id", event.proposal_id),
+    supabase
+      .from("event_tasks")
+      .select("id, event_id, title, notes, due_date, done_at, assignee_id, booking_id")
+      .eq("event_id", id)
+      .order("due_date", { nullsFirst: false })
+      .order("created_at"),
+    supabase.from("memberships").select("user_id, profiles(full_name)").eq("org_id", org.id).order("created_at"),
   ]);
-  for (const r of [bookingsRes, contactsRes, proposalRes, siblingsRes]) if (r.error) throw r.error;
+  for (const r of [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes]) if (r.error) throw r.error;
 
   const bookings: Booking[] = bookingsRes.data!.map((b) => ({ ...b, planned_cost: num(b.planned_cost), actual_cost: num(b.actual_cost) }));
   // A campaign is priced as a whole: the selling price of a single stage is not known.
@@ -51,6 +71,19 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const canManage = ["owner", "admin", "manager"].includes(org.role);
   const moves = EVENT_STATUSES.filter((s) => canMoveEvent(event.status, s));
   const dates = [day(event.start_date), event.end_date && event.end_date !== event.start_date ? day(event.end_date) : null].filter(Boolean).join(" – ");
+  const tasks = tasksRes.data!;
+  const members = membersRes.data!.map((m) => ({ id: m.user_id, label: m.profiles?.full_name || "Collega senza nome" }));
+  const bookingOptions = bookings
+    .filter((b) => b.status !== "cancelled")
+    .map((b) => {
+      const service = getServiceCategory(b.service_key)?.name.it ?? b.service_key;
+      return { id: b.id, label: b.description ? `${service}: ${b.description}` : service };
+    });
+  const suggestionCount = suggestedTasks(
+    bookings.filter((b) => b.status !== "cancelled").map((b) => b.service_key),
+    event.start_date,
+  ).length;
+  const openTasks = tasks.filter((t) => !t.done_at).length;
   const marginPct = budget.margin !== null && budget.sold ? Math.round((budget.margin / budget.sold) * 100) : null;
 
   return (
@@ -119,6 +152,31 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
             </tbody>
           </table>
         )}
+      </Card>
+
+      <Card
+        title="Attività"
+        action={
+          <span className="text-sm text-muted">{tasks.length === 0 ? "Nessuna attività" : openTasks === 0 ? "Tutte fatte" : `${openTasks} da fare`}</span>
+        }
+      >
+        <div className="flex flex-col gap-4">
+          <NewTaskForm eventId={event.id} members={members} bookings={bookingOptions} />
+          {tasks.length === 0 ? (
+            <form action={addSuggestedTasks} className="flex flex-wrap items-center gap-3 rounded-ui bg-surface px-4 py-4 text-sm">
+              <input type="hidden" name="eventId" value={event.id} />
+              <span className="flex-1">
+                Parti dalla checklist tipica per i servizi di questo evento
+                {event.start_date ? ", con le scadenze già calcolate sulla data." : ". Aggiungi la data dell'evento per avere anche le scadenze."}
+              </span>
+              <Button type="submit" variant="secondary">
+                Aggiungi {suggestionCount} attività suggerite
+              </Button>
+            </form>
+          ) : (
+            <TaskBoard tasks={tasks} today={todayInItaly()} members={members} bookings={bookingOptions} eventStart={event.start_date} />
+          )}
+        </div>
       </Card>
 
       <Card

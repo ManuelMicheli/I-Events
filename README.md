@@ -61,4 +61,10 @@ pnpm --filter @i-events/core catalog:sql
 - Per ogni servizio l'agenzia sceglie un fornitore dalla rubrica, segue lo stato (da prenotare, richiesto, confermato, annullato) e segna costo previsto e reale. Un servizio si può confermare solo dopo aver scelto il fornitore.
 - `/pro/eventi/[id]` mostra il budget: venduto al cliente (le voci della proposta accettata, solo per eventi singoli), costi e margine stimato. Fornitori e costi restano interni all'agenzia: il cliente non li vede.
 
+## Attività e timeline
+
+- Ogni evento ha le sue attività (`event_tasks`) con scadenza, persona assegnata e, se serve, il servizio a cui si riferiscono. Chi riceve un'attività da un collega riceve una notifica.
+- Da un evento senza attività si può partire dalla checklist tipica dei suoi servizi (`suggestedTasks` in `packages/core/src/tasks.ts`), con le scadenze calcolate sulla data dell'evento.
+- Le attività sono raggruppate come una timeline: in ritardo, oggi, prossimi 7 giorni, più avanti, senza scadenza, fatte. `/pro/attivita` mostra le proprie attività su tutti gli eventi, o quelle di tutto il team. Chi e quando ha completato un'attività lo registra il database.
+
 Gli stati cambiano solo tramite le funzioni `submit_request`, `submit_proposal`, `request_revision`, `accept_proposal` e `set_proposal_status`.

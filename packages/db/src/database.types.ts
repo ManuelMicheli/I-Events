@@ -315,6 +315,83 @@ export type Database = {
           },
         ];
       };
+      event_tasks: {
+        Row: {
+          assignee_id: string | null;
+          booking_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          done_at: string | null;
+          done_by: string | null;
+          due_date: string | null;
+          event_id: string;
+          id: string;
+          notes: string | null;
+          org_id: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          assignee_id?: string | null;
+          booking_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          done_at?: string | null;
+          done_by?: string | null;
+          due_date?: string | null;
+          event_id: string;
+          id?: string;
+          notes?: string | null;
+          org_id: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          assignee_id?: string | null;
+          booking_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          done_at?: string | null;
+          done_by?: string | null;
+          due_date?: string | null;
+          event_id?: string;
+          id?: string;
+          notes?: string | null;
+          org_id?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_tasks_assignee_id_fkey";
+            columns: ["assignee_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_tasks_booking_id_fkey";
+            columns: ["booking_id"];
+            isOneToOne: false;
+            referencedRelation: "event_bookings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_tasks_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_tasks_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       events: {
         Row: {
           agency_org_id: string;

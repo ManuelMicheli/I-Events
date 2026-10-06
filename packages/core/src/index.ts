@@ -11,3 +11,4 @@ export * from "./notifications";
 export * from "./contacts";
 export * from "./jev";
 export * from "./events";
+export * from "./tasks";
