@@ -1,0 +1,85 @@
+"use client";
+
+import { deleteContact, saveContact, type ContactState } from "@/app/(app)/pro/rubrica/actions";
+import { Button, Card, Field, Input, Notice, Select } from "@/components/ui";
+import { SERVICE_CATALOG } from "@i-events/core";
+import type { Tables } from "@i-events/db";
+import { useActionState } from "react";
+
+export function ContactForm({ contact, canDelete }: { contact?: Tables<"contacts">; canDelete: boolean }) {
+  const [state, action, pending] = useActionState<ContactState, FormData>(saveContact, {});
+  const f = state.fields ?? {};
+  return (
+    <Card>
+      <form action={action} className="flex flex-col gap-4">
+        <input type="hidden" name="id" value={contact?.id ?? ""} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Nome *" error={f.name}>
+            <Input name="name" required maxLength={200} defaultValue={contact?.name} />
+          </Field>
+          <Field label="Azienda" error={f.company}>
+            <Input name="company" maxLength={200} defaultValue={contact?.company ?? ""} />
+          </Field>
+          <Field label="Ruolo" error={f.role_title}>
+            <Input name="role_title" maxLength={120} defaultValue={contact?.role_title ?? ""} />
+          </Field>
+          <Field label="Città o zona" error={f.city}>
+            <Input name="city" maxLength={120} defaultValue={contact?.city ?? ""} />
+          </Field>
+          <Field label="Telefono" error={f.phone}>
+            <Input name="phone" type="tel" defaultValue={contact?.phone ?? ""} />
+          </Field>
+          <Field label="Email" error={f.email}>
+            <Input name="email" type="email" defaultValue={contact?.email ?? ""} />
+          </Field>
+          <Field label="Sito web" error={f.website}>
+            <Input name="website" maxLength={300} defaultValue={contact?.website ?? ""} />
+          </Field>
+          <Field label="Valutazione interna">
+            <Select name="rating" defaultValue={contact?.rating ? String(contact.rating) : ""}>
+              <option value="">Nessuna</option>
+              {[5, 4, 3, 2, 1].map((n) => (
+                <option key={n} value={n}>
+                  {"★".repeat(n)}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        </div>
+        <fieldset>
+          <legend className="mb-2 text-sm font-medium">Servizi</legend>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {SERVICE_CATALOG.map((s) => (
+              <label key={s.key} className="flex items-center gap-2 text-sm">
+                <input type="checkbox" name="services" value={s.key} defaultChecked={contact?.services.includes(s.key)} />
+                {s.name.it}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <Field label="Note" error={f.notes}>
+          <textarea name="notes" rows={4} maxLength={5000} defaultValue={contact?.notes ?? ""} className="rounded-ui border border-border bg-bg p-3" />
+        </Field>
+        {state.error && <Notice tone="error">{state.error}</Notice>}
+        <div className="flex gap-3">
+          <Button type="submit" disabled={pending}>
+            {contact ? "Salva" : "Aggiungi contatto"}
+          </Button>
+          {contact && canDelete && (
+            <Button
+              type="submit"
+              variant="danger"
+              formAction={deleteContact}
+              formNoValidate
+              onClick={(e) => {
+                if (!confirm(`Eliminare ${contact.name} dalla rubrica?`)) e.preventDefault();
+              }}
+            >
+              Elimina
+            </Button>
+          )}
+        </div>
+      </form>
+    </Card>
+  );
+}
