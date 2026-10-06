@@ -4,7 +4,7 @@ import { QuoteEditor } from "@/components/quotes/quote-editor";
 import { QuoteHistory, type SentQuote } from "@/components/quotes/quote-history";
 import { NewTaskForm } from "@/components/tasks/new-task-form";
 import { TaskBoard } from "@/components/tasks/task-board";
-import { Button, Card, Empty, Select } from "@/components/ui";
+import { Button, ButtonLink, Card, Empty, Select } from "@/components/ui";
 import { EVENT_STATUS_LABEL } from "@/lib/labels";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
@@ -14,6 +14,7 @@ import {
   eventBudget,
   formatEuro,
   getServiceCategory,
+  hhmm,
   SERVICE_CATALOG,
   soldLines as pickSoldLines,
   suggestedTasks,
@@ -48,7 +49,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   if (error) throw error;
   if (!event) notFound();
 
-  const [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes, quotesRes] = await Promise.all([
+  const [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes, quotesRes, scheduleRes, crewRes] = await Promise.all([
     supabase
       .from("event_bookings")
       .select("id, service_key, description, contact_id, status, planned_cost, actual_cost, notes")
@@ -70,8 +71,10 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
       .select("id, version, status, lines, total_amount, note, decision_note, sent_at, decided_at")
       .eq("event_id", id)
       .order("version", { ascending: false, nullsFirst: true }),
+    supabase.from("event_schedule_items").select("day, starts_at, title").eq("event_id", id).order("day").order("starts_at"),
+    supabase.from("event_crew").select("checked_in_at").eq("event_id", id),
   ]);
-  for (const r of [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes, quotesRes]) if (r.error) throw r.error;
+  for (const r of [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes, quotesRes, scheduleRes, crewRes]) if (r.error) throw r.error;
 
   const bookings: Booking[] = bookingsRes.data!.map((b) => ({ ...b, planned_cost: num(b.planned_cost), actual_cost: num(b.actual_cost) }));
   const quotes = quotesRes.data!;
@@ -96,6 +99,8 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
     event.start_date,
   ).length;
   const openTasks = tasks.filter((t) => !t.done_at).length;
+  const schedule = scheduleRes.data!;
+  const crew = crewRes.data!;
   const marginPct = budget.margin !== null && budget.sold ? Math.round((budget.margin / budget.sold) * 100) : null;
 
   return (
@@ -220,6 +225,30 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
           ) : (
             <TaskBoard tasks={tasks} today={todayInItaly()} members={members} bookings={bookingOptions} eventStart={event.start_date} />
           )}
+        </div>
+      </Card>
+
+      <Card
+        title="Scaletta e giorno dell'evento"
+        action={
+          <span className="text-sm text-muted">
+            {schedule.length === 1 ? "1 momento" : `${schedule.length} momenti`} · {crew.length === 1 ? "1 arrivo" : `${crew.length} arrivi`}
+          </span>
+        }
+      >
+        <div className="flex flex-wrap items-center gap-3 text-sm">
+          <p className="flex-1 text-muted">
+            {schedule.length === 0
+              ? "Prepara la scaletta minuto per minuto e l'elenco di chi deve arrivare: il giorno dell'evento fai i check-in dal telefono, anche senza rete."
+              : `Si parte alle ${hhmm(schedule[0]!.starts_at)} con: ${schedule[0]!.title}.${crew.length > 0 ? ` Arrivati ${crew.filter((c) => c.checked_in_at).length} di ${crew.length}.` : ""}`}
+          </p>
+          <Link
+            href={`/pro/eventi/${event.id}/scaletta`}
+            className="inline-flex h-10 items-center justify-center rounded-ui border border-border px-4 font-medium"
+          >
+            {schedule.length === 0 ? "Prepara la scaletta" : "Apri la scaletta"}
+          </Link>
+          {schedule.length > 0 && <ButtonLink href={`/pro/eventi/${event.id}/live`}>Giorno dell&apos;evento</ButtonLink>}
         </div>
       </Card>
 

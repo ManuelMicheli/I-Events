@@ -245,4 +245,65 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await beta.page.goto(eventUrl);
   await expect(beta.page.getByText("Venduto secondo il preventivo approvato (versione 2)", { exact: false })).toBeVisible();
   await expect(beta.page.getByRole("definition").filter({ hasText: "%" })).toHaveText(/^1050,00\s€28%$/);
+
+  // Run of show: the usual evening around doors opening, one moment of our own, who has to arrive.
+  await beta.page.getByRole("link", { name: "Prepara la scaletta" }).click();
+  await expect(beta.page.getByRole("heading", { level: 1, name: "Scaletta e arrivi" })).toBeVisible();
+  await beta.page.getByLabel("Apertura porte").fill("19:00");
+  await beta.page.getByRole("button", { name: "Crea la scaletta tipo" }).click();
+  await expect(beta.page.getByText("6 momenti")).toBeVisible();
+  await expect(beta.page.getByRole("listitem", { name: "18:00 Arrivo sicurezza e controllo vie di fuga" })).toContainText("Vigilanza Rossi");
+  const newItem = beta.page.getByRole("form", { name: "Nuovo momento" });
+  await newItem.getByLabel("Inizio").fill("21:00");
+  await newItem.getByLabel("Cosa succede").fill("Discorso dell'amministratore delegato");
+  await newItem.getByLabel("Dove").fill("Palco");
+  await newItem.getByRole("button", { name: "Aggiungi alla scaletta" }).click();
+  await expect(beta.page.getByText("7 momenti")).toBeVisible();
+  await expect(beta.page.getByRole("listitem", { name: "21:00 Discorso dell'amministratore delegato" })).toContainText("Palco");
+
+  await beta.page.getByRole("button", { name: "Aggiungi 1 fornitore" }).click();
+  await expect(beta.page.getByRole("listitem", { name: "Vigilanza Rossi" })).toContainText("Atteso alle 18:00");
+  const newCrew = beta.page.getByRole("form", { name: "Nuovo arrivo" });
+  await newCrew.getByLabel("Chi").selectOption("external");
+  await newCrew.getByLabel("Nome").fill("Sara Bianchi");
+  await newCrew.getByLabel("Telefono").fill("333 1234567");
+  await newCrew.getByLabel("Ruolo").fill("Hostess");
+  await newCrew.getByLabel("Orario di arrivo").fill("18:30");
+  await newCrew.getByRole("button", { name: "Aggiungi agli arrivi" }).click();
+  await expect(beta.page.getByText("0 di 2 arrivati")).toBeVisible();
+  await expect(beta.page.getByRole("link", { name: "WhatsApp a Sara Bianchi" })).toHaveAttribute("href", "https://wa.me/393331234567");
+
+  // On the day, from a phone at 18:20: the briefing is on, security is late. Check-ins work offline.
+  const runOfShow = new URL(beta.page.url()).pathname;
+  const phone = await beta.page.context().newPage();
+  await phone.clock.setFixedTime(new Date("2027-06-15T16:20:00Z"));
+  await phone.goto(runOfShow.replace(/scaletta$/, "live"));
+  const now = phone.getByRole("region", { name: "Adesso" });
+  await expect(now).toContainText("Briefing con tutto lo staff");
+  await expect(now).toContainText("Dopo: 19:00 Apertura porte e accoglienza ospiti");
+  const arrivals = phone.getByRole("region", { name: "Arrivi" });
+  await expect(arrivals.getByRole("listitem", { name: "Vigilanza Rossi" })).toContainText("In ritardo");
+  await expect(arrivals.getByRole("listitem", { name: "Sara Bianchi" })).toContainText("Atteso alle 18:30");
+  // A second visit lets the device keep a copy of the page.
+  await phone.evaluate(() => navigator.serviceWorker.ready);
+  await phone.reload();
+  await expect(now).toContainText("Briefing con tutto lo staff");
+
+  await phone.context().setOffline(true);
+  await expect(phone.getByText("Sei offline")).toBeVisible();
+  await arrivals.getByRole("button", { name: "Check-in Vigilanza Rossi" }).click();
+  await expect(arrivals.getByRole("listitem", { name: "Vigilanza Rossi" })).toContainText("Arrivato alle 18:20");
+  await expect(phone.getByText("1 check-in da inviare")).toBeVisible();
+  await phone.reload();
+  await expect(arrivals.getByRole("listitem", { name: "Vigilanza Rossi" })).toContainText("Da inviare");
+
+  await phone.context().setOffline(false);
+  await expect(phone.getByText("1 check-in da inviare")).toBeHidden();
+  await expect(arrivals).toContainText("1 di 2 arrivati");
+  await expect(arrivals.getByRole("listitem", { name: "Vigilanza Rossi" })).not.toContainText("Da inviare");
+
+  await beta.page.reload();
+  await expect(beta.page.getByText("1 di 2 arrivati")).toBeVisible();
+  await beta.page.getByRole("button", { name: "Annulla check-in di Vigilanza Rossi" }).click();
+  await expect(beta.page.getByText("0 di 2 arrivati")).toBeVisible();
 });

@@ -315,6 +315,89 @@ export type Database = {
           },
         ];
       };
+      event_crew: {
+        Row: {
+          booking_id: string | null;
+          call_time: string | null;
+          checked_in_at: string | null;
+          checked_in_by: string | null;
+          created_at: string;
+          created_by: string | null;
+          day: string;
+          event_id: string;
+          id: string;
+          name: string | null;
+          org_id: string;
+          phone: string | null;
+          role: string | null;
+          updated_at: string;
+          user_id: string | null;
+        };
+        Insert: {
+          booking_id?: string | null;
+          call_time?: string | null;
+          checked_in_at?: string | null;
+          checked_in_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          day: string;
+          event_id: string;
+          id?: string;
+          name?: string | null;
+          org_id: string;
+          phone?: string | null;
+          role?: string | null;
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Update: {
+          booking_id?: string | null;
+          call_time?: string | null;
+          checked_in_at?: string | null;
+          checked_in_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          day?: string;
+          event_id?: string;
+          id?: string;
+          name?: string | null;
+          org_id?: string;
+          phone?: string | null;
+          role?: string | null;
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_crew_booking_id_fkey";
+            columns: ["booking_id"];
+            isOneToOne: false;
+            referencedRelation: "event_bookings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_crew_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_crew_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_crew_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       event_quotes: {
         Row: {
           client_org_id: string;
@@ -387,6 +470,86 @@ export type Database = {
           },
           {
             foreignKeyName: "event_quotes_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      event_schedule_items: {
+        Row: {
+          assignee_id: string | null;
+          booking_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          day: string;
+          ends_at: string | null;
+          event_id: string;
+          id: string;
+          location: string | null;
+          notes: string | null;
+          org_id: string;
+          starts_at: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          assignee_id?: string | null;
+          booking_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          day: string;
+          ends_at?: string | null;
+          event_id: string;
+          id?: string;
+          location?: string | null;
+          notes?: string | null;
+          org_id: string;
+          starts_at: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          assignee_id?: string | null;
+          booking_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          day?: string;
+          ends_at?: string | null;
+          event_id?: string;
+          id?: string;
+          location?: string | null;
+          notes?: string | null;
+          org_id?: string;
+          starts_at?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_schedule_items_assignee_id_fkey";
+            columns: ["assignee_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_schedule_items_booking_id_fkey";
+            columns: ["booking_id"];
+            isOneToOne: false;
+            referencedRelation: "event_bookings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_schedule_items_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_schedule_items_org_id_fkey";
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
