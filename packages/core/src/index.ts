@@ -4,3 +4,5 @@ export * from "./services";
 export * from "./status";
 export * from "./requests";
 export * from "./invitations";
+export * from "./answers";
+export * from "./proposals";

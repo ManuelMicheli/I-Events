@@ -3,6 +3,7 @@ import { PROPOSAL_STATUS_LABEL } from "@/lib/labels";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = { title: "Richieste" };
 
@@ -39,7 +40,11 @@ export default async function ProHome() {
             <tbody>
               {proposals.map((p) => (
                 <tr key={p.id} className="border-t border-border">
-                  <td className="py-2">{p.requests.title}</td>
+                  <td className="py-2">
+                    <Link href={`/pro/richieste/${p.id}`} className="font-medium underline">
+                      {p.requests.title}
+                    </Link>
+                  </td>
                   <td className="py-2">{p.requests.organizations.name}</td>
                   <td className="py-2">{p.requests.kind === "campaign" ? "Campagna" : "Evento"}</td>
                   <td className="py-2">{p.requests.start_date ? dateFmt.format(new Date(p.requests.start_date)) : "Da definire"}</td>

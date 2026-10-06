@@ -401,6 +401,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "messages_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "messages_author_org_id_fkey";
             columns: ["author_org_id"];
             isOneToOne: false;
@@ -791,6 +798,7 @@ export type Database = {
       accept_proposal: { Args: { p_proposal: string }; Returns: string[] };
       can_edit_request: { Args: { p_request: string }; Returns: boolean };
       can_read_request: { Args: { p_request: string }; Returns: boolean };
+      cancel_request: { Args: { p_request: string }; Returns: undefined };
       create_organization: {
         Args: {
           p_city?: string;
@@ -839,6 +847,10 @@ export type Database = {
         }[];
       };
       request_revision: { Args: { p_note: string; p_proposal: string }; Returns: undefined };
+      save_request_draft: {
+        Args: { p_client_org: string; p_payload: Json; p_request?: string };
+        Returns: string;
+      };
       set_proposal_status: {
         Args: { p_proposal: string; p_status: Database["public"]["Enums"]["proposal_status"] };
         Returns: undefined;

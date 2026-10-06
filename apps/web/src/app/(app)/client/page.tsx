@@ -1,8 +1,9 @@
-import { Card, Empty } from "@/components/ui";
+import { ButtonLink, Card, Empty } from "@/components/ui";
 import { REQUEST_STATUS_LABEL } from "@/lib/labels";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = { title: "Richieste" };
 
@@ -18,16 +19,21 @@ export default async function ClientHome() {
 
   return (
     <>
-      <h1 className="text-2xl font-semibold">Le tue richieste</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold">Le tue richieste</h1>
+        <ButtonLink href="/client/richieste/nuova">Nuova richiesta</ButtonLink>
+      </div>
       <Card>
         {requests.length === 0 ? (
-          <Empty>Non hai ancora creato richieste. La creazione guidata di eventi e campagne arriva nel prossimo passo.</Empty>
+          <Empty>Non hai ancora creato richieste. Parti da un evento singolo o da una campagna con Nuova richiesta.</Empty>
         ) : (
           <ul className="divide-y divide-border">
             {requests.map((r) => (
               <li key={r.id} className="flex items-center justify-between py-3 text-sm">
                 <span>
-                  <span className="font-medium">{r.title}</span>
+                  <Link href={r.status === "draft" ? `/client/richieste/${r.id}/modifica` : `/client/richieste/${r.id}`} className="font-medium underline">
+                    {r.title}
+                  </Link>
                   <span className="ml-2 text-muted">{r.kind === "campaign" ? "Campagna" : "Evento"}</span>
                 </span>
                 <span className="text-muted">

@@ -106,6 +106,16 @@ export const requestDraftSchema = z
 
 export type RequestDraft = z.infer<typeof requestDraftSchema>;
 
+/** Applies the campaign choices before saving: with one venue every stage shares the first stage's place. */
+export function normalizeDraft(draft: RequestDraft): RequestDraft {
+  if (draft.kind !== "campaign" || !draft.campaign) return { ...draft, campaign: undefined, items: draft.items.map(({ stageIndex: _s, ...i }) => i) };
+  const { campaign } = draft;
+  const first = campaign.stages[0];
+  const stages = campaign.sameVenue && first ? campaign.stages.map((s) => ({ ...s, city: first.city, venueHint: first.venueHint })) : campaign.stages;
+  const items = campaign.servicesMode === "shared" ? draft.items.map(({ stageIndex: _s, ...i }) => i) : draft.items;
+  return { ...draft, campaign: { ...campaign, stages }, items };
+}
+
 /** A request can be sent only when it is valid and asks for at least one service or has free text. */
 export function submissionIssues(draft: RequestDraft): string[] {
   const issues: string[] = [];

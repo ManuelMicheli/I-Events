@@ -4,7 +4,7 @@ select tests.create_user('carla@brand.test') as client_owner \gset
 select tests.create_user('mario@nss.test') as invited \gset
 select tests.create_user('sara@other.test') as stranger \gset
 
-select tests.ok((select count(*) from public.profiles) = 4, 'a profile is created for every user');
+select tests.ok((select count(*) from public.profiles where id in (:'agency_owner', :'client_owner', :'invited', :'stranger')) = 4, 'a profile is created for every user');
 
 set role authenticated;
 
