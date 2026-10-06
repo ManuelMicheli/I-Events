@@ -50,6 +50,17 @@ const clean = (s: string | undefined | null) => {
   return t ? t : undefined;
 };
 
+/** Readable form of a normalized Italian phone (+39 333 123 4567, +39 02 1234 5678); other countries stay as they are. */
+export function formatPhone(phone: string): string {
+  const m = /^\+39(\d+)$/.exec(phone);
+  if (!m) return phone;
+  const n = m[1]!;
+  const head = n.startsWith("3") ? n.slice(0, 3) : /^0[26]/.test(n) ? n.slice(0, 2) : n.slice(0, 3);
+  const rest = n.slice(head.length);
+  const groups = rest.length <= 4 ? [rest] : rest.length <= 7 ? [rest.slice(0, 3), rest.slice(3)] : [rest.slice(0, 4), rest.slice(4)];
+  return ["+39", head, ...groups].join(" ");
+}
+
 /** WhatsApp link for a normalized phone. */
 export function whatsappUrl(phone: string): string {
   return `https://wa.me/${phone.replace(/^\+/, "")}`;
@@ -344,6 +355,8 @@ export function dedupeContacts(contacts: readonly ContactDraft[]): { contacts: C
     const existing = keys.map((k) => byKey.get(k)).find(Boolean);
     if (existing) {
       merged += 1;
+      // A card with only a number or an email took it as name: the duplicate's real name is better.
+      if (existing.name === existing.phone || existing.name === existing.email) existing.name = c.name;
       for (const f of ["company", "role_title", "email", "phone", "website", "city", "notes"] as const) existing[f] ??= c[f];
       existing.services = [...new Set([...existing.services, ...c.services])];
       for (const k of [existing.email && `e:${existing.email}`, existing.phone && `p:${existing.phone}`]) if (k) byKey.set(k, existing);
@@ -354,4 +367,47 @@ export function dedupeContacts(contacts: readonly ContactDraft[]): { contacts: C
     for (const k of keys) byKey.set(k, copy);
   }
   return { contacts: out, merged };
+}
+
+// ---------------------------------------------------------------------------
+// Phone address book (mobile app)
+// ---------------------------------------------------------------------------
+
+/** The fields the app reads from the phone's address book (shape of expo-contacts details). */
+export type PhoneContact = {
+  fullName?: string | null;
+  givenName?: string | null;
+  familyName?: string | null;
+  company?: string | null;
+  jobTitle?: string | null;
+  emails?: readonly { address?: string; label?: string }[];
+  phones?: readonly { number?: string; label?: string }[];
+  addresses?: readonly { city?: string }[];
+  urlAddresses?: readonly { url?: string }[];
+};
+
+const MOBILE_LABEL = /mobile|cell|iphone|whatsapp/i;
+
+/**
+ * Turns phone contacts into drafts with a proposed service, merging duplicates. Mobile numbers win over
+ * landlines; contacts with no name, email or phone are left out.
+ */
+export function phoneContactsToDrafts(list: readonly PhoneContact[]): { contacts: ContactDraft[]; merged: number } {
+  const drafts: ContactDraft[] = [];
+  for (const c of list) {
+    const phones = [...(c.phones ?? [])].sort((a, b) => Number(MOBILE_LABEL.test(b.label ?? "")) - Number(MOBILE_LABEL.test(a.label ?? "")));
+    const draft = toDraft({
+      name: clean(c.fullName) ?? clean([c.givenName, c.familyName].filter(Boolean).join(" ")),
+      company: c.company ?? undefined,
+      role_title: c.jobTitle ?? undefined,
+      email: c.emails?.map((e) => e.address).find((a) => normalizeEmail(a)),
+      phone: phones.map((p) => p.number).find((n) => normalizePhone(n)),
+      website: c.urlAddresses?.[0]?.url,
+      city: c.addresses?.find((a) => clean(a.city))?.city,
+    });
+    if (!draft) continue;
+    draft.services = classifyServices([draft.company, draft.name, draft.role_title].filter(Boolean).join(" "));
+    drafts.push(draft);
+  }
+  return dedupeContacts(drafts);
 }

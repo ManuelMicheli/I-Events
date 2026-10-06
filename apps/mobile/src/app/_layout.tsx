@@ -98,6 +98,7 @@ function RootStack({ ready }: { ready: boolean }) {
         <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "Home" }} />
         <Stack.Screen name="evento/[id]" options={{ title: "Evento" }} />
         <Stack.Screen name="richiesta/[id]" options={{ title: "Richiesta" }} />
+        <Stack.Screen name="importa-contatti" options={{ title: "Importa contatti" }} />
       </Stack.Protected>
     </Stack>
   );
