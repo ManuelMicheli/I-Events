@@ -1,6 +1,7 @@
 import { ORG_TYPE_LABEL } from "@/lib/labels";
 import { switchOrganization } from "@/lib/org-actions";
 import { AREA_BY_TYPE, getMyOrgs, type MyOrg } from "@/lib/session";
+import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -23,7 +24,11 @@ const NAV: Record<MyOrg["type"], { href: string; label: string }[]> = {
 };
 
 export async function Shell({ org, children }: { org: MyOrg; children: ReactNode }) {
-  const orgs = await getMyOrgs();
+  const supabase = await createClient();
+  const [orgs, { count: unread }] = await Promise.all([
+    getMyOrgs(),
+    supabase.from("notifications").select("id", { count: "exact", head: true }).is("read_at", null),
+  ]);
   return (
     <div className="min-h-dvh">
       <header className="border-b border-border">
@@ -59,6 +64,9 @@ export async function Shell({ org, children }: { org: MyOrg; children: ReactNode
               {org.name} · {ORG_TYPE_LABEL[org.type]}
             </span>
           )}
+          <Link href="/notifiche" className="text-sm" aria-label={unread ? `Notifiche, ${unread} non lette` : "Notifiche"}>
+            Notifiche{unread ? <span className="ml-1 rounded-ui bg-accent px-1.5 text-xs text-accent-text">{unread}</span> : null}
+          </Link>
           <Link href="/onboarding" className="text-sm text-muted">
             + Nuovo account
           </Link>

@@ -1,3 +1,4 @@
+import { Attachments } from "@/components/attachments/attachments";
 import { BriefView } from "@/components/brief/brief-view";
 import { MessageThread } from "@/components/messages";
 import { Card, Notice } from "@/components/ui";
@@ -75,6 +76,7 @@ export default async function AgencyRequestPage({ params }: { params: Promise<{ 
       {open && <StatusActions proposalId={proposal.id} moves={MOVES[proposal.status] ?? []} />}
 
       <BriefView request={request} />
+      <Attachments requestId={request.id} canWrite={false} path={path} title="Allegati dell'azienda" />
 
       {open && EDITABLE.includes(proposal.status) ? (
         <ProposalEditor proposalId={proposal.id} initialLines={initialLines} initialSummary={proposal.summary ?? ""} resubmit={proposal.version > 0} />
@@ -86,6 +88,15 @@ export default async function AgencyRequestPage({ params }: { params: Promise<{ 
           </Card>
         )
       )}
+
+      <Attachments
+        requestId={request.id}
+        proposalId={proposal.id}
+        canWrite={open && EDITABLE.includes(proposal.status)}
+        path={path}
+        title="Allegati della proposta"
+        emptyText="Allega preventivi dettagliati, render o presentazioni: l'azienda li vede quando invii la proposta."
+      />
 
       <MessageThread proposalId={proposal.id} viewerOrgId={org.id} isAgency path={path} title="Messaggi con l'azienda" />
     </>

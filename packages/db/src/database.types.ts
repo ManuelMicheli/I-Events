@@ -430,6 +430,63 @@ export type Database = {
           },
         ];
       };
+      notifications: {
+        Row: {
+          body: string | null;
+          created_at: string;
+          email_status: string;
+          emailed_at: string | null;
+          id: string;
+          kind: string;
+          link: string | null;
+          org_id: string;
+          read_at: string | null;
+          title: string;
+          user_id: string;
+        };
+        Insert: {
+          body?: string | null;
+          created_at?: string;
+          email_status?: string;
+          emailed_at?: string | null;
+          id?: string;
+          kind: string;
+          link?: string | null;
+          org_id: string;
+          read_at?: string | null;
+          title: string;
+          user_id: string;
+        };
+        Update: {
+          body?: string | null;
+          created_at?: string;
+          email_status?: string;
+          emailed_at?: string | null;
+          id?: string;
+          kind?: string;
+          link?: string | null;
+          org_id?: string;
+          read_at?: string | null;
+          title?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notifications_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       organizations: {
         Row: {
           city: string | null;
@@ -470,6 +527,7 @@ export type Database = {
         Row: {
           avatar_url: string | null;
           created_at: string;
+          email_notifications: boolean;
           full_name: string;
           id: string;
           locale: string;
@@ -477,6 +535,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null;
           created_at?: string;
+          email_notifications?: boolean;
           full_name?: string;
           id: string;
           locale?: string;
@@ -484,6 +543,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null;
           created_at?: string;
+          email_notifications?: boolean;
           full_name?: string;
           id?: string;
           locale?: string;
@@ -559,6 +619,7 @@ export type Database = {
           file_name: string;
           id: string;
           mime_type: string | null;
+          proposal_id: string | null;
           request_id: string;
           size_bytes: number | null;
           storage_path: string;
@@ -569,6 +630,7 @@ export type Database = {
           file_name: string;
           id?: string;
           mime_type?: string | null;
+          proposal_id?: string | null;
           request_id: string;
           size_bytes?: number | null;
           storage_path: string;
@@ -579,12 +641,20 @@ export type Database = {
           file_name?: string;
           id?: string;
           mime_type?: string | null;
+          proposal_id?: string | null;
           request_id?: string;
           size_bytes?: number | null;
           storage_path?: string;
           uploaded_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "request_attachments_proposal_id_fkey";
+            columns: ["proposal_id"];
+            isOneToOne: false;
+            referencedRelation: "proposals";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "request_attachments_request_id_fkey";
             columns: ["request_id"];
@@ -797,8 +867,24 @@ export type Database = {
       accept_member_invitation: { Args: { p_token: string }; Returns: string };
       accept_proposal: { Args: { p_proposal: string }; Returns: string[] };
       can_edit_request: { Args: { p_request: string }; Returns: boolean };
+      can_read_attachment: { Args: { p_proposal: string; p_request: string }; Returns: boolean };
       can_read_request: { Args: { p_request: string }; Returns: boolean };
+      can_write_attachment: { Args: { p_proposal: string; p_request: string }; Returns: boolean };
       cancel_request: { Args: { p_request: string }; Returns: undefined };
+      claim_notification_emails: {
+        Args: { p_limit?: number };
+        Returns: {
+          body: string;
+          created_at: string;
+          email: string;
+          full_name: string;
+          id: string;
+          link: string;
+          locale: string;
+          title: string;
+          user_id: string;
+        }[];
+      };
       create_organization: {
         Args: {
           p_city?: string;
@@ -807,6 +893,10 @@ export type Database = {
           p_type: Database["public"]["Enums"]["org_type"];
         };
         Returns: string;
+      };
+      finish_notification_emails: {
+        Args: { p_ids: string[]; p_status: string };
+        Returns: undefined;
       };
       invite_connection: {
         Args: { p_email?: string; p_from_org: string; p_message?: string; p_target_org?: string };
@@ -836,6 +926,10 @@ export type Database = {
         Returns: undefined;
       };
       my_org_ids: { Args: Record<PropertyKey, never>; Returns: string[] };
+      notify_org: {
+        Args: { p_body: string; p_kind: string; p_link: string; p_org: string; p_title: string };
+        Returns: undefined;
+      };
       preview_invitation: {
         Args: { p_token: string };
         Returns: {

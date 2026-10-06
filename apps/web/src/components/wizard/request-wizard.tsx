@@ -11,8 +11,10 @@ import {
   submissionIssues,
   type RequestDraft,
 } from "@i-events/core";
-import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition, type ReactNode } from "react";
 import { QuestionField } from "./question-field";
+import type { WizardStep as Step } from "./steps";
 
 const OBJECTIVE_LABEL: Record<(typeof OBJECTIVES)[number], string> = {
   product_launch: "Lancio prodotto",
@@ -23,7 +25,6 @@ const OBJECTIVE_LABEL: Record<(typeof OBJECTIVES)[number], string> = {
   other: "Altro",
 };
 
-type Step = "tipo" | "basi" | "campagna" | "servizi" | "note" | "agenzie" | "riepilogo";
 const STEP_LABEL: Record<Step, string> = {
   tipo: "Tipo",
   basi: "Informazioni",
@@ -47,12 +48,20 @@ function resizeStages(draft: RequestDraft, count: number): RequestDraft {
   return { ...draft, campaign: { ...c, eventsCount: count, stages }, items };
 }
 
-type Props = { requestId: string | null; initial: RequestDraft; agencies: ReachableAgency[] };
+type Props = {
+  requestId: string | null;
+  initial: RequestDraft;
+  agencies: ReachableAgency[];
+  initialStep?: Step;
+  /** Files of the request, shown with the free requests once the draft exists. */
+  attachments?: ReactNode;
+};
 
-export function RequestWizard({ requestId: initialId, initial, agencies }: Props) {
+export function RequestWizard({ requestId: initialId, initial, agencies, initialStep, attachments }: Props) {
+  const router = useRouter();
   const [draft, setDraft] = useState<RequestDraft>(initial);
   const [requestId, setRequestId] = useState(initialId);
-  const [step, setStep] = useState<Step>(initialId ? "basi" : "tipo");
+  const [step, setStep] = useState<Step>(initialStep ?? (initialId ? "basi" : "tipo"));
   const [result, setResult] = useState<SaveResult>({});
   const [selectedAgencies, setSelectedAgencies] = useState<string[]>([]);
   const [stageTab, setStageTab] = useState(0);
@@ -67,14 +76,17 @@ export function RequestWizard({ requestId: initialId, initial, agencies }: Props
 
   const setBasics = (patch: Partial<RequestDraft["basics"]>) => setDraft((d) => ({ ...d, basics: { ...d.basics, ...patch } }));
 
-  function persist(then?: () => void) {
+  function persist(then?: () => void, to?: Step) {
     startTransition(async () => {
       const res = await saveDraft(requestId, draft);
       setResult(res);
       if (res.id) {
         if (!requestId) {
+          // From now on the draft lives at its own address, where its files can be attached.
+          // Everything typed so far is saved, so loading it there loses nothing.
           setRequestId(res.id);
-          window.history.replaceState(null, "", `/client/richieste/${res.id}/modifica`);
+          router.replace(`/client/richieste/${res.id}/modifica?passo=${to ?? step}`);
+          return;
         }
         then?.();
       }
@@ -84,7 +96,7 @@ export function RequestWizard({ requestId: initialId, initial, agencies }: Props
   function go(to: Step) {
     // Going back never blocks; going forward saves the draft first and stops on validation errors.
     if (steps.indexOf(to) <= index) return setStep(to);
-    persist(() => setStep(to));
+    persist(() => setStep(to), to);
   }
 
   function submit() {
@@ -359,6 +371,7 @@ export function RequestWizard({ requestId: initialId, initial, agencies }: Props
           </Field>
         </Card>
       )}
+      {step === "note" && attachments}
 
       {step === "agenzie" && (
         <Card title="A chi inviare la richiesta">
