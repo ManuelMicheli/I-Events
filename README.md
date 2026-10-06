@@ -8,7 +8,7 @@ Il piano di prodotto completo è nel documento di progetto su Claude.
 | Percorso | Contenuto |
 | --- | --- |
 | `apps/web` | Next.js: aree PRO, CLIENT, SUPPLIER e pagine pubbliche |
-| `apps/mobile` | Expo (iOS e Android), in arrivo |
+| `apps/mobile` | App Expo (iOS e Android) per agenzie, aziende e fornitori |
 | `packages/db` | Tipi TypeScript generati dallo schema del database |
 | `packages/core` | Regole condivise: catalogo servizi, validazione richieste, stati, permessi, piani |
 | `supabase/migrations` | Schema del database, permessi (RLS) e funzioni che cambiano gli stati |
@@ -26,6 +26,14 @@ pnpm dev                                        # http://localhost:3000
 pnpm test                                       # test di packages/core
 pnpm db:test                                    # test del database su un Postgres locale (DATABASE_URL)
 pnpm --filter @i-events/web test:e2e            # test end-to-end (app avviata + Supabase locale)
+```
+
+App mobile (Expo):
+
+```bash
+cp apps/mobile/.env.example apps/mobile/.env   # stessi URL e chiave di Supabase del sito
+pnpm --filter @i-events/mobile dev             # poi apri con Expo Go (QR nel terminale)
+pnpm --filter @i-events/mobile web             # anteprima nel browser
 ```
 
 Dopo una nuova migrazione: `npx supabase@2.119.0 db reset` e `pnpm --filter @i-events/db gen:types`.
@@ -99,3 +107,9 @@ Gli stati cambiano solo tramite le funzioni `submit_request`, `submit_proposal`,
 - Agenzie e fornitori raccolgono nel portfolio i lavori passati con le foto (al massimo 30 lavori e 12 foto ciascuno). Le foto stanno nel bucket pubblico `portfolio`, ma si caricano solo al percorso di una riga di `portfolio_photos` creata da un titolare o amministratore.
 - Quando un evento è concluso l'azienda recensisce l'agenzia e l'agenzia i fornitori su I-Events che aveva confermato (`leave_review`); chi è recensito risponde dal proprio profilo (`reply_to_review`). Sul profilo pubblico compaiono media, recensioni e nome dell'organizzazione che le ha scritte, mai l'evento.
 - Il fornitore segna i giorni in cui non è disponibile in `/supplier/disponibilita`; i giorni degli eventi confermati si aggiungono da soli. Le agenzie vedono solo che è impegnato (`supplier_busy_days`), possono cercare fornitori liberi in una data e, nello spazio evento, vedono chi tra i fornitori in rubrica è già impegnato in quelle date (`event_busy_contacts`).
+
+## App mobile
+
+- `apps/mobile` è un'app Expo Router che parla direttamente con Supabase, con la sessione dell'utente e le stesse regole (RLS e RPC) del sito. Etichette, stati e logica condivisa vengono da `packages/core`.
+- Accesso con email e password, scelta dell'organizzazione attiva (ricordata sul dispositivo), eventi dell'agenzia o dell'azienda divisi in corso, in programma e conclusi, richieste ricevute dal fornitore, notifiche e account. Le notifiche aprono la schermata dell'app quando esiste (`appRouteForLink` in `packages/core`), altrimenti la pagina del sito.
+- Lo stile è Carta (`apps/mobile/src/theme/tokens.ts`): i contrasti di ogni coppia testo e sfondo, in chiaro e scuro, sono verificati dai test. Geist Mono è inclusa; General Sans va aggiunta in `apps/mobile/assets/fonts` e attivata in `fonts.sans`, finché manca si usa il carattere di sistema.

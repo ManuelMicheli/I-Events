@@ -15,3 +15,5 @@ export * from "./tasks";
 export * from "./run-of-show";
 export * from "./suppliers";
 export * from "./profiles";
+export * from "./labels";
+export * from "./agenda";
