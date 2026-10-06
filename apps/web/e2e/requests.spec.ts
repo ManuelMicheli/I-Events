@@ -183,4 +183,24 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await expect(beta.page.getByText("In preparazione", { exact: true })).toBeVisible();
   await beta.page.goto("/pro/eventi");
   await expect(beta.page.getByRole("row", { name: new RegExp(`${title}.*1/2 confermati.*In preparazione`) })).toBeVisible();
+
+  // Tasks: start from the suggested checklist, add one of our own and tick it off.
+  await beta.page.getByRole("link", { name: title }).click();
+  const tasks = beta.page.locator("section", { has: beta.page.getByRole("heading", { name: "Attività" }) });
+  await tasks.getByRole("button", { name: "Aggiungi 8 attività suggerite" }).click();
+  await expect(tasks.getByText("8 da fare")).toBeVisible();
+  await expect(tasks.getByText("Comunicare alla sicurezza numero di addetti e turni")).toBeVisible();
+  await expect(tasks.getByText("14 giorni prima dell'evento").first()).toBeVisible();
+  await tasks.getByLabel("Nuova attività").fill("Chiamare il cliente per i badge");
+  await tasks.getByLabel("Assegna a").selectOption({ label: "Titolare Beta" });
+  await tasks.getByRole("button", { name: "Aggiungi", exact: true }).click();
+  await expect(tasks.getByText("9 da fare")).toBeVisible();
+  await expect(tasks.getByRole("region", { name: "Senza scadenza" })).toContainText("Chiamare il cliente per i badge");
+
+  await beta.page.getByRole("link", { name: "Attività", exact: true }).click();
+  await expect(beta.page.getByRole("heading", { level: 1, name: "Attività" })).toBeVisible();
+  await beta.page.getByRole("button", { name: "Segna come fatta Chiamare il cliente per i badge" }).click();
+  await expect(beta.page.getByRole("region", { name: "Fatte" })).toContainText("Chiamare il cliente per i badge");
+  await beta.page.getByRole("link", { name: "Tutto il team" }).click();
+  await expect(beta.page.getByRole("region", { name: "Più avanti" })).toContainText("Confermare il menu e le intolleranze");
 });

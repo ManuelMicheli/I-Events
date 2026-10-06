@@ -9,6 +9,7 @@ const NAV: Record<MyOrg["type"], { href: string; label: string }[]> = {
   agency: [
     { href: "/pro", label: "Richieste" },
     { href: "/pro/eventi", label: "Eventi" },
+    { href: "/pro/attivita", label: "Attività" },
     { href: "/pro/rubrica", label: "Rubrica" },
     { href: "/impostazioni/collegamenti", label: "Aziende collegate" },
     { href: "/pro/profilo", label: "Profilo marketplace" },
