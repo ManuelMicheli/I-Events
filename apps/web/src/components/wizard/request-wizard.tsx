@@ -55,15 +55,17 @@ type Props = {
   initialStep?: Step;
   /** Files of the request, shown with the free requests once the draft exists. */
   attachments?: ReactNode;
+  /** Agencies already ticked, e.g. when starting from an agency's marketplace profile. */
+  initialAgencies?: string[];
 };
 
-export function RequestWizard({ requestId: initialId, initial, agencies, initialStep, attachments }: Props) {
+export function RequestWizard({ requestId: initialId, initial, agencies, initialStep, attachments, initialAgencies }: Props) {
   const router = useRouter();
   const [draft, setDraft] = useState<RequestDraft>(initial);
   const [requestId, setRequestId] = useState(initialId);
   const [step, setStep] = useState<Step>(initialStep ?? (initialId ? "basi" : "tipo"));
   const [result, setResult] = useState<SaveResult>({});
-  const [selectedAgencies, setSelectedAgencies] = useState<string[]>([]);
+  const [selectedAgencies, setSelectedAgencies] = useState<string[]>(initialAgencies ?? []);
   const [stageTab, setStageTab] = useState(0);
   const [agencyQuery, setAgencyQuery] = useState("");
   const [pending, startTransition] = useTransition();

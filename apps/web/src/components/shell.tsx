@@ -11,6 +11,7 @@ const NAV: Record<MyOrg["type"], { href: string; label: string }[]> = {
     { href: "/pro/eventi", label: "Eventi" },
     { href: "/pro/attivita", label: "Attività" },
     { href: "/pro/rubrica", label: "Rubrica" },
+    { href: "/pro/fornitori", label: "Trova fornitori" },
     { href: "/impostazioni/collegamenti", label: "Aziende collegate" },
     { href: "/pro/profilo", label: "Profilo marketplace" },
     { href: "/impostazioni/team", label: "Team" },
@@ -18,6 +19,7 @@ const NAV: Record<MyOrg["type"], { href: string; label: string }[]> = {
   client: [
     { href: "/client", label: "Richieste" },
     { href: "/client/eventi", label: "Eventi" },
+    { href: "/client/agenzie", label: "Trova agenzie" },
     { href: "/impostazioni/collegamenti", label: "Agenzie collegate" },
     { href: "/impostazioni/team", label: "Team" },
   ],

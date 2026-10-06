@@ -114,3 +114,15 @@ export async function inviteSupplier(form: FormData) {
   if (error) throw new Error(dbErrorMessage(error));
   revalidatePath(`/pro/rubrica/${id}`);
 }
+
+/** Adds a supplier found in the marketplace to the address book, linked to its account. */
+export async function addMarketplaceSupplier(form: FormData) {
+  const org = await requireOrg("agency");
+  const supplierId = z.uuid().parse(form.get("supplierId"));
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("add_marketplace_supplier", { p_agency: org.id, p_supplier: supplierId });
+  if (error) throw new Error(dbErrorMessage(error));
+  revalidatePath("/pro/rubrica");
+  revalidatePath("/pro/fornitori");
+  redirect(`/pro/rubrica/${data}?aggiunto=1`);
+}

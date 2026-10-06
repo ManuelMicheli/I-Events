@@ -740,9 +740,11 @@ export type Database = {
       marketplace_profiles: {
         Row: {
           description: string;
+          email: string | null;
           headline: string;
           is_listed: boolean;
           org_id: string;
+          phone: string | null;
           regions: string[];
           services: string[];
           updated_at: string;
@@ -750,9 +752,11 @@ export type Database = {
         };
         Insert: {
           description?: string;
+          email?: string | null;
           headline?: string;
           is_listed?: boolean;
           org_id: string;
+          phone?: string | null;
           regions?: string[];
           services?: string[];
           updated_at?: string;
@@ -760,9 +764,11 @@ export type Database = {
         };
         Update: {
           description?: string;
+          email?: string | null;
           headline?: string;
           is_listed?: boolean;
           org_id?: string;
+          phone?: string | null;
           regions?: string[];
           services?: string[];
           updated_at?: string;
@@ -1415,6 +1421,7 @@ export type Database = {
       accept_member_invitation: { Args: { p_token: string }; Returns: string };
       accept_proposal: { Args: { p_proposal: string }; Returns: string[] };
       accept_supplier_invitation: { Args: { p_org: string; p_token: string }; Returns: string };
+      add_marketplace_supplier: { Args: { p_agency: string; p_supplier: string }; Returns: string };
       booking_supplier_org: {
         Args: { b: Database["public"]["Tables"]["event_bookings"]["Row"] };
         Returns: string;
@@ -1485,6 +1492,24 @@ export type Database = {
         };
         Returns: undefined;
       };
+      marketplace_profile: {
+        Args: { p_slug: string };
+        Returns: {
+          city: string;
+          description: string;
+          email: string;
+          events_done: number;
+          headline: string;
+          member_since: string;
+          name: string;
+          org_id: string;
+          phone: string;
+          regions: string[];
+          services: string[];
+          type: Database["public"]["Enums"]["org_type"];
+          website: string;
+        }[];
+      };
       my_org_ids: { Args: Record<PropertyKey, never>; Returns: string[] };
       notify_org: {
         Args: { p_body: string; p_kind: string; p_link: string; p_org: string; p_title: string };
@@ -1508,6 +1533,27 @@ export type Database = {
       save_request_draft: {
         Args: { p_client_org: string; p_payload: Json; p_request?: string };
         Returns: string;
+      };
+      search_marketplace: {
+        Args: {
+          p_area?: string;
+          p_from_org?: string;
+          p_limit?: number;
+          p_query?: string;
+          p_service?: string;
+          p_type: Database["public"]["Enums"]["org_type"];
+        };
+        Returns: {
+          city: string;
+          connected: boolean;
+          contact_id: string;
+          headline: string;
+          name: string;
+          org_id: string;
+          regions: string[];
+          services: string[];
+          slug: string;
+        }[];
       };
       send_event_quote: { Args: { p_quote: string }; Returns: number };
       set_proposal_status: {

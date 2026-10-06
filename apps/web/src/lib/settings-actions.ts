@@ -1,6 +1,6 @@
 "use server";
 
-import { connectionInviteSchema, memberInviteSchema, SERVICE_KEYS } from "@i-events/core";
+import { connectionInviteSchema, memberInviteSchema, normalizePhone, SERVICE_KEYS } from "@i-events/core";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { env } from "./env";
@@ -71,6 +71,8 @@ const profileSchema = z.object({
   services: z.array(z.enum(SERVICE_KEYS as [string, ...string[]])),
   regions: z.array(z.string().trim().min(1).max(60)).max(30),
   website: z.union([z.url(), z.literal("")]),
+  email: z.union([z.email("Email non valida"), z.literal("")]),
+  phone: z.string().trim().max(40),
   isListed: z.boolean(),
 });
 
@@ -83,14 +85,18 @@ export async function saveMarketplaceProfile(_: ProfileState, form: FormData): P
     services: form.getAll("services"),
     regions: String(form.get("regions") ?? "").split(",").map((r) => r.trim()).filter(Boolean),
     website: form.get("website") ?? "",
+    email: String(form.get("email") ?? "").trim().toLowerCase(),
+    phone: String(form.get("phone") ?? ""),
     isListed: form.get("isListed") === "on",
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dati non validi" };
-  const { headline, description, services, regions, website, isListed } = parsed.data;
+  const { headline, description, services, regions, website, email, isListed } = parsed.data;
+  const phone = parsed.data.phone ? normalizePhone(parsed.data.phone) : null;
+  if (parsed.data.phone && !phone) return { error: "Telefono non valido: scrivilo con il prefisso, ad esempio +39 333 1234567." };
   const supabase = await createClient();
   const { error } = await supabase
     .from("marketplace_profiles")
-    .update({ headline, description, services, regions, website: website || null, is_listed: isListed })
+    .update({ headline, description, services, regions, website: website || null, email: email || null, phone, is_listed: isListed })
     .eq("org_id", org.id);
   if (error) return { error: dbErrorMessage(error) };
   revalidatePath("/supplier");
