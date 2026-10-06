@@ -53,6 +53,6 @@ pnpm --filter @i-events/core catalog:sql
 - Ogni agenzia ha una rubrica privata di fornitori (`contacts`) in `/pro/rubrica`, con chiamata, WhatsApp ed email a un tocco.
 - L'import accetta CSV (anche export di Excel italiano con `;` e di Google Contacts), Excel `.xlsx`, vCard `.vcf` e testo incollato. Le colonne vengono riconosciute in automatico, i doppioni nel file vengono uniti e a ogni contatto viene proposto un servizio del catalogo.
 - `import_contacts` unisce con i contatti già presenti per email o telefono: completa i campi vuoti e aggiunge servizi, non sovrascrive mai.
-- La proposta dei servizi passa da `getServiceClassifier()` in `apps/web/src/lib/service-classifier.ts`: oggi usa regole per parole chiave, in seguito si potrà collegare un modello (per esempio Jev) senza toccare il flusso di import.
+- La proposta dei servizi passa da `getServiceClassifier()` in `apps/web/src/lib/service-classifier.ts`. Con `TYPESAFE_API_KEY` impostata usa Jev (TypeSafe AI): ogni contatto diventa una domanda a scelta sulle categorie del catalogo, fino a 32 contatti per richiesta. Se Jev risponde con un errore, non è sicuro o supera il tempo massimo (12 secondi per tutto l'import), per quel contatto restano le regole per parole chiave, che sono anche l'unico metodo senza chiave. Facoltativi: `TYPESAFE_MODEL` (predefinito `jev-latest`) e `TYPESAFE_BASE_URL`.
 
 Gli stati cambiano solo tramite le funzioni `submit_request`, `submit_proposal`, `request_revision`, `accept_proposal` e `set_proposal_status`.
