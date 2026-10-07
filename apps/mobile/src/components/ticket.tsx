@@ -93,7 +93,7 @@ export function Confirmation({ label, date, type, fresh = false }: { label: stri
         </Animated.View>
       </Animated.View>
       <View style={styles.words}>
-        <T variant="calloutStrong">{label}</T>
+        <T variant="bodyStrong">{label}</T>
         {date !== "" && (
           <T variant="monoCaps" tone="secondary">
             {date}
