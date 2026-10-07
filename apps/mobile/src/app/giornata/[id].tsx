@@ -2,10 +2,11 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { crewState, hhmm, liveDay, scheduleTimeline, type CrewMember, type ScheduleState } from "@i-events/core";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useState, type ComponentProps } from "react";
-import { Linking, Pressable, StyleSheet, View } from "react-native";
+import { Linking, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { Badge, LiveDot } from "@/components/badge";
 import { Button } from "@/components/button";
 import { Card, TicketDivider } from "@/components/card";
+import { TicketIcon } from "@/components/icons";
 import { Perforation } from "@/components/perforation";
 import { Divider } from "@/components/rows";
 import { Screen } from "@/components/screen";
@@ -483,6 +484,8 @@ function CrewRow({
   onToggle: () => void;
 }) {
   const { c } = useTheme();
+  // On narrow phones the buttons go under the name, full width, so the name keeps the whole row.
+  const narrow = useWindowDimensions().width < 360;
   const state = crewState(m, now);
   const status: { icon: ComponentProps<typeof Ionicons>["name"]; tone: Tone; color: string; text: string } =
     state === "arrived"
@@ -491,7 +494,7 @@ function CrewRow({
         ? { icon: "alert-circle", tone: "danger", color: c.danger, text: `In ritardo, atteso alle ${hhmm(m.call_time!)}` }
         : { icon: "time-outline", tone: "secondary", color: c.textSecondary, text: m.call_time ? `Atteso alle ${hhmm(m.call_time)}` : "Atteso" };
   return (
-    <View style={styles.crewRow}>
+    <View style={[styles.crewRow, narrow && styles.crewRowNarrow]}>
       <View style={styles.texts}>
         <T variant="bodyStrong">{m.name}</T>
         {m.detail ? (
@@ -522,13 +525,14 @@ function CrewRow({
           </View>
         )}
       </View>
-      <View style={styles.actions}>
+      <View style={narrow ? styles.actionsNarrow : styles.actions}>
         <View style={styles.checkButton}>
           <Button
             block
             align="center"
             variant={m.checked_in_at ? "secondary" : "primary"}
             label={m.checked_in_at ? "Annulla" : "Check-in"}
+            leading={(color) => <TicketIcon color={color} torn={!!m.checked_in_at} size={20} />}
             accessibilityHint={m.checked_in_at ? `Toglie l'arrivo di ${m.name}` : `Segna ${m.name} come arrivato adesso`}
             onPress={onToggle}
           />
@@ -577,7 +581,9 @@ const styles = StyleSheet.create({
   crewRow: { flexDirection: "row", alignItems: "flex-start", gap: space[3], paddingVertical: space[3], paddingHorizontal: space[4] },
   status: { flexDirection: "row", alignItems: "flex-start", gap: space[1] },
   statusIcon: { marginTop: 3 },
-  actions: { width: 120, gap: space[2] },
+  crewRowNarrow: { flexDirection: "column", alignItems: "stretch" },
+  actions: { width: 144, gap: space[2] },
+  actionsNarrow: { gap: space[2] },
   checkButton: { alignSelf: "stretch" },
   call: {
     minHeight: control.touch,

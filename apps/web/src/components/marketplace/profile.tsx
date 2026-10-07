@@ -5,6 +5,7 @@ import { Card } from "@/components/ui";
 import type { ProfileExtras } from "@/lib/profiles";
 import { rangeLabel } from "@i-events/core";
 import type { ReactNode } from "react";
+import { OrgLogo } from "./org-logo";
 import { serviceNames } from "./search";
 
 export type MarketplaceProfileData = {
@@ -19,6 +20,7 @@ export type MarketplaceProfileData = {
   phone: string | null;
   member_since: string;
   events_done: number;
+  logo_url: string | null;
 };
 
 const yearFmt = new Intl.DateTimeFormat("it-IT", { month: "long", year: "numeric" });
@@ -40,7 +42,10 @@ export function MarketplaceProfile({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           {back}
-          <h1 className="text-2xl font-semibold">{profile.name}</h1>
+          <div className="mt-1 flex items-center gap-4">
+            <OrgLogo name={profile.name} src={profile.logo_url} size="l" />
+            <h1 className="text-2xl font-semibold">{profile.name}</h1>
+          </div>
           <p className="text-sm text-muted">{[profile.city, profile.headline].filter(Boolean).join(" · ")}</p>
           <a href="#recensioni" className="no-underline">
             <RatingBadge avg={extras.rating.avg} count={extras.rating.count} />

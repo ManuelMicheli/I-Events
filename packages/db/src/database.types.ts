@@ -1883,6 +1883,7 @@ export type Database = {
           email: string;
           events_done: number;
           headline: string;
+          logo_url: string;
           member_since: string;
           name: string;
           org_id: string;
@@ -2064,6 +2065,7 @@ export type Database = {
           connected: boolean;
           contact_id: string;
           headline: string;
+          logo_url: string;
           name: string;
           org_id: string;
           rating_avg: number;
