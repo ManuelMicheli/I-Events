@@ -22,3 +22,4 @@ export * from "./event-day";
 export * from "./event-types";
 export * from "./ticket";
 export * from "./public-events";
+export * from "./home";

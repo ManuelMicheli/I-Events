@@ -17,6 +17,7 @@ const text = (form: FormData, k: string) => {
 function refresh(eventId: string) {
   revalidatePath(`/pro/eventi/${eventId}`);
   revalidatePath("/pro/attivita");
+  revalidatePath("/pro");
 }
 
 function parseTask(form: FormData) {

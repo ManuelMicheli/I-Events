@@ -89,6 +89,7 @@ export async function moveEvent(_: EventState, form: FormData): Promise<EventSta
   if (data.length === 0) return { error: "Non hai i permessi per questa azione." };
   revalidatePath(`/pro/eventi/${id}`);
   revalidatePath("/pro/eventi");
+  revalidatePath("/pro");
   if (status === "completed") redirect(`/pro/eventi/${id}?momento=concluso`);
   return { ok: true };
 }
@@ -121,6 +122,7 @@ export async function saveEventDetails(_: EventState, form: FormData): Promise<E
   if (data.length === 0) return { error: "Non hai i permessi per questa azione." };
   revalidatePath(`/pro/eventi/${id}`);
   revalidatePath("/pro/eventi");
+  revalidatePath("/pro");
   return { ok: true };
 }
 
