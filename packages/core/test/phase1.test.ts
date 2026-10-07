@@ -40,6 +40,7 @@ describe("proposals", () => {
 
   it("formats euro amounts", () => {
     expect(formatEuro(18500).replace(/\s/g, " ")).toMatch(/18\.500,00 €/);
+    expect(formatEuro(1700).replace(/\s/g, " ")).toBe("1.700,00 €");
     expect(formatEuro(null)).toBe("–");
   });
 });

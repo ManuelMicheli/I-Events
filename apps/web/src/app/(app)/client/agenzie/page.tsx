@@ -23,9 +23,10 @@ export default async function FindAgenciesPage({ searchParams }: { searchParams:
         <h1 className="text-2xl font-semibold">Trova agenzie</h1>
         <p className="text-muted">Agenzie con un profilo pubblico su I-Events. Puoi mandare loro una richiesta anche se non vi conoscete ancora.</p>
       </div>
-      <MarketplaceSearchForm filters={filters} placeholder="Cerca per nome, tipo di evento o parola chiave" />
+      <MarketplaceSearchForm filters={filters} placeholder="Nome, evento o parola chiave" />
       <MarketplaceResults
         results={data}
+        filters={filters}
         hrefBase="/client/agenzie"
         badge={(r) => (r.connected ? <span className="rounded-ui border border-border px-1.5 text-xs">Già collegata</span> : null)}
         empty="Nessuna agenzia trovata con questi filtri."

@@ -2,7 +2,8 @@
 
 import { Button, Field, Input, Notice, Select } from "@/components/ui";
 import type { InviteState } from "@/lib/settings-actions";
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
+import { CopyButton } from "./copy-button";
 
 type Props = {
   action: (state: InviteState, form: FormData) => Promise<InviteState>;
@@ -13,7 +14,6 @@ type Props = {
 
 export function InviteForm({ action, roles, withMessage, submitLabel }: Props) {
   const [state, formAction, pending] = useActionState<InviteState, FormData>(action, {});
-  const [copied, setCopied] = useState(false);
   return (
     <div className="flex flex-col gap-4">
       <form action={formAction} className="flex flex-wrap items-end gap-3">
@@ -49,13 +49,7 @@ export function InviteForm({ action, roles, withMessage, submitLabel }: Props) {
         <Notice tone="success">
           Invito creato. Condividi questo link:{" "}
           <code className="break-all">{state.link}</code>{" "}
-          <button
-            type="button"
-            className="underline"
-            onClick={() => navigator.clipboard.writeText(state.link!).then(() => setCopied(true))}
-          >
-            {copied ? "Copiato" : "Copia"}
-          </button>
+          <CopyButton text={state.link} />
         </Notice>
       )}
     </div>

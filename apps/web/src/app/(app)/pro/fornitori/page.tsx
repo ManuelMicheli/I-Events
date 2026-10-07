@@ -27,9 +27,10 @@ export default async function FindSuppliersPage({ searchParams }: { searchParams
           Fornitori con un profilo pubblico su I-Events. Aggiungili alla rubrica e le tue richieste arrivano direttamente nel loro account.
         </p>
       </div>
-      <MarketplaceSearchForm filters={filters} placeholder="Cerca per nome, specialità o parola chiave" withDate />
+      <MarketplaceSearchForm filters={filters} placeholder="Nome, specialità o parola" withDate />
       <MarketplaceResults
         results={data}
+        filters={filters}
         hrefBase="/pro/fornitori"
         badge={(r) =>
           r.contact_id ? (

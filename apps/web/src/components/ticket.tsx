@@ -9,7 +9,7 @@ import type { CSSProperties, ReactNode } from "react";
  */
 export function Ticket({ stub, label, children }: { stub: ReactNode; label: string; children: ReactNode }) {
   return (
-    <article aria-label={label} className="ticket grid rounded-card border border-border bg-bg sm:grid-cols-[minmax(0,1fr)_var(--stub-w)]">
+    <article aria-label={label} className="ticket group grid rounded-card border border-border bg-bg sm:grid-cols-[minmax(0,1fr)_var(--stub-w)]">
       <div className="min-w-0 p-4 sm:p-6">{children}</div>
       <div className="ticket-stub flex items-center justify-between gap-3 px-4 sm:flex-col sm:items-start sm:justify-center sm:gap-1 sm:px-5">{stub}</div>
     </article>
@@ -73,8 +73,9 @@ export function EventTicket({
 /**
  * A stamp for the three moments that matter: CONFERMATO, ISCRITTO, ANDATO IN SCENA. Double rule,
  * mono capitals, the date below, in the event's ink (Grafite without a type), turned by -6 degrees.
+ * `fresh` when it has just happened (A7): it lands from 1.2 and an ink halo spreads.
  */
-export function Stamp({ label, date, type }: { label: string; date: string; type: EventType | null }) {
+export function Stamp({ label, date, type, fresh = false }: { label: string; date: string; type: EventType | null; fresh?: boolean }) {
   const ink = type ? EVENT_TYPE_INFO[type].ink : null;
   const style = (ink ? { "--stamp": ink.text, "--stamp-dark": ink.darkText } : { "--stamp": "var(--color-text)", "--stamp-dark": "var(--color-text)" }) as CSSProperties;
   return (
@@ -82,7 +83,7 @@ export function Stamp({ label, date, type }: { label: string; date: string; type
       role="img"
       aria-label={date ? `${label.toLowerCase()} il ${date.toLowerCase()}` : label.toLowerCase()}
       style={style}
-      className="m-1 inline-flex shrink-0 -rotate-6 flex-col items-center rounded-[8px] border-2 border-current px-3 py-1 font-mono text-[var(--stamp)] outline-1 outline-offset-2 outline-current outline-solid dark:text-[var(--stamp-dark)]"
+      className={`${fresh ? "stamp-in " : ""}relative m-1 inline-flex shrink-0 -rotate-6 flex-col items-center rounded-[8px] border-2 border-current px-3 py-1 font-mono text-[var(--stamp)] outline-1 outline-offset-2 outline-current outline-solid dark:text-[var(--stamp-dark)]`}
     >
       <span className="text-[13px] leading-[18px] font-medium tracking-[0.08em] uppercase">{label}</span>
       {date && <span className="text-[11px] leading-[14px] uppercase">{date}</span>}

@@ -1,3 +1,4 @@
+import { ClearMoment } from "@/components/moment";
 import { Stamp, stampDay } from "@/components/ticket";
 import { EventHeader } from "@/components/event-type";
 import { BookingRow, type Booking } from "@/components/events/booking-row";
@@ -39,8 +40,9 @@ const dateFmt = new Intl.DateTimeFormat("it-IT", { weekday: "short", day: "numer
 const day = (d: string | null) => (d ? dateFmt.format(new Date(`${d}T12:00:00`)) : null);
 const num = (v: number | string | null) => (v === null ? null : Number(v));
 
-export default async function EventPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EventPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ momento?: string }> }) {
   const { id } = await params;
+  const { momento } = await searchParams;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const org = await requireOrg("agency");
   const supabase = await createClient();
@@ -129,6 +131,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
   return (
     <>
+      {momento && <ClearMoment />}
       <EventHeader
         type={event.event_type}
         back={
@@ -139,7 +142,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         aside={
           <div className="flex items-center gap-4">
             {event.status === "completed" && (
-              <Stamp label="Andato in scena" date={stampDay(event.end_date ?? event.start_date)} type={event.event_type} />
+              <Stamp label="Andato in scena" date={stampDay(event.end_date ?? event.start_date)} type={event.event_type} fresh={momento === "concluso"} />
             )}
             <span className="rounded-ui border border-border px-3 py-1 text-sm">{EVENT_STATUS_LABEL[event.status]}</span>
           </div>

@@ -1,34 +1,12 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
+import { buttonClass, type Size, type Variant } from "./button-styles";
 
 /** Carta primitives (specs in design-research/carta-componenti-spec.md). Screens compose these. */
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
 
-type Variant = "primary" | "secondary" | "tertiary" | "danger";
-type Size = "s" | "m" | "l";
-
-const BUTTON_BASE =
-  "inline-flex shrink-0 items-center justify-center gap-2 text-center font-medium transition-[background-color,transform] duration-[120ms] ease-out active:scale-[0.98] disabled:pointer-events-none disabled:bg-surface disabled:text-disabled disabled:border-transparent";
-const BUTTON_SIZE: Record<Size, string> = {
-  // Small buttons keep 32 px but reach 44 px for the finger; medium ones are 44 px on phones.
-  s: "relative min-h-8 rounded-[8px] px-3 py-1 text-label after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-['']",
-  m: "min-h-11 rounded-ui px-4 py-2 text-sm sm:min-h-10",
-  l: "min-h-12 rounded-ui px-5 py-3 text-sm",
-};
-const BUTTON_VARIANT: Record<Variant, string> = {
-  primary: "bg-accent text-accent-text hover:bg-accent-hover",
-  secondary: "border border-border-strong bg-bg text-text hover:bg-surface",
-  tertiary: "text-text hover:bg-surface",
-  danger: "bg-danger text-on-danger hover:opacity-90",
-};
-
-export function buttonClass(variant: Variant = "primary", size: Size = "m", className?: string) {
-  return cx(BUTTON_BASE, BUTTON_SIZE[size], BUTTON_VARIANT[variant], className);
-}
-
-export function Button({ variant = "primary", size = "m", className, ...props }: ComponentProps<"button"> & { variant?: Variant; size?: Size }) {
-  return <button className={buttonClass(variant, size, className)} {...props} />;
-}
+export { Button } from "./button";
+export { buttonClass };
 
 export function ButtonLink({ variant = "primary", size = "m", className, ...props }: ComponentProps<typeof Link> & { variant?: Variant; size?: Size }) {
   return <Link className={buttonClass(variant, size, className)} {...props} />;

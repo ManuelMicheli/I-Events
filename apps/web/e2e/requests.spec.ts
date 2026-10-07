@@ -243,14 +243,14 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await client.goto("/client/eventi");
   await expect(client.getByRole("article", { name: new RegExp(`^${title}, biglietto`) })).toContainText("preventivo: da approvare");
   await client.getByRole("link", { name: title }).click();
-  await expect(client.getByRole("region", { name: "Versione 2" })).toContainText(/3800,00/);
+  await expect(client.getByRole("region", { name: "Versione 2" })).toContainText(/3\.800,00/);
   await client.getByRole("button", { name: "Approva il preventivo" }).click();
   await expect(client.getByText("Preventivo approvato.")).toBeVisible();
 
   // Beta's budget now follows the approved quote: sold 3800, forecast cost 2750, margin 1050.
   await beta.page.goto(eventUrl);
   await expect(beta.page.getByText("Venduto secondo il preventivo approvato (versione 2)", { exact: false })).toBeVisible();
-  await expect(beta.page.getByRole("definition").filter({ hasText: "%" })).toHaveText(/^1050,00\s€28%$/);
+  await expect(beta.page.getByRole("definition").filter({ hasText: "%" })).toHaveText(/^1\.050,00\s€28%$/);
 
   // Run of show: the usual evening around doors opening, one moment of our own, who has to arrive.
   await beta.page.getByRole("link", { name: "Prepara la scaletta" }).click();
@@ -374,7 +374,7 @@ test("client sends a request to two agencies, compares proposals and accepts one
   // Beta sees the answer on the event and confirms; the caterer gets its schedule.
   await beta.page.goto("/notifiche");
   await beta.page.getByRole("link", { name: `Gusto Srl ${run} è disponibile` }).click();
-  await expect(cateringRow.getByRole("note")).toHaveText(`Gusto Catering è disponibile a 1700,00 €: “Bevande incluse”`);
+  await expect(cateringRow.getByRole("note")).toHaveText(`Gusto Catering è disponibile a 1.700,00 €: “Bevande incluse”`);
   await cateringRow.getByLabel("Stato Catering e bar").selectOption("confirmed");
   await cateringRow.getByRole("button", { name: "Salva Catering e bar" }).click();
   await expect(cateringRow.getByText("Catering e bar salvato.")).toBeVisible();

@@ -91,10 +91,10 @@ export function QuoteEditor({
       </Field>
       {message && <Notice tone={message.tone}>{message.text}</Notice>}
       <div className="flex flex-wrap gap-2">
-        <Button type="button" disabled={pending} onClick={() => save(true)}>
+        <Button type="button" pending={pending} disabled={pending} onClick={() => save(true)}>
           Invia al cliente per l&apos;approvazione
         </Button>
-        <Button type="button" variant="secondary" disabled={pending} onClick={() => save(false)}>
+        <Button type="button" pending={pending} variant="secondary" disabled={pending} onClick={() => save(false)}>
           Salva bozza
         </Button>
         <form

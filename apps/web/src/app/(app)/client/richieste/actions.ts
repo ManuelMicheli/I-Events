@@ -53,7 +53,7 @@ export async function submitDraft(requestId: string | null, input: unknown, agen
     return { id: saved.id, error: message };
   }
   revalidatePath("/client");
-  redirect(`/client/richieste/${saved.id}`);
+  redirect(`/client/richieste/${saved.id}?momento=inviata`);
 }
 
 export async function deleteDraft(form: FormData) {
@@ -88,7 +88,7 @@ export async function acceptProposal(_: DecisionState, form: FormData): Promise<
   const { error } = await supabase.rpc("accept_proposal", { p_proposal: id });
   if (error) return { error: dbErrorMessage(error) };
   revalidatePath(`/client/richieste/${requestId}`);
-  return {};
+  redirect(`/client/richieste/${requestId}?momento=confermato`);
 }
 
 export async function requestRevision(_: DecisionState, form: FormData): Promise<DecisionState> {

@@ -5,6 +5,7 @@ import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { bookingSchema, EVENT_STATUSES, EVENT_TYPES, SERVICE_KEYS } from "@i-events/core";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 export type BookingState = { error?: string; fields?: Record<string, string>; saved?: number };
@@ -88,6 +89,7 @@ export async function moveEvent(_: EventState, form: FormData): Promise<EventSta
   if (data.length === 0) return { error: "Non hai i permessi per questa azione." };
   revalidatePath(`/pro/eventi/${id}`);
   revalidatePath("/pro/eventi");
+  if (status === "completed") redirect(`/pro/eventi/${id}?momento=concluso`);
   return { ok: true };
 }
 
