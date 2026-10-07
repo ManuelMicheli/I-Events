@@ -1,6 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useEffect, useState, type ComponentProps } from "react";
-import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from "react-native";
+import { AccessibilityInfo, Animated, StyleSheet, View } from "react-native";
+import { easeOut } from "@/lib/motion";
 import { radius, space, useTheme } from "@/theme";
 import { T, type Tone } from "./text";
 
@@ -42,7 +43,7 @@ export function Badge({
   );
 }
 
-/** The live dot: Fiamma, with a halo that breathes every 2 s. Still when Reduce Motion is on. */
+/** The live dot: Fiamma, sending out a ring every 2 s (A10). Still when Reduce Motion is on. */
 export function LiveDot() {
   const { c } = useTheme();
   const [halo] = useState(() => new Animated.Value(0));
@@ -58,7 +59,10 @@ export function LiveDot() {
 
   useEffect(() => {
     if (reduce) return;
-    const loop = Animated.loop(Animated.timing(halo, { toValue: 1, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }));
+    // A10: a ring leaves the dot and fades in 1.4 s, then a pause, every 2 s.
+    const loop = Animated.loop(
+      Animated.sequence([Animated.timing(halo, { toValue: 1, duration: 1400, easing: easeOut, useNativeDriver: true }), Animated.delay(600)]),
+    );
     loop.start();
     return () => loop.stop();
   }, [halo, reduce]);
@@ -71,8 +75,8 @@ export function LiveDot() {
             styles.halo,
             {
               backgroundColor: c.accentFill,
-              opacity: halo.interpolate({ inputRange: [0, 1], outputRange: [0.4, 0] }),
-              transform: [{ scale: halo.interpolate({ inputRange: [0, 1], outputRange: [1, 2.5] }) }],
+              opacity: halo.interpolate({ inputRange: [0, 1], outputRange: [0.5, 0] }),
+              transform: [{ scale: halo.interpolate({ inputRange: [0, 1], outputRange: [1, 2.75] }) }],
             },
           ]}
         />
