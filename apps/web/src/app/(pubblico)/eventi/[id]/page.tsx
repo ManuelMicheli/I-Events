@@ -1,4 +1,5 @@
 import { TypeChip } from "@/components/event-type";
+import { PlaceIcon } from "@/components/icons";
 import { ClearMoment } from "@/components/moment";
 import { PublicCover } from "@/components/public/event-card";
 import { RegisterForm } from "@/components/public/register-form";
@@ -140,9 +141,9 @@ export default async function PublicEventPage({
             )}
           </div>
           {place.length > 0 && (
-            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-y border-border py-3">
+            <div className="ic-host flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-y border-border py-3">
               <div className="flex min-w-0 items-start gap-3">
-                <PinIcon />
+                <PlaceIcon className="mt-0.5" />
                 <div className="min-w-0">
                   <p className="font-medium">{place[0]}</p>
                   {place[1] && <p className="text-sm text-muted">{place[1]}</p>}
@@ -184,7 +185,7 @@ export default async function PublicEventPage({
               {time && <dd className="font-mono text-xs text-muted">{time}</dd>}
             </Fact>
             {place.length > 0 && (
-              <Fact icon={<PinIcon />} label="Dove">
+              <Fact icon={<PlaceIcon className="mt-0.5" />} label="Dove">
                 <dd>{place[0]}</dd>
                 {place[1] && <dd className="text-xs text-muted">{place[1]}</dd>}
               </Fact>
@@ -314,27 +315,6 @@ function Fact({ icon, label, children }: { icon: ReactNode; label: string; child
         {children}
       </div>
     </div>
-  );
-}
-
-function PinIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-      aria-hidden
-      className="mt-0.5 shrink-0"
-    >
-      <path
-        d="M10 17.5s5.5-4.6 5.5-9a5.5 5.5 0 0 0-11 0c0 4.4 5.5 9 5.5 9z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      <circle cx="10" cy="8.5" r="2" stroke="currentColor" strokeWidth="1.5" />
-    </svg>
   );
 }
 

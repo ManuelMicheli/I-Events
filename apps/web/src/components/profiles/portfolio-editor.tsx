@@ -1,5 +1,6 @@
 "use client";
 
+import { PlusIcon, TrashIcon } from "@/components/icons";
 import { Button, Field, Input, Notice } from "@/components/ui";
 import {
   createPortfolioPhoto,
@@ -54,7 +55,8 @@ function ItemForm({ item, onSaved }: { item?: PortfolioItem; onSaved?: () => voi
       </Field>
       {state.error && !Object.keys(f).length && <Notice tone="error">{state.error}</Notice>}
       {state.ok && item && <Notice tone="success">Lavoro salvato.</Notice>}
-      <Button type="submit" variant="secondary" disabled={pending} className="self-start">
+      <Button type="submit" variant="secondary" disabled={pending} className="ic-host self-start">
+        {!item && <PlusIcon />}
         {item ? "Salva" : "Aggiungi al portfolio"}
       </Button>
     </form>
@@ -144,11 +146,13 @@ function EditableItem({ item }: { item: PortfolioItem }) {
             <Button
               type="submit"
               variant="danger"
+              className="ic-host"
               aria-label={`Elimina ${item.title}`}
               onClick={(e) => {
                 if (!confirm(`Eliminare "${item.title}" e le sue foto dal portfolio?`)) e.preventDefault();
               }}
             >
+              <TrashIcon />
               Elimina
             </Button>
           </form>
@@ -210,7 +214,8 @@ export function PortfolioEditor({ items }: { items: PortfolioItem[] }) {
           <ItemForm onSaved={() => setAdding(false)} />
         </div>
       ) : (
-        <Button type="button" variant="secondary" onClick={() => setAdding(true)} className="self-start">
+        <Button type="button" variant="secondary" onClick={() => setAdding(true)} className="ic-host self-start">
+          <PlusIcon />
           Aggiungi un lavoro
         </Button>
       )}

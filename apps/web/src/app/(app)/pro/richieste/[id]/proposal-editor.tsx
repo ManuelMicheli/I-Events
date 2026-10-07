@@ -1,5 +1,6 @@
 "use client";
 
+import { PlusIcon, SendIcon } from "@/components/icons";
 import { Button, Card, Field, Input, Notice, Select } from "@/components/ui";
 import { formatEuro, proposalTotal, SERVICE_CATALOG, type ProposalLine } from "@i-events/core";
 import { useState, useTransition } from "react";
@@ -66,15 +67,16 @@ export function ProposalEditor({ proposalId, initialLines, initialSummary, resub
           </tbody>
         </table>
         <div className="flex items-center justify-between">
-          <button type="button" className="text-sm underline" onClick={() => setLines((ls) => [...ls, { category: "other", description: "", amount: 0 }])}>
-            + Aggiungi voce
+          <button type="button" className="ic-host inline-flex items-center gap-1 text-sm underline" onClick={() => setLines((ls) => [...ls, { category: "other", description: "", amount: 0 }])}>
+            <PlusIcon size={16} />
+            Aggiungi voce
           </button>
           <span className="text-base font-semibold">Totale {formatEuro(proposalTotal(lines))}</span>
         </div>
         {error && <Notice tone="error">{error}</Notice>}
         <Button
           type="button"
-          className="self-start"
+          className="ic-host self-start"
           disabled={pending}
           onClick={() =>
             start(async () => {
@@ -83,6 +85,7 @@ export function ProposalEditor({ proposalId, initialLines, initialSummary, resub
             })
           }
         >
+          <SendIcon />
           {resubmit ? "Invia proposta aggiornata" : "Invia proposta all'azienda"}
         </Button>
       </div>

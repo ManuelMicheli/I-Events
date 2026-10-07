@@ -2,6 +2,7 @@
 
 import { submitDraft, saveDraft, type SaveResult } from "@/app/(app)/client/richieste/actions";
 import { EventCover, TypeChip } from "@/components/event-type";
+import { SaveIcon, SendIcon } from "@/components/icons";
 import { Button, buttonClass, Card, Field, Input, Notice, Select } from "@/components/ui";
 import type { ReachableAgency } from "@/lib/requests";
 import {
@@ -469,7 +470,8 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
           </Button>
         )}
         {step === "riepilogo" && (
-          <Button type="button" pending={pending} disabled={pending || selectedAgencies.length === 0} onClick={submit}>
+          <Button type="button" pending={pending} disabled={pending || selectedAgencies.length === 0} onClick={submit} className="ic-host">
+            <SendIcon />
             Invia a {selectedAgencies.length} {selectedAgencies.length === 1 ? "agenzia" : "agenzie"}
           </Button>
         )}
@@ -478,7 +480,12 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
             Salva bozza
           </Button>
         )}
-        <span className="text-sm text-muted">{pending ? "Salvataggio…" : requestId ? "Bozza salvata" : ""}</span>
+        {(pending || requestId) && (
+          <span className="flex items-center gap-2 text-sm text-muted">
+            <SaveIcon saving={pending} saved={Boolean(requestId)} />
+            {pending ? "Salvataggio…" : "Bozza salvata"}
+          </span>
+        )}
         <span className="ml-auto text-sm text-muted">Completezza del brief: {completeness}%</span>
       </div>
     </div>

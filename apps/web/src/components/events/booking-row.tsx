@@ -2,6 +2,7 @@
 
 import { deleteBooking, saveBooking, type BookingState } from "@/app/(app)/pro/eventi/actions";
 import { ContactActions } from "@/components/contacts/contact-actions";
+import { TrashIcon } from "@/components/icons";
 import { Button, Input, Select } from "@/components/ui";
 import { BOOKING_STATUS_LABEL } from "@/lib/labels";
 import { BOOKING_STATUSES, dayRanges, formatEuro, getServiceCategory, rangeLabel, type BookingStatus } from "@i-events/core";
@@ -132,6 +133,7 @@ export function BookingRow({
           <Button
             type="submit"
             variant="danger"
+            className="ic-host"
             formAction={deleteBooking}
             disabled={pending}
             aria-label={`Rimuovi ${name}`}
@@ -139,6 +141,7 @@ export function BookingRow({
               if (!confirm(`Rimuovere ${name} da questo evento?`)) e.preventDefault();
             }}
           >
+            <TrashIcon />
             Rimuovi
           </Button>
         </div>
