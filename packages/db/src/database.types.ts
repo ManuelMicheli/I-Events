@@ -1955,6 +1955,27 @@ export type Database = {
           venue: string;
         }[];
       };
+      public_event_rows: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          capacity: number;
+          city: string;
+          description: string;
+          end_date: string;
+          ends_at: string;
+          event_type: Database["public"]["Enums"]["event_type"];
+          id: string;
+          number: number;
+          organizer: string;
+          produced_by: string;
+          registered: number;
+          start_date: string;
+          starts_at: string;
+          status: Database["public"]["Enums"]["event_status"];
+          title: string;
+          venue: string;
+        }[];
+      };
       public_events: {
         Args: { p_from?: string; p_to?: string };
         Returns: {
