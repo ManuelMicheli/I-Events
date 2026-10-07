@@ -2,6 +2,7 @@
 
 import { deleteQuoteDraft, saveQuoteDraft } from "@/app/(app)/pro/eventi/quote-actions";
 import { PlusIcon, TrashIcon } from "@/components/icons";
+import { ConfirmForm, useConfirm } from "@/components/modal";
 import { Button, Field, Input, Notice, Select } from "@/components/ui";
 import { formatEuro, proposalTotal, SERVICE_CATALOG, type ProposalLine } from "@i-events/core";
 import { useState, useTransition } from "react";
@@ -27,14 +28,29 @@ export function QuoteEditor({
   const [note, setNote] = useState(initialNote);
   const [message, setMessage] = useState<{ tone: "error" | "success"; text: string }>();
   const [pending, start] = useTransition();
+  const [ask, confirmDialog] = useConfirm();
   const update = (i: number, patch: Partial<ProposalLine>) => setLines((ls) => ls.map((l, j) => (j === i ? { ...l, ...patch } : l)));
 
-  const save = (send: boolean) =>
+  const save = async (send: boolean) => {
+    if (
+      send &&
+      !(await ask({
+        title: `Inviare la versione ${nextVersion} al cliente?`,
+        body: (
+          <>
+            <span className="mb-1 block font-mono text-2xl text-text tabular-nums">{formatEuro(proposalTotal(lines))}</span>
+            Il cliente la riceve con una notifica e può approvarla o chiedere modifiche.
+          </>
+        ),
+        confirmLabel: "Invia al cliente",
+      }))
+    )
+      return;
     start(async () => {
-      if (send && !confirm(`Inviare la versione ${nextVersion} del preventivo al cliente per l'approvazione?`)) return;
       const res = await saveQuoteDraft(quoteId, eventId, { lines, note }, send);
       setMessage(res.error ? { tone: "error", text: res.error } : send ? undefined : { tone: "success", text: "Bozza salvata." });
     });
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -102,19 +118,15 @@ export function QuoteEditor({
         <Button type="button" pending={pending} variant="secondary" disabled={pending} onClick={() => save(false)}>
           Salva bozza
         </Button>
-        <form
-          action={deleteQuoteDraft}
-          onSubmit={(e) => {
-            if (!confirm("Eliminare la bozza?")) e.preventDefault();
-          }}
-        >
+        <ConfirmForm action={deleteQuoteDraft} confirm={{ title: "Eliminare la bozza del preventivo?", confirmLabel: "Elimina", danger: true }}>
           <input type="hidden" name="quoteId" value={quoteId} />
           <input type="hidden" name="eventId" value={eventId} />
           <Button type="submit" variant="danger" disabled={pending} className="ic-host">
             <TrashIcon />
             Elimina bozza
           </Button>
-        </form>
+        </ConfirmForm>
+        {confirmDialog}
       </div>
     </div>
   );
