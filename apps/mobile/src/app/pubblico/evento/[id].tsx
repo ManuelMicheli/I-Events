@@ -137,7 +137,12 @@ export default function PublicEventScreen() {
       )}
       <View style={styles.head}>
         <View>
-          <PublicCover type={event.event_type} style={styles.cover} />
+          <PublicCover
+            type={event.event_type}
+            image={event.image}
+            fit="contain"
+            style={styles.cover}
+          />
           {event.status === "live" && (
             <View style={[styles.liveBadge, { backgroundColor: c.bgSurface }]}>
               <LiveDot />
@@ -145,6 +150,11 @@ export default function PublicEventScreen() {
             </View>
           )}
         </View>
+        {event.image && event.image_credit && (
+          <T variant="caption" tone="secondary" style={styles.credit}>
+            Immagine: {event.image_credit}
+          </T>
+        )}
         <View style={styles.titles}>
           <T variant="title1" accessibilityRole="header">
             {event.title}
@@ -257,6 +267,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: space[3],
     borderRadius: radius.full,
   },
+  credit: { marginTop: -space[2] },
   titles: { gap: space[2] },
   chips: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: space[2] },
   facts: {

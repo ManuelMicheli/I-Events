@@ -98,6 +98,8 @@ export default async function PublicEventPage({
           <div className="group relative">
             <PublicCover
               type={event.event_type}
+              image={event.image}
+              fit="contain"
               className="aspect-[16/9] w-full rounded-card sm:aspect-[2/1]"
             />
             {event.status === "live" && (
@@ -107,6 +109,9 @@ export default async function PublicEventPage({
               </span>
             )}
           </div>
+          {event.image && event.image_credit && (
+            <p className="-mt-2 text-xs text-muted">Immagine: {event.image_credit}</p>
+          )}
           <div className="flex flex-col gap-2">
             <h1 className="text-2xl font-semibold">{event.title}</h1>
             <p className="font-mono text-label tracking-[0.04em] text-muted uppercase">

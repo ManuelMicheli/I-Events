@@ -13,6 +13,7 @@ import QRCode from "qrcode";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Animated,
+  Image,
   StyleSheet,
   useWindowDimensions,
   View,
@@ -44,15 +45,43 @@ import { Confirmation } from "./ticket";
  * the covers of the six types, and the ticket with the confirmation seal and the QR.
  */
 
-/** The event's cover, or a quiet paper one while the agency has not said what kind of event it is. */
+/**
+ * The event's cover, as on the website: its poster when there is one (linked from the organiser's
+ * website, on the type's deep ink while it loads), else the ink cover of its type, or a quiet paper
+ * one while the agency has not said what kind of event it is. The event page shows the whole poster.
+ */
 export function PublicCover({
   type,
+  image,
+  fit = "cover",
   style,
 }: {
   type: EventType | null;
+  image?: string | null;
+  fit?: "cover" | "contain";
   style?: StyleProp<ViewStyle>;
 }) {
   const { c } = useTheme();
+  const [broken, setBroken] = useState(false);
+  if (image && !broken)
+    return (
+      <View
+        style={[
+          styles.poster,
+          { backgroundColor: type ? EVENT_TYPE_INFO[type].ink.deep : c.bgSubtle },
+          style,
+        ]}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
+        <Image
+          source={{ uri: image }}
+          resizeMode={fit}
+          style={StyleSheet.absoluteFill}
+          onError={() => setBroken(true)}
+        />
+      </View>
+    );
   if (type) return <EventCover type={type} style={style} />;
   return (
     <View
@@ -95,7 +124,7 @@ export function PublicEventCard({ event }: { event: PublicEvent }) {
       style={styles.eventCard}
     >
       <View style={styles.coverWrap}>
-        <PublicCover type={event.event_type} style={styles.cardCover} />
+        <PublicCover type={event.event_type} image={event.image} style={styles.cardCover} />
         {note && (
           <CoverBadge>
             {note.live && <LiveDot />}
@@ -125,6 +154,7 @@ export function PublicEventCard({ event }: { event: PublicEvent }) {
 /** The compact row (Carta item 17): a 56 cover, the title, the line under it and one more detail. */
 export function PublicEventRow({
   type,
+  image,
   title,
   line,
   extra,
@@ -132,6 +162,7 @@ export function PublicEventRow({
   onPress,
 }: {
   type: EventType | null;
+  image?: string | null;
   title: string;
   line: string;
   extra?: string;
@@ -144,7 +175,7 @@ export function PublicEventRow({
       accessibilityLabel={[title, live && "in corso", line, extra].filter(Boolean).join(", ")}
       style={styles.row}
     >
-      <PublicCover type={type} style={styles.rowCover} />
+      <PublicCover type={type} image={image} style={styles.rowCover} />
       <View style={styles.rowTexts}>
         <T variant="bodyStrong">{title}</T>
         {live && (
@@ -381,6 +412,7 @@ function Fact({
 const styles = StyleSheet.create({
   eventCard: { padding: 0, gap: 0 },
   coverWrap: { padding: space[1] },
+  poster: { overflow: "hidden" },
   cardCover: { width: "100%", height: undefined, aspectRatio: 16 / 10, borderRadius: radius.md },
   coverBadge: {
     position: "absolute",

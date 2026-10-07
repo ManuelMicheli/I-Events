@@ -4,6 +4,7 @@ import { dbErrorMessage } from "@/lib/labels";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { proposalSchema, proposalTotal } from "@i-events/core";
+import { flash } from "@/lib/flash";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -37,6 +38,8 @@ export async function submitProposal(proposalId: string, input: unknown): Promis
     p_lines: parsed.data.lines,
   });
   if (error) return { error: error.code === "22023" ? "La richiesta non accetta più proposte." : dbErrorMessage(error) };
+  const { data: sent } = await supabase.from("proposals").select("request:requests(client:organizations!requests_client_org_id_fkey(name))").eq("id", id).maybeSingle();
+  await flash(sent?.request?.client?.name ? `Proposta inviata a ${sent.request.client.name}` : "Proposta inviata");
   revalidatePath(`/pro/richieste/${id}`);
   revalidatePath("/pro/richieste");
   revalidatePath("/pro");

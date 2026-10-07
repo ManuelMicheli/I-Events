@@ -110,6 +110,10 @@ update public.events set is_public = true, public_url = 'https://example.com/cen
 set role anon;
 select tests.ok((select website = 'https://example.com/cena' from public.public_event(:'private_event')), 'the page shows the website');
 select tests.ok((select organizer = 'Comune di Milano' from public.public_event(:'private_event')), 'and names the real organiser');
+reset role;
+update public.events set public_image_url = 'https://example.com/poster.jpg', public_image_credit = 'Comune di Milano' where id = :'private_event';
+set role anon;
+select tests.ok((select image = 'https://example.com/poster.jpg' and image_credit = 'Comune di Milano' from public.public_event(:'private_event')), 'the page shows the poster and its credit');
 select tests.ok(tests.error_of(format($$select public.register_for_event(%L, 'Anna', 'anna@example.com')$$, :'private_event')) = '22023', 'it takes no registrations');
 reset role;
 select tests.ok(tests.error_of(format($$update public.events set public_url = 'http://example.com' where id = %L$$, :'private_event')) = '23514', 'the website needs https');

@@ -195,6 +195,7 @@ export default function PublicCalendar() {
             <PublicEventRow
               key={e.id}
               type={e.event_type}
+              image={e.image}
               title={e.title}
               line={eventLine(e)}
               live={e.status === "live"}
