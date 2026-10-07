@@ -2,16 +2,18 @@ import { CopyButton } from "@/components/copy-button";
 import { PublicPageForm } from "@/components/events/public-page";
 import { PlusIcon } from "@/components/icons";
 import { ClearMoment } from "@/components/moment";
-import { Seal, stampDay } from "@/components/ticket";
+import { LiveDot, Seal, stampDay } from "@/components/ticket";
 import { EventHeader } from "@/components/event-type";
-import { BookingRow, type Booking } from "@/components/events/booking-row";
+import { BookingList, type Booking } from "@/components/events/booking-row";
+import { BudgetSummary, BudgetView } from "@/components/events/budget";
+import { PageTabs } from "@/components/tabs";
 import { ReviewForm } from "@/components/profiles/review-forms";
 import { EventDetailsForm, EventStatusActions } from "@/components/events/event-controls";
 import { QuoteEditor } from "@/components/quotes/quote-editor";
 import { QuoteHistory, type SentQuote } from "@/components/quotes/quote-history";
 import { NewTaskForm } from "@/components/tasks/new-task-form";
 import { TaskBoard } from "@/components/tasks/task-board";
-import { Button, ButtonLink, Card, Empty, Select } from "@/components/ui";
+import { Badge, Button, ButtonLink, Card, Empty, Select } from "@/components/ui";
 import { env } from "@/lib/env";
 import { EVENT_STATUS_LABEL } from "@/lib/labels";
 import { requireOrg } from "@/lib/session";
@@ -20,15 +22,16 @@ import {
   canMoveEvent,
   EVENT_STATUSES,
   EVENT_TYPE_INFO,
+  eventCountdown,
   formatTicketNumber,
   eventBudget,
-  formatEuro,
   getServiceCategory,
   hhmm,
   SERVICE_CATALOG,
   soldLines as pickSoldLines,
   suggestedTasks,
   todayInItaly,
+  type EventStatus,
   type ProposalLine,
 } from "@i-events/core";
 import type { Metadata } from "next";
@@ -44,10 +47,11 @@ const dateFmt = new Intl.DateTimeFormat("it-IT", { weekday: "short", day: "numer
 const day = (d: string | null) => (d ? dateFmt.format(new Date(`${d}T12:00:00`)) : null);
 const registeredFmt = new Intl.DateTimeFormat("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" });
 const num = (v: number | string | null) => (v === null ? null : Number(v));
+const monoFmt = new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short" });
 
-export default async function EventPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ momento?: string }> }) {
+export default async function EventPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ momento?: string; vista?: string }> }) {
   const { id } = await params;
-  const { momento } = await searchParams;
+  const { momento, vista } = await searchParams;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const org = await requireOrg("agency");
   const supabase = await createClient();
@@ -138,7 +142,17 @@ export default async function EventPage({ params, searchParams }: { params: Prom
   }));
   const registrations = registrationsRes.data!;
   const people = registrations.reduce((n, r) => n + r.guests, 0);
-  const marginPct = budget.margin !== null && budget.sold ? Math.round((budget.margin / budget.sold) * 100) : null;
+
+  const tab = (VIEWS as readonly string[]).includes(vista ?? "") ? (vista as View) : "dettagli";
+  const tabHref = (v: View) => (v === "dettagli" ? `/pro/eventi/${event.id}` : `/pro/eventi/${event.id}?vista=${v}`);
+  const liveBookings = bookings.filter((b) => b.status !== "cancelled");
+  const countdown = eventCountdown(event, todayInItaly());
+  const budgetNote =
+    sold?.source === "quote"
+      ? `Venduto secondo il preventivo approvato (versione ${sold.version}). Il margine usa il costo reale dove c'è, altrimenti quello previsto.`
+      : sold
+        ? "Venduto secondo la proposta accettata, finché il cliente non approva un preventivo. Il margine usa il costo reale dove c'è, altrimenti quello previsto."
+        : "Questo evento fa parte di una campagna venduta in un'unica proposta: il venduto compare quando il cliente approva il preventivo di questo evento.";
 
   return (
     <>
@@ -151,191 +165,181 @@ export default async function EventPage({ params, searchParams }: { params: Prom
           </Link>
         }
         aside={
-          event.status === "completed" ? (
+          completed ? (
             <Seal label="Andato in scena" date={stampDay(event.end_date ?? event.start_date)} type={event.event_type} fresh={momento === "concluso"} />
           ) : (
-            <span className="rounded-ui border border-border px-3 py-1 text-sm">{EVENT_STATUS_LABEL[event.status]}</span>
-          )
-        }
-      >
-        <h1 className="text-2xl font-semibold">{event.title}</h1>
-        <p className="text-sm text-muted">
-          <span className="font-mono">{formatTicketNumber(event.number, event.stage?.position)}</span>
-          {" · "}
-          {[event.event_type && EVENT_TYPE_INFO[event.event_type].label, event.client.name, dates || "Data da definire", event.city, event.venue]
-            .filter(Boolean)
-            .join(" · ")}
-        </p>
-      </EventHeader>
-
-      {canManage && <EventStatusActions eventId={event.id} moves={moves} quiet={main !== "move"} />}
-
-      {completed && (toReview.length > 0 || clientReview) && (
-        <section id="recensioni">
-          <Card title="Recensioni">
-            <div className="flex flex-col gap-6">
-              {clientReview && (
-                <div className="flex flex-col gap-1 text-sm">
-                  <p className="font-medium">
-                    {event.client.name} vi ha dato {clientReview.rating} {clientReview.rating === 1 ? "stella" : "stelle"} su 5
-                  </p>
-                  {clientReview.comment && <p className="whitespace-pre-line">{clientReview.comment}</p>}
-                  <Link href="/pro/profilo#recensioni" className="underline">
-                    {clientReview.reply ? "Vedi la risposta sul profilo" : "Rispondi dal profilo"}
-                  </Link>
-                </div>
-              )}
-              {toReview.length > 0 && (
-                <p className="text-sm text-muted">Com&apos;è andata con i fornitori? Le recensioni aiutano altre agenzie a sceglierli.</p>
-              )}
-              {toReview.map((s) => (
-                <ReviewForm key={s.id} eventId={event.id} subjectId={s.id} subjectName={s.name} existing={s.existing} lead={false} />
-              ))}
-            </div>
-          </Card>
-        </section>
-      )}
-
-      {/* On 2K monitors two columns: budget, quote, tasks and schedule on the left; suppliers, public page and details on the right. */}
-      <div className="contents 4xl:grid 4xl:grid-cols-2 4xl:items-start 4xl:gap-6">
-        <div className="contents 4xl:flex 4xl:flex-col 4xl:gap-6">
-          <Card title="Budget">
-            <dl className="grid gap-4 sm:grid-cols-4">
-              <div>
-                <dt className="text-sm text-muted">Venduto al cliente</dt>
-                <dd className="text-xl font-semibold">{formatEuro(budget.sold)}</dd>
-              </div>
-              <div>
-                <dt className="text-sm text-muted">Costo previsto</dt>
-                <dd className="text-xl font-semibold">{formatEuro(budget.planned)}</dd>
-              </div>
-              <div>
-                <dt className="text-sm text-muted">Costo reale</dt>
-                <dd className="text-xl font-semibold">{formatEuro(budget.actual)}</dd>
-              </div>
-              <div>
-                <dt className="text-sm text-muted">Margine stimato</dt>
-                <dd className={`text-xl font-semibold ${budget.margin !== null && budget.margin < 0 ? "text-danger" : ""}`}>
-                  {formatEuro(budget.margin)}
-                  {marginPct !== null && <span className="ml-2 text-sm font-normal text-muted">{marginPct}%</span>}
-                </dd>
-              </div>
-            </dl>
-            <p className="mt-3 text-sm text-muted">
-              {sold?.source === "quote"
-                ? `Venduto secondo il preventivo approvato (versione ${sold.version}). Il margine usa il costo reale dove c'è, altrimenti quello previsto.`
-                : sold
-                  ? "Venduto secondo la proposta accettata, finché il cliente non approva un preventivo. Il margine usa il costo reale dove c'è, altrimenti quello previsto."
-                  : "Questo evento fa parte di una campagna venduta in un'unica proposta: il venduto compare quando il cliente approva il preventivo di questo evento."}
-            </p>
-            {budget.rows.length > 0 && (
-              <table className="mt-4 w-full text-left text-sm">
-                <thead className="text-muted">
-                  <tr>
-                    <th className="py-1 font-medium">Servizio</th>
-                    {soldLines && <th className="py-1 text-right font-medium">Venduto</th>}
-                    <th className="py-1 text-right font-medium">Previsto</th>
-                    <th className="py-1 text-right font-medium">Reale</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {budget.rows.map((r) => (
-                    <tr key={r.service} className="border-t border-border">
-                      <td className="py-1">{r.service === "other" ? "Altro" : (getServiceCategory(r.service)?.name.it ?? r.service)}</td>
-                      {soldLines && <td className="py-1 text-right">{formatEuro(r.sold)}</td>}
-                      <td className="py-1 text-right">{formatEuro(r.planned)}</td>
-                      <td className="py-1 text-right">{r.hasActual ? formatEuro(r.actual) : "–"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </Card>
-
-          <Card title="Preventivo per il cliente">
-            <div className="flex flex-col gap-6">
-              {draft ? (
-                <QuoteEditor
-                  key={draft.id}
-                  quoteId={draft.id}
-                  eventId={event.id}
-                  initialLines={draft.lines as ProposalLine[]}
-                  initialNote={draft.note ?? ""}
-                  nextVersion={(sent[0]?.version ?? 0) + 1}
-                  lead={main === "quote"}
-                />
-              ) : (
-                <form action={createQuoteDraft} className="flex flex-wrap items-center gap-3 text-sm">
-                  <input type="hidden" name="eventId" value={event.id} />
-                  <span className="min-w-60 flex-1 text-muted">
-                    {sent.length === 0
-                      ? "Prepara il preventivo dettagliato di questo evento e mandalo al cliente: lo approva il suo responsabile della spesa."
-                      : sent[0]!.status === "sent"
-                        ? "Il cliente sta valutando l'ultima versione. Puoi comunque prepararne una nuova."
-                        : "Per cambiare il preventivo prepara una nuova versione: parte dall'ultima inviata."}
-                  </span>
-                  <Button type="submit" variant={main === "quote" ? "primary" : "secondary"}>
-                    {sent.length === 0 ? "Prepara il preventivo" : "Nuova versione"}
-                  </Button>
-                </form>
-              )}
-              {sent.length > 0 && <QuoteHistory quotes={sent} />}
-            </div>
-          </Card>
-
-          <Card
-            title="Attività"
-            action={
-              <span className="text-sm text-muted">{tasks.length === 0 ? "Nessuna attività" : openTasks === 0 ? "Tutte fatte" : `${openTasks} da fare`}</span>
-            }
-          >
-            <div className="flex flex-col gap-4">
-              <NewTaskForm eventId={event.id} members={members} bookings={bookingOptions} />
-              {tasks.length === 0 ? (
-                <form action={addSuggestedTasks} className="flex flex-wrap items-center gap-3 rounded-ui bg-surface px-4 py-4 text-sm">
-                  <input type="hidden" name="eventId" value={event.id} />
-                  <span className="flex-1">
-                    Parti dalla checklist tipica per i servizi di questo evento
-                    {event.start_date ? ", con le scadenze già calcolate sulla data." : ". Aggiungi la data dell'evento per avere anche le scadenze."}
-                  </span>
-                  <Button type="submit" variant="secondary" className="ic-host">
-                    <PlusIcon />
-                    Aggiungi {suggestionCount} attività suggerite
-                  </Button>
-                </form>
-              ) : (
-                <TaskBoard tasks={tasks} today={todayInItaly()} members={members} bookings={bookingOptions} eventStart={event.start_date} />
-              )}
-            </div>
-          </Card>
-
-          <Card
-            title="Scaletta e giorno dell'evento"
-            action={
-              <span className="text-sm text-muted">
-                {schedule.length === 1 ? "1 momento" : `${schedule.length} momenti`} · {crew.length === 1 ? "1 arrivo" : `${crew.length} arrivi`}
-              </span>
-            }
-          >
-            <div className="flex flex-wrap items-center gap-3 text-sm">
-              <p className="min-w-60 flex-1 text-muted">
-                {schedule.length === 0
-                  ? "Prepara la scaletta minuto per minuto e l'elenco di chi deve arrivare: il giorno dell'evento fai i check-in dal telefono, anche senza rete."
-                  : `Si parte alle ${hhmm(schedule[0]!.starts_at)} con: ${schedule[0]!.title}.${crew.length > 0 ? ` Arrivati ${crew.filter((c) => c.checked_in_at).length} di ${crew.length}.` : ""}`}
-              </p>
+            <div className="flex flex-wrap gap-2">
+              <ButtonLink href={`/pro/richieste/${event.proposal_id}#messaggi`} variant="secondary">
+                Aggiorna il cliente
+              </ButtonLink>
               <ButtonLink href={`/pro/eventi/${event.id}/scaletta`} variant="secondary">
                 {schedule.length === 0 ? "Prepara la scaletta" : "Apri la scaletta"}
               </ButtonLink>
-              {schedule.length > 0 && (
+              {schedule.length > 0 && event.status !== "cancelled" && (
                 <ButtonLink href={`/pro/eventi/${event.id}/live`} variant={main === "day" ? "primary" : "secondary"}>
                   Giorno dell&apos;evento
                 </ButtonLink>
               )}
             </div>
-          </Card>
+          )
+        }
+      >
+        <h1 className="text-2xl font-semibold">{event.title}</h1>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <EventStatusBadge status={event.status} />
+          <p className="flex items-center gap-2 font-mono text-xs tracking-[0.04em] text-muted uppercase">
+            <span>{formatTicketNumber(event.number, event.stage?.position)}</span>
+            <span aria-hidden>·</span>
+            <span>{monoDates(event.start_date, event.end_date)}</span>
+            {countdown && (
+              <>
+                <span aria-hidden>·</span>
+                <span className="inline-flex items-center gap-1.5">
+                  {countdown.live && <LiveDot />}
+                  {countdown.label.replace(/^TRA (\d+) G$/, "TRA $1 GIORNI")}
+                </span>
+              </>
+            )}
+          </p>
         </div>
+        <p className="text-sm text-muted">
+          {[event.event_type && EVENT_TYPE_INFO[event.event_type].label, event.client.name, event.city, event.venue].filter(Boolean).join(" · ")}
+        </p>
+      </EventHeader>
 
-        <div className="contents 4xl:flex 4xl:flex-col 4xl:gap-6">
+      <PageTabs
+        label="Sezioni dell'evento"
+        active={tab}
+        tabs={[
+          { key: "dettagli", label: "Dettagli", href: tabHref("dettagli") },
+          { key: "fornitori", label: "Fornitori", href: tabHref("fornitori"), count: liveBookings.length },
+          { key: "budget", label: "Budget", href: tabHref("budget") },
+          { key: "attivita", label: "Attività", href: tabHref("attivita"), count: openTasks },
+          { key: "preventivo", label: "Preventivo per il cliente", href: tabHref("preventivo") },
+        ]}
+      />
+
+      {tab === "dettagli" && (
+        <>
+          {completed && (toReview.length > 0 || clientReview) && (
+            <Card id="recensioni" title="Recensioni">
+              <div className="flex flex-col gap-6">
+                {clientReview && (
+                  <div className="flex flex-col gap-1 text-sm">
+                    <p className="font-medium">
+                      {event.client.name} vi ha dato {clientReview.rating} {clientReview.rating === 1 ? "stella" : "stelle"} su 5
+                    </p>
+                    {clientReview.comment && <p className="whitespace-pre-line">{clientReview.comment}</p>}
+                    <Link href="/pro/profilo#recensioni" className="underline">
+                      {clientReview.reply ? "Vedi la risposta sul profilo" : "Rispondi dal profilo"}
+                    </Link>
+                  </div>
+                )}
+                {toReview.length > 0 && (
+                  <p className="text-sm text-muted">Com&apos;è andata con i fornitori? Le recensioni aiutano altre agenzie a sceglierli.</p>
+                )}
+                {toReview.map((s) => (
+                  <ReviewForm key={s.id} eventId={event.id} subjectId={s.id} subjectName={s.name} existing={s.existing} lead={false} />
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* From 1280 px two columns: where the event stands and its details; the day and the public page. */}
+          <div className="grid gap-6 xl:grid-cols-2 xl:items-start">
+            <div className="flex flex-col gap-6">
+              {canManage && moves.length > 0 && (
+                <Card title="A che punto è">
+                  <p className="mb-4 text-sm text-muted">{NEXT_STEP[event.status]}</p>
+                  <EventStatusActions eventId={event.id} moves={moves} quiet={main !== "move"} />
+                </Card>
+              )}
+              <Card title="Dettagli">
+                {canManage ? (
+                  <EventDetailsForm eventId={event.id} details={event} />
+                ) : (
+                  <p className="text-sm">{[dates, event.city, event.venue].filter(Boolean).join(" · ") || "Da definire"}</p>
+                )}
+                <p className="mt-4 text-sm">
+                  <Link href={`/pro/richieste/${event.proposal_id}`} className="underline">
+                    Brief, proposta e conversazione con il cliente
+                  </Link>
+                </p>
+              </Card>
+            </div>
+            <div className="flex flex-col gap-6">
+              <Card
+                title="Scaletta e giorno dell'evento"
+                action={
+                  <span className="font-mono text-xs text-muted tabular-nums">
+                    {schedule.length === 1 ? "1 momento" : `${schedule.length} momenti`} · {crew.length === 1 ? "1 arrivo" : `${crew.length} arrivi`}
+                  </span>
+                }
+              >
+                <p className="text-sm text-muted">
+                  {schedule.length === 0
+                    ? "Prepara la scaletta minuto per minuto e l'elenco di chi deve arrivare: il giorno dell'evento fai i check-in dal telefono, anche senza rete."
+                    : `Si parte alle ${hhmm(schedule[0]!.starts_at)} con: ${schedule[0]!.title}.${crew.length > 0 ? ` Arrivati ${crew.filter((c) => c.checked_in_at).length} di ${crew.length}.` : ""}`}
+                </p>
+              </Card>
+              <Card
+                title="Pagina pubblica"
+                action={
+                  event.is_public ? (
+                    <span className="text-sm text-muted">
+                      {people === 1 ? "1 persona iscritta" : `${people} persone iscritte`}
+                      {event.public_capacity ? ` su ${event.public_capacity} posti` : ""}
+                    </span>
+                  ) : undefined
+                }
+              >
+                <div className="flex flex-col gap-6">
+                  {event.is_public && (
+                    <p className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                      <Link href={`/eventi/${event.id}`} className="underline">
+                        Apri la pagina pubblica
+                      </Link>
+                      <CopyButton text={`${env.siteUrl.replace(/\/$/, "")}/eventi/${event.id}`} />
+                    </p>
+                  )}
+                  <PublicPageForm eventId={event.id} page={event} canManage={canManage} />
+                  {registrations.length > 0 && (
+                    <table className="list-table w-full text-left text-sm">
+                      <thead className="text-muted">
+                        <tr>
+                          <th className="py-1 font-medium">Nome</th>
+                          <th className="py-1 font-medium">Email</th>
+                          <th className="py-1 text-right font-medium">Persone</th>
+                          <th className="py-1 text-right font-medium">Iscritto il</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {registrations.map((r) => (
+                          <tr key={r.id} className="border-t border-border">
+                            <td className="py-2 font-medium">{r.name}</td>
+                            <td data-label="Email" className="py-2">
+                              <span className="min-w-0 break-all">{r.email}</span>
+                            </td>
+                            <td data-label="Persone" className="py-2 text-right">
+                              <span className="font-mono">{r.guests}</span>
+                            </td>
+                            <td data-label="Iscritto il" className="py-2 text-right">
+                              <span className="font-mono">{registeredFmt.format(new Date(r.created_at))}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </Card>
+            </div>
+          </div>
+        </>
+      )}
+
+      {tab === "fornitori" && (
+        <div className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_22rem] 2xl:items-start">
           <Card
             title="Fornitori"
             action={
@@ -344,30 +348,17 @@ export default async function EventPage({ params, searchParams }: { params: Prom
               </span>
             }
           >
-            {contactsRes.data!.length === 0 && (
-              <p className="mb-2 text-sm text-muted">
-                La rubrica è vuota.{" "}
-                <Link href="/pro/rubrica/importa" className="underline">
-                  Importa i tuoi fornitori
-                </Link>{" "}
-                per sceglierli qui.
-              </p>
-            )}
             {bookings.length === 0 ? (
               <Empty>Nessun servizio da organizzare. Aggiungi il primo qui sotto.</Empty>
             ) : (
-              <ul className="divide-y divide-border">
-                {bookings.map((b) => (
-                  <BookingRow key={b.id} eventId={event.id} booking={b} contacts={contactsRes.data!} busy={busy} />
-                ))}
-              </ul>
+              <BookingList eventId={event.id} type={event.event_type} bookings={bookings} contacts={contactsRes.data!} busy={busy} />
             )}
-            <form action={addBooking} className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
+            <form action={addBooking} className="mt-4 flex flex-wrap items-center gap-2">
               <input type="hidden" name="eventId" value={event.id} />
               <label htmlFor="new-service" className="text-sm">
                 Aggiungi un servizio
               </label>
-              <Select id="new-service" name="service_key" defaultValue="catering">
+              <Select id="new-service" name="service_key" defaultValue="catering" className="w-auto! max-w-full min-w-56!">
                 {SERVICE_CATALOG.map((s) => (
                   <option key={s.key} value={s.key}>
                     {s.name.it}
@@ -380,73 +371,110 @@ export default async function EventPage({ params, searchParams }: { params: Prom
               </Button>
             </form>
           </Card>
-
-          <Card
-            title="Pagina pubblica"
-            action={
-              event.is_public ? (
-                <span className="text-sm text-muted">
-                  {people === 1 ? "1 persona iscritta" : `${people} persone iscritte`}
-                  {event.public_capacity ? ` su ${event.public_capacity} posti` : ""}
-                </span>
-              ) : undefined
-            }
-          >
-            <div className="flex flex-col gap-6">
-              {event.is_public && (
-                <p className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-                  <Link href={`/eventi/${event.id}`} className="underline">
-                    Apri la pagina pubblica
-                  </Link>
-                  <CopyButton text={`${env.siteUrl.replace(/\/$/, "")}/eventi/${event.id}`} />
-                </p>
-              )}
-              <PublicPageForm eventId={event.id} page={event} canManage={canManage} />
-              {registrations.length > 0 && (
-                <table className="list-table w-full text-left text-sm">
-                  <thead className="text-muted">
-                    <tr>
-                      <th className="py-1 font-medium">Nome</th>
-                      <th className="py-1 font-medium">Email</th>
-                      <th className="py-1 text-right font-medium">Persone</th>
-                      <th className="py-1 text-right font-medium">Iscritto il</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {registrations.map((r) => (
-                      <tr key={r.id} className="border-t border-border">
-                        <td className="py-2 font-medium">{r.name}</td>
-                        <td data-label="Email" className="py-2">
-                          <span className="min-w-0 break-all">{r.email}</span>
-                        </td>
-                        <td data-label="Persone" className="py-2 text-right">
-                          <span className="font-mono">{r.guests}</span>
-                        </td>
-                        <td data-label="Iscritto il" className="py-2 text-right">
-                          <span className="font-mono">{registeredFmt.format(new Date(r.created_at))}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </Card>
-
-          <Card title="Dettagli">
-            {canManage ? (
-              <EventDetailsForm eventId={event.id} details={event} />
-            ) : (
-              <p className="text-sm">{[dates, event.city, event.venue].filter(Boolean).join(" · ") || "Da definire"}</p>
-            )}
-            <p className="mt-4 text-sm">
-              <Link href={`/pro/richieste/${event.proposal_id}`} className="underline">
-                Brief, proposta e conversazione con il cliente
-              </Link>
-            </p>
-          </Card>
+          <div className="max-2xl:order-first 2xl:sticky 2xl:top-20">
+            <BudgetSummary budget={budget} href={tabHref("budget")} />
+          </div>
         </div>
-      </div>
+      )}
+
+      {tab === "budget" && <BudgetView budget={budget} bookings={bookings} type={event.event_type} note={budgetNote} />}
+
+      {tab === "attivita" && (
+        <Card
+          title="Attività"
+          action={<span className="text-sm text-muted">{tasks.length === 0 ? "Nessuna attività" : openTasks === 0 ? "Tutte fatte" : `${openTasks} da fare`}</span>}
+        >
+          <div className="flex flex-col gap-4">
+            <NewTaskForm eventId={event.id} members={members} bookings={bookingOptions} />
+            {tasks.length === 0 ? (
+              <form action={addSuggestedTasks} className="flex flex-wrap items-center gap-3 rounded-ui bg-surface px-4 py-4 text-sm">
+                <input type="hidden" name="eventId" value={event.id} />
+                <span className="flex-1">
+                  Parti dalla checklist tipica per i servizi di questo evento
+                  {event.start_date ? ", con le scadenze già calcolate sulla data." : ". Aggiungi la data dell'evento per avere anche le scadenze."}
+                </span>
+                <Button type="submit" variant="secondary" className="ic-host">
+                  <PlusIcon />
+                  Aggiungi {suggestionCount} attività suggerite
+                </Button>
+              </form>
+            ) : (
+              <TaskBoard tasks={tasks} today={todayInItaly()} members={members} bookings={bookingOptions} eventStart={event.start_date} />
+            )}
+          </div>
+        </Card>
+      )}
+
+      {tab === "preventivo" && (
+        <Card title="Preventivo per il cliente">
+          <div className="flex flex-col gap-6">
+            {draft ? (
+              <QuoteEditor
+                key={draft.id}
+                quoteId={draft.id}
+                eventId={event.id}
+                initialLines={draft.lines as ProposalLine[]}
+                initialNote={draft.note ?? ""}
+                nextVersion={(sent[0]?.version ?? 0) + 1}
+                lead={main === "quote"}
+              />
+            ) : (
+              <form action={createQuoteDraft} className="flex flex-wrap items-center gap-3 text-sm">
+                <input type="hidden" name="eventId" value={event.id} />
+                <span className="min-w-60 flex-1 text-muted">
+                  {sent.length === 0
+                    ? "Prepara il preventivo dettagliato di questo evento e mandalo al cliente: lo approva il suo responsabile della spesa."
+                    : sent[0]!.status === "sent"
+                      ? "Il cliente sta valutando l'ultima versione. Puoi comunque prepararne una nuova."
+                      : "Per cambiare il preventivo prepara una nuova versione: parte dall'ultima inviata."}
+                </span>
+                <Button type="submit" variant={main === "quote" ? "primary" : "secondary"}>
+                  {sent.length === 0 ? "Prepara il preventivo" : "Nuova versione"}
+                </Button>
+              </form>
+            )}
+            {sent.length > 0 && <QuoteHistory quotes={sent} />}
+          </div>
+        </Card>
+      )}
     </>
   );
+}
+
+const VIEWS = ["dettagli", "fornitori", "budget", "attivita", "preventivo"] as const;
+type View = (typeof VIEWS)[number];
+
+/** What the next move of the event means, above the buttons that make it. */
+const NEXT_STEP: Record<EventStatus, string> = {
+  planning: "Confermato dal cliente. Scegli i fornitori, poi passa in preparazione.",
+  preparing: "In preparazione. Il giorno dell'evento segna che è in corso.",
+  live: "In scena adesso. A fine evento segna che è concluso.",
+  completed: "",
+  cancelled: "",
+};
+
+/** The state of the event as a badge: the live dot while it runs, the check once it is over. */
+function EventStatusBadge({ status }: { status: EventStatus }) {
+  if (status === "live")
+    return (
+      <Badge tone="accent">
+        <LiveDot />
+        {EVENT_STATUS_LABEL.live}
+      </Badge>
+    );
+  if (status === "completed")
+    return (
+      <Badge tone="success" icon="check">
+        {EVENT_STATUS_LABEL.completed}
+      </Badge>
+    );
+  if (status === "cancelled") return <Badge tone="danger">{EVENT_STATUS_LABEL.cancelled}</Badge>;
+  return <Badge>{EVENT_STATUS_LABEL[status]}</Badge>;
+}
+
+const monoDay = (d: string) => monoFmt.format(new Date(`${d}T12:00:00`)).replace(".", "");
+/** "14 NOV", or "14 NOV – 16 NOV" across days (printed uppercase). */
+function monoDates(start: string | null, end: string | null) {
+  if (!start) return "Data da definire";
+  return end && end !== start ? `${monoDay(start)} – ${monoDay(end)}` : monoDay(start);
 }

@@ -40,9 +40,9 @@ export function Select({ className, ...props }: ComponentProps<"select">) {
   return <select className={cx(FIELD, "pr-8", className)} {...props} />;
 }
 
-export function Card({ title, action, children, className }: { title?: string; action?: ReactNode; children: ReactNode; className?: string }) {
+export function Card({ id, title, action, children, className }: { id?: string; title?: string; action?: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <section className={cx("rounded-card border border-border bg-bg p-4 sm:p-6", className)}>
+    <section id={id} className={cx("rounded-card border border-border bg-bg p-4 sm:p-6", id && "scroll-mt-20", className)}>
       {(title || action) && (
         <header className="mb-4 flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2">
           {title && <h2 className="text-xl font-medium">{title}</h2>}
@@ -72,10 +72,13 @@ export function Notice({ tone = "info", children }: { tone?: "info" | "error" | 
   );
 }
 
-export type BadgeTone = "neutral" | "accent" | "warning" | "success" | "outline";
+export type BadgeTone = "neutral" | "accent" | "warning" | "success" | "danger" | "outline";
 
-/** A state as a small pill. Accent only for what needs the user now ("Nuova", "2 preventivi nuovi"). */
-export function Badge({ tone = "neutral", children }: { tone?: BadgeTone; children: ReactNode }) {
+/**
+ * A state as a small pill. Accent only for what needs the user now ("Nuova", "2 preventivi nuovi").
+ * `icon` adds the sign of the state: the check on what is confirmed, the clock on what waits.
+ */
+export function Badge({ tone = "neutral", icon, children }: { tone?: BadgeTone; icon?: "check" | "clock"; children: ReactNode }) {
   return (
     <span
       className={cx(
@@ -84,9 +87,22 @@ export function Badge({ tone = "neutral", children }: { tone?: BadgeTone; childr
         tone === "accent" && "bg-accent-subtle text-accent-ink",
         tone === "warning" && "bg-warning-bg text-warning",
         tone === "success" && "bg-success-bg text-success",
+        tone === "danger" && "bg-danger-bg text-danger",
         tone === "outline" && "border border-border-strong text-muted",
       )}
     >
+      {icon && (
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden className="shrink-0">
+          {icon === "check" ? (
+            <path d="M2.5 6.25l2.25 2.25L9.5 3.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          ) : (
+            <>
+              <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.25" />
+              <path d="M6 3.75V6l1.5 1" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
+            </>
+          )}
+        </svg>
+      )}
       {children}
     </span>
   );

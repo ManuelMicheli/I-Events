@@ -6,7 +6,7 @@ import { MessageForm } from "./message-form";
 const timeFmt = new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
 /** Conversation between the client and one agency about one proposal; agencies also see their internal notes. */
-export async function MessageThread({ proposalId, viewerOrgId, isAgency, path, title = "Messaggi" }: { proposalId: string; viewerOrgId: string; isAgency: boolean; path: string; title?: string }) {
+export async function MessageThread({ id, proposalId, viewerOrgId, isAgency, path, title = "Messaggi" }: { id?: string; proposalId: string; viewerOrgId: string; isAgency: boolean; path: string; title?: string }) {
   const supabase = await createClient();
   const { data: messages, error } = await supabase
     .from("messages")
@@ -16,7 +16,7 @@ export async function MessageThread({ proposalId, viewerOrgId, isAgency, path, t
   if (error) throw error;
 
   return (
-    <Card title={title} className="msg-host">
+    <Card id={id} title={title} className="msg-host">
       <ol className="mb-4 flex flex-col gap-3">
         {messages.length === 0 && (
           <li className="flex items-center gap-3 text-sm text-muted">

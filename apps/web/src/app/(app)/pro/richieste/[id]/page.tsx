@@ -129,7 +129,7 @@ export default async function AgencyRequestPage({ params }: { params: Promise<{ 
           />
         </div>
 
-          <MessageThread proposalId={proposal.id} viewerOrgId={org.id} isAgency path={path} title="Messaggi con l'azienda" />
+          <MessageThread id="messaggi" proposalId={proposal.id} viewerOrgId={org.id} isAgency path={path} title="Messaggi con l'azienda" />
       </div>
     </>
   );
