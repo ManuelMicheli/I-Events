@@ -1,7 +1,7 @@
 import { addDays, formatEventDates, todayInItaly } from "@i-events/core";
 import { router } from "expo-router";
 import type { ReactNode } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Button } from "@/components/button";
 import { PlusIcon } from "@/components/icons";
 import { Card } from "@/components/card";
@@ -81,15 +81,28 @@ function HomeFrame({
 
 const newRequestButton = <Button leading={(color, pressed) => <PlusIcon color={color} turn={pressed} />} label="Nuova richiesta" onPress={() => router.push("/nuova-richiesta")} />;
 
+/** "Vedi tutte" next to a block's title, in dark Fiamma as on the website (Wharf reference). */
 const seeAll = (path: "/richieste" | "/eventi") => (
-  <Button
-    variant="tertiary"
-    size="small"
-    label="Vedi tutte"
-    accessibilityLabel={path === "/richieste" ? "Vedi tutte le richieste" : "Vedi tutti gli eventi"}
-    onPress={() => router.navigate(path)}
-  />
+  <SeeAll onPress={() => router.navigate(path)} label={path === "/richieste" ? "Vedi tutte le richieste" : "Vedi tutti gli eventi"} />
 );
+
+function SeeAll({ onPress, label }: { onPress: () => void; label: string }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="link"
+      accessibilityLabel={label}
+      hitSlop={4}
+      style={({ pressed }) => [seeAllStyle, pressed && { opacity: 0.6 }]}
+    >
+      <T variant="calloutStrong" tone="accent">
+        Vedi tutte
+      </T>
+    </Pressable>
+  );
+}
+
+const seeAllStyle = { minHeight: 44, justifyContent: "center" as const, paddingHorizontal: space[1] };
 
 function AgencyHome({ orgId }: { orgId: string }) {
   const today = todayInItaly();
@@ -215,13 +228,7 @@ function AgencyHome({ orgId }: { orgId: string }) {
                   <T variant="bodyStrong" style={styles.flex}>
                     Attività in scadenza
                   </T>
-                  <Button
-                    variant="tertiary"
-                    size="small"
-                    label="Vedi tutte"
-                    accessibilityLabel="Vedi tutte le attività"
-                    onPress={() => router.push("/attivita")}
-                  />
+                  <SeeAll label="Vedi tutte le attività" onPress={() => router.push("/attivita")} />
                 </View>
                 <View>
                   {openTasks.map((t, i) => (

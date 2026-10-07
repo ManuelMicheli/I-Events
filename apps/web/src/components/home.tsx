@@ -1,5 +1,7 @@
 import { EventCover } from "@/components/event-type";
 import { LiveDot } from "@/components/ticket";
+import { CountUp } from "@/components/count-up";
+import { NavIcon, type NavIconName } from "@/components/nav-icons";
 import { Badge, type BadgeTone } from "@/components/ui";
 import { PROPOSAL_STATUS_LABEL } from "@/lib/labels";
 import {
@@ -38,6 +40,7 @@ export function HomeHeader({
 
 export type MetricItem = {
   label: string;
+  icon?: NavIconName;
   value: string;
   note: string;
   href?: string;
@@ -56,18 +59,35 @@ export function Metrics({ items, columns }: { items: MetricItem[]; columns: 3 | 
       {items.map((m) => {
         const body = (
           <>
-            <span className="text-label font-medium text-muted">{m.label}</span>
-            <span className="font-mono text-title2 font-medium break-words">{m.value}</span>
+            <span className="flex items-center gap-2">
+              {m.icon && (
+                <span
+                  aria-hidden
+                  className="hidden size-7 shrink-0 items-center sm:flex justify-center rounded-[8px] bg-surface text-text [--ic-cut:var(--color-surface)] [&_svg]:size-4"
+                >
+                  <NavIcon name={m.icon} filled={false} />
+                </span>
+              )}
+              <span className="min-w-0 flex-1 text-label font-medium text-muted">{m.label}</span>
+              {m.href && (
+                <span aria-hidden className="metric-arrow shrink-0 text-muted">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M6 3.5L10.5 8 6 12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+              )}
+            </span>
+            <CountUp value={m.value} className="mt-2 font-mono text-2xl font-medium tracking-[-0.02em]" />
             <span className="text-xs text-muted">{m.note}</span>
           </>
         );
-        const box = "flex h-full flex-col gap-1 rounded-card border border-border bg-bg p-4 sm:p-5";
+        const box = "metric ic-host flex h-full flex-col gap-1 rounded-card border border-border bg-bg p-4 sm:p-5";
         return (
           <li key={m.label} className={cx("min-w-0", m.wide && "col-span-2 sm:col-span-1")}>
             {m.href ? (
               <Link
                 href={m.href}
-                className={cx(box, "transition-colors duration-[120ms] hover:bg-surface")}
+                className={box}
               >
                 {body}
               </Link>
@@ -95,7 +115,7 @@ export function SeeAll({
     <Link
       href={href}
       aria-label={label}
-      className="inline-flex min-h-11 items-center rounded-ui px-3 text-sm font-medium hover:bg-surface sm:min-h-8"
+      className="-mr-2 inline-flex min-h-11 items-center rounded-ui px-2 text-sm font-medium text-accent-ink hover:bg-accent-subtle sm:min-h-8"
     >
       {children}
     </Link>

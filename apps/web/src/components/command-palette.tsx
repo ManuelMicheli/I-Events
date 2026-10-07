@@ -18,7 +18,7 @@ const fold = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").to
  * Search (Carta item 22, A3): the field in the top bar, or ⌘K / Ctrl K anywhere, opens a palette that
  * goes to a section or finds requests, events and contacts by name. Results cascade in.
  */
-export function CommandPalette({ items }: { items: NavItem[] }) {
+export function CommandPalette({ items, variant }: { items: NavItem[]; variant: "side" | "bar" }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<SearchHit[]>([]);
@@ -33,7 +33,8 @@ export function CommandPalette({ items }: { items: NavItem[] }) {
 
   useEffect(() => {
     const onKey = (e: globalThis.KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+      // The frame has a field in the sidebar and one in the phone's top bar: only the one on screen answers.
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k" && trigger.current?.getClientRects().length) {
         e.preventDefault();
         setOpen((o) => !o);
       }
@@ -133,11 +134,15 @@ export function CommandPalette({ items }: { items: NavItem[] }) {
         aria-haspopup="dialog"
         aria-label="Trova richieste, eventi e contatti"
         aria-keyshortcuts="Meta+K Control+K"
-        className="ic-host flex size-11 shrink-0 items-center justify-center rounded-ui text-muted hover:bg-surface hover:text-text md:h-10 md:w-[280px] md:justify-start md:gap-2 md:border md:border-border-strong md:bg-bg md:px-3 md:hover:border-control md:hover:bg-bg"
+        className={
+          variant === "side"
+            ? "ic-host flex h-10 w-full shrink-0 items-center gap-2 rounded-[10px] border border-border bg-bg/70 px-3 text-muted shadow-1 transition-colors duration-[120ms] hover:border-border-strong hover:bg-bg hover:text-text"
+            : "ic-host flex size-11 shrink-0 items-center justify-center rounded-ui text-muted hover:bg-surface hover:text-text md:h-10 md:w-[240px] md:justify-start md:gap-2 md:border md:border-border-strong md:bg-bg md:px-3 md:hover:border-control md:hover:bg-bg"
+        }
       >
         <LensIcon className="shrink-0" />
-        <span className="hidden flex-1 truncate text-left text-sm md:block">Cerca…</span>
-        <kbd className="hidden h-6 items-center rounded-[4px] border border-border-strong px-1.5 font-mono text-xs text-muted md:inline-flex">{shortcut}</kbd>
+        <span className={`flex-1 truncate text-left text-sm ${variant === "side" ? "" : "hidden md:block"}`}>Cerca…</span>
+        <kbd className={`h-6 items-center rounded-[4px] border border-border-strong px-1.5 font-mono text-xs text-muted ${variant === "side" ? "inline-flex" : "hidden md:inline-flex"}`}>{shortcut}</kbd>
       </button>
       {open &&
         createPortal(

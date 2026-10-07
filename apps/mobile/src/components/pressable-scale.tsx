@@ -5,9 +5,15 @@ import { motion } from "@/theme";
 /** Pressable that shrinks to 0.98 on touch-down, the Carta press feedback. */
 export function PressableScale({
   style,
+  pressableStyle,
   children,
   ...props
-}: Omit<PressableProps, "style" | "children"> & { style?: StyleProp<ViewStyle>; children: ReactNode }) {
+}: Omit<PressableProps, "style" | "children"> & {
+  style?: StyleProp<ViewStyle>;
+  /** The touch area itself, for when it must stretch with its parent (cards of the same height in a row). */
+  pressableStyle?: StyleProp<ViewStyle>;
+  children: ReactNode;
+}) {
   const [scale] = useState(() => new Animated.Value(1));
   const to = (value: number, duration: number) => Animated.timing(scale, { toValue: value, duration, useNativeDriver: true }).start();
   return (
@@ -21,6 +27,7 @@ export function PressableScale({
         props.onPressOut?.(e);
       }}
       {...props}
+      style={pressableStyle}
     >
       <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>
     </Pressable>

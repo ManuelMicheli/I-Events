@@ -40,12 +40,21 @@ export function Select({ className, ...props }: ComponentProps<"select">) {
   return <select className={cx(FIELD, "pr-8", className)} {...props} />;
 }
 
-export function Card({ title, action, children, className }: { title?: string; action?: ReactNode; children: ReactNode; className?: string }) {
+/**
+ * A white card on the paper (Wharf reference): a short title, an optional line that says what you are
+ * looking at, the action on the right.
+ */
+export function Card({ title, subtitle, action, children, className }: { title?: string; subtitle?: string; action?: ReactNode; children: ReactNode; className?: string }) {
   return (
     <section className={cx("rounded-card border border-border bg-bg p-4 sm:p-6", className)}>
       {(title || action) && (
-        <header className="mb-4 flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          {title && <h2 className="text-xl font-medium">{title}</h2>}
+        <header className={cx("mb-4 flex min-h-8 flex-wrap justify-between gap-x-4 gap-y-2", subtitle ? "items-start" : "items-center")}>
+          {title && (
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <h2 className="text-lg font-semibold">{title}</h2>
+              {subtitle && <p className="text-label text-muted">{subtitle}</p>}
+            </div>
+          )}
           {action}
         </header>
       )}

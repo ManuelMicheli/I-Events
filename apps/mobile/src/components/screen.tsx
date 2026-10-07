@@ -1,6 +1,8 @@
-import type { ReactNode } from "react";
+import { Children, Fragment, isValidElement, useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { router } from "expo-router";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { Animated, Easing, Pressable, RefreshControl, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
+import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
+import { useReduceMotion } from "@/lib/motion";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { space, useTheme } from "@/theme";
 import { Logo } from "./logo";
@@ -30,7 +32,7 @@ export function Screen({ title, actions, header, footer, footerBar = false, chil
   const insets = useSafeAreaInsets();
   const page = (
     <ScrollView
-      style={{ backgroundColor: c.bgApp }}
+      style={styles.fill}
       contentContainerStyle={[styles.content, { paddingTop: actions ? insets.top + space[2] : title ? insets.top + space[4] : space[4] }, footer ? (footerBar ? styles.roomForBar : styles.roomForFooter) : null]}
       contentInsetAdjustmentBehavior="automatic"
       refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.textSecondary} /> : undefined}
@@ -58,14 +60,14 @@ export function Screen({ title, actions, header, footer, footerBar = false, chil
           {header}
         </View>
       )}
-      {children}
+      <Cascade>{children}</Cascade>
     </ScrollView>
   );
-  if (!footer) return page;
   return (
     <View style={[styles.fill, { backgroundColor: c.bgApp }]}>
+      <Glow />
       {page}
-      {footerBar ? (
+      {!footer ? null : footerBar ? (
         <View
           style={[
             styles.footerBarBox,
@@ -80,6 +82,80 @@ export function Screen({ title, actions, header, footer, footerBar = false, chil
     </View>
   );
 }
+
+/** The paper's glow at the top right, as on the website (Wharf reference): light from a window, fixed. */
+function Glow() {
+  const { c } = useTheme();
+  const { width } = useWindowDimensions();
+  const h = 420;
+  return (
+    <Svg pointerEvents="none" width={width} height={h} style={styles.glow} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+      <Defs>
+        <RadialGradient id="glow-a" cx={width} cy={-h * 0.1} rx={width * 1.1} ry={h} gradientUnits="userSpaceOnUse">
+          <Stop offset="0" stopColor={c.glowA} />
+          <Stop offset="0.7" stopColor={c.glowA} stopOpacity={0} />
+        </RadialGradient>
+        <RadialGradient id="glow-b" cx={width * 0.78} cy={-h * 0.08} rx={width * 0.75} ry={h * 0.8} gradientUnits="userSpaceOnUse">
+          <Stop offset="0" stopColor={c.glowB} />
+          <Stop offset="0.72" stopColor={c.glowB} stopOpacity={0} />
+        </RadialGradient>
+      </Defs>
+      <Rect width={width} height={h} fill="url(#glow-a)" />
+      <Rect width={width} height={h} fill="url(#glow-b)" />
+    </Svg>
+  );
+}
+
+/** Fragments are opened, so each block of the page arrives on its own. */
+function blocks(children: ReactNode): ReactElement[] {
+  return Children.toArray(children).flatMap((child) =>
+    isValidElement<{ children?: ReactNode }>(child) && child.type === Fragment ? blocks(child.props.children) : isValidElement(child) ? [child] : [],
+  );
+}
+
+const typeName = (el: ReactElement) => (typeof el.type === "string" ? el.type : ((el.type as { displayName?: string; name?: string }).displayName ?? (el.type as { name?: string }).name ?? "x"));
+
+/**
+ * A page arrives in steps, as on the website: each block rises 8 px and fades in, 40 ms after the one
+ * before (the first ten), 480 ms with a soft landing. A block that takes another's place (the content after
+ * the skeletons) arrives again; one that stays does not move. Reduce Motion: a 120 ms fade.
+ */
+function Cascade({ children }: { children: ReactNode }) {
+  const items = blocks(children);
+  return (
+    <>
+      {items.map((el, i) => {
+        const key = `${i}:${typeName(el)}:${el.key ?? ""}`;
+        return (
+          <Arrive key={key} index={i}>
+            {el}
+          </Arrive>
+        );
+      })}
+    </>
+  );
+}
+
+function Arrive({ index, children }: { index: number; children: ReactNode }) {
+  const reduce = useReduceMotion();
+  const [t] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    const run = Animated.timing(t, {
+      toValue: 1,
+      duration: reduce ? 120 : 480,
+      delay: reduce ? 0 : Math.min(index, 9) * 40,
+      easing: arriveEase,
+      useNativeDriver: true,
+    });
+    run.start();
+    return () => run.stop();
+  }, [t, index, reduce]);
+  const translateY = reduce ? 0 : t.interpolate({ inputRange: [0, 1], outputRange: [8, 0] });
+  return <Animated.View style={[styles.block, { opacity: t, transform: [{ translateY }] }]}>{children}</Animated.View>;
+}
+
+/** The website's cubic-bezier(0.22, 1, 0.36, 1). */
+const arriveEase = Easing.bezier(0.22, 1, 0.36, 1);
 
 /** A titled group of content on a page. */
 export function Section({ title, aside, children }: { title: string; aside?: ReactNode; children: ReactNode }) {
@@ -98,6 +174,9 @@ export function Section({ title, aside, children }: { title: string; aside?: Rea
 
 const styles = StyleSheet.create({
   content: { paddingHorizontal: space[4], paddingBottom: space[8], gap: space[8] },
+  // A block keeps the page's spacing for whatever it holds.
+  block: { gap: space[8] },
+  glow: { position: "absolute", top: 0, left: 0 },
   header: { gap: space[3] },
   bar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space[3], minHeight: 44 },
   home: { minHeight: 44, justifyContent: "center", flexShrink: 1 },
