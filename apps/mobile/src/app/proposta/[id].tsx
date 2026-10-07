@@ -122,8 +122,11 @@ export default function ProposalScreen() {
       <Stack.Screen options={{ title: "Richiesta" }} />
       <View style={styles.head}>
         <StatusRow>
-          <Badge {...proposalStatusLook(proposal.status)} />
-          {proposal.status === "accepted" && <Confirmation label="Confermato" date={stampDay(proposal.decided_at)} type={request.draft.eventType} />}
+          {proposal.status === "accepted" ? (
+            <Confirmation label="Confermato" date={stampDay(proposal.decided_at)} type={request.draft.eventType} />
+          ) : (
+            <Badge {...proposalStatusLook(proposal.status)} />
+          )}
         </StatusRow>
         <T variant="title2" accessibilityRole="header">
           {r.title}

@@ -68,8 +68,11 @@ export default function EventScreen() {
       <Card>
         {e.event_type && <InkBand type={e.event_type} />}
         <StatusRow>
-          <Badge {...(live ? eventStatusLook("live") : eventStatusLook(e.status))} />
-          {e.status === "completed" && <Confirmation label="Andato in scena" date={stampDay(e.end_date ?? e.start_date)} type={e.event_type} />}
+          {e.status === "completed" ? (
+            <Confirmation label="Andato in scena" date={stampDay(e.end_date ?? e.start_date)} type={e.event_type} />
+          ) : (
+            <Badge {...(live ? eventStatusLook("live") : eventStatusLook(e.status))} />
+          )}
         </StatusRow>
         <View style={styles.head}>
           {e.event_type && <EventCover type={e.event_type} size={64} />}

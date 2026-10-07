@@ -41,7 +41,7 @@ export function TicketTag({ number, type }: { number: string; type: EventType | 
   );
 }
 
-/** The status pill on the left and, once it is earned, the confirmation on the right. */
+/** The status pill, or once it is earned the confirmation in its place (the pill would repeat it). */
 export function StatusRow({ children }: { children: ReactNode }) {
   return <View style={styles.status}>{children}</View>;
 }

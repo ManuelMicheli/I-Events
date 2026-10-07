@@ -101,9 +101,10 @@ export default function ClientRequestScreen() {
       <Stack.Screen options={{ title: "Richiesta" }} />
       <View style={styles.head}>
         <StatusRow>
-          <Badge {...badge} />
-          {accepted && (
+          {accepted ? (
             <Confirmation label="Confermato" date={stampDay(accepted.decided_at)} type={request.draft.eventType} fresh={moment === "confermato"} />
+          ) : (
+            <Badge {...badge} />
           )}
         </StatusRow>
         <T variant="title2" accessibilityRole="header">
