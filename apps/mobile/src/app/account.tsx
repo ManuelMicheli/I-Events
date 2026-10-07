@@ -1,3 +1,4 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { ORG_TYPE_LABEL, ROLE_LABEL } from "@i-events/core";
 import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
@@ -12,9 +13,11 @@ import { T } from "@/components/text";
 import { env, siteOnline } from "@/lib/env";
 import { useMyName } from "@/lib/profile";
 import { useSession } from "@/lib/session";
-import { space } from "@/theme";
+import { space, useTheme } from "@/theme";
 
 export default function AccountScreen() {
+  const { c } = useTheme();
+  const chevron = <Ionicons name="chevron-forward" size={20} color={c.textSecondary} />;
   const { session, orgs, activeOrg, setActiveOrg, signOut } = useSession();
   const [leaving, setLeaving] = useState(false);
   const name = useMyName();
@@ -30,11 +33,19 @@ export default function AccountScreen() {
       <PushSetting />
 
       {activeOrg?.type === "agency" && (
-        <Section title="Rubrica fornitori">
-          <T variant="callout" tone="secondary">
-            Aggiungi alla rubrica di {activeOrg.name} i fornitori che hai già nel telefono.
-          </T>
-          <Button variant="secondary" icon="people-outline" label="Importa dal telefono" onPress={() => router.push("/importa-contatti")} />
+        <Section title="Strumenti">
+          <Card style={styles.list}>
+            <ListRow title="Attività" subtitle="Cosa c'è da fare negli eventi" onPress={() => router.push("/attivita")} trailing={chevron} />
+            <Divider />
+            <ListRow title="Rubrica" subtitle={`I fornitori e i contatti di ${activeOrg.name}`} onPress={() => router.push("/rubrica")} trailing={chevron} />
+            <Divider />
+            <ListRow
+              title="Importa dal telefono"
+              subtitle="Aggiungi alla rubrica i fornitori che hai già nel telefono"
+              onPress={() => router.push("/importa-contatti")}
+              trailing={chevron}
+            />
+          </Card>
         </Section>
       )}
 

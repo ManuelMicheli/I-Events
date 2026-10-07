@@ -193,7 +193,18 @@ function AgencyHome({ orgId }: { orgId: string }) {
             ))}
             {openTasks.length > 0 && (
               <Card style={styles.tight}>
-                <T variant="bodyStrong">Attività in scadenza</T>
+                <View style={styles.cardHead}>
+                  <T variant="bodyStrong" style={styles.flex}>
+                    Attività in scadenza
+                  </T>
+                  <Button
+                    variant="tertiary"
+                    size="small"
+                    label="Vedi tutte"
+                    accessibilityLabel="Vedi tutte le attività"
+                    onPress={() => router.push("/attivita")}
+                  />
+                </View>
                 <View>
                   {openTasks.map((t, i) => (
                     <View key={t.id}>
@@ -398,4 +409,6 @@ const styles = StyleSheet.create({
   headerTexts: { gap: space[1] },
   list: { gap: space[3] },
   tight: { gap: space[2] },
+  cardHead: { flexDirection: "row", alignItems: "center", gap: space[2] },
+  flex: { flex: 1 },
 });

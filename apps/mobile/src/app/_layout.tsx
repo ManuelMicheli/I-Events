@@ -115,6 +115,10 @@ function RootStack({ ready }: { ready: boolean }) {
         <Stack.Screen name="conversazione/[id]" options={{ title: "Messaggi" }} />
         <Stack.Screen name="notifiche" options={{ title: "Notifiche" }} />
         <Stack.Screen name="account" options={{ title: "Account" }} />
+        <Stack.Screen name="attivita" options={{ title: "Attività" }} />
+        <Stack.Screen name="rubrica/index" options={{ title: "Rubrica" }} />
+        <Stack.Screen name="rubrica/[id]" options={{ title: "Contatto" }} />
+        <Stack.Screen name="rubrica/nuovo" options={{ title: "Nuovo contatto" }} />
       </Stack.Protected>
     </Stack>
   );
