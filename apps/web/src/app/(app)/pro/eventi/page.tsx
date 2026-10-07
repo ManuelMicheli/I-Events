@@ -1,8 +1,10 @@
 import { TypedTitle } from "@/components/event-type";
+import { EventTicket } from "@/components/ticket";
 import { Card, Empty } from "@/components/ui";
 import { EVENT_STATUS_LABEL } from "@/lib/labels";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
+import { eventCountdown, formatTicketNumber, todayInItaly } from "@i-events/core";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -15,7 +17,7 @@ export default async function EventsPage() {
   const supabase = await createClient();
   const { data: events, error } = await supabase
     .from("events")
-    .select("id, title, event_type, status, start_date, city, client:organizations!events_client_org_id_fkey(name), event_bookings(status)")
+    .select("id, number, title, event_type, status, start_date, end_date, city, stage:campaign_stages(position), client:organizations!events_client_org_id_fkey(name), event_bookings(status)")
     .eq("agency_org_id", org.id)
     .order("start_date", { ascending: true, nullsFirst: false });
   if (error) throw error;
@@ -23,6 +25,13 @@ export default async function EventsPage() {
   const done = (s: string) => s === "completed" || s === "cancelled";
   const upcoming = events.filter((e) => !done(e.status));
   const past = events.filter((e) => done(e.status)).reverse();
+
+  const today = todayInItaly();
+  const suppliers = (e: (typeof events)[number]) => {
+    const live = e.event_bookings.filter((b) => b.status !== "cancelled");
+    const confirmed = live.filter((b) => b.status === "confirmed").length;
+    return { live: live.length, confirmed };
+  };
 
   const table = (rows: typeof events) => (
     <table className="list-table w-full text-left text-sm">
@@ -67,7 +76,32 @@ export default async function EventsPage() {
     <>
       <h1 className="text-2xl font-semibold">Eventi</h1>
       <Card title="In programma">
-        {upcoming.length === 0 ? <Empty>Quando un cliente sceglie una tua proposta, l&apos;evento compare qui.</Empty> : table(upcoming)}
+        {upcoming.length === 0 ? (
+          <Empty>Quando un cliente sceglie una tua proposta, l&apos;evento compare qui.</Empty>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {upcoming.map((e) => {
+              const s = suppliers(e);
+              return (
+                <li key={e.id}>
+                  <EventTicket
+                    href={`/pro/eventi/${e.id}`}
+                    title={e.title}
+                    type={e.event_type}
+                    number={formatTicketNumber(e.number, e.stage?.position)}
+                    countdown={eventCountdown(e, today)}
+                    facts={[e.client.name, e.start_date ? dateFmt.format(new Date(`${e.start_date}T12:00:00`)) : "Data da definire", e.city].filter(Boolean).join(" · ")}
+                  >
+                    <p className="text-sm">
+                      {EVENT_STATUS_LABEL[e.status]}
+                      {s.live > 0 && <span className="text-muted"> · fornitori {s.confirmed}/{s.live} confermati</span>}
+                    </p>
+                  </EventTicket>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </Card>
       {past.length > 0 && <Card title="Conclusi e annullati">{table(past)}</Card>}
     </>

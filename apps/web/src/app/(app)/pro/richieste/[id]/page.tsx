@@ -1,3 +1,4 @@
+import { Stamp, stampDay } from "@/components/ticket";
 import { TypeChip } from "@/components/event-type";
 import { Attachments } from "@/components/attachments/attachments";
 import { BriefView } from "@/components/brief/brief-view";
@@ -8,7 +9,7 @@ import { loadRequest } from "@/lib/requests";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { ProposalLines } from "@/components/proposal-lines";
-import { getServiceCategory, type ProposalLine, type ProposalStatus } from "@i-events/core";
+import { formatTicketNumber, getServiceCategory, type ProposalLine, type ProposalStatus } from "@i-events/core";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -36,7 +37,7 @@ export default async function AgencyRequestPage({ params }: { params: Promise<{ 
   const supabase = await createClient();
   const { data: proposal, error } = await supabase
     .from("proposals")
-    .select("id, request_id, status, summary, lines, total_amount, version")
+    .select("id, request_id, status, summary, lines, total_amount, version, decided_at")
     .eq("id", id)
     .eq("agency_org_id", org.id)
     .maybeSingle();
@@ -70,13 +71,15 @@ export default async function AgencyRequestPage({ params }: { params: Promise<{ 
             Richieste ricevute
           </Link>
           <h1 className="text-2xl font-semibold">{request.draft.basics.title}</h1>
-          {request.draft.eventType && (
-            <div className="mt-2">
-              <TypeChip type={request.draft.eventType} />
-            </div>
-          )}
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <span className="font-mono text-sm text-muted">{formatTicketNumber(request.number)}</span>
+            <TypeChip type={request.draft.eventType ?? null} />
+          </div>
         </div>
-        <span className="rounded-ui border border-border px-3 py-1 text-sm">{PROPOSAL_STATUS_LABEL[proposal.status]}</span>
+        <div className="flex items-center gap-4">
+          {proposal.status === "accepted" && <Stamp label="Confermato" date={stampDay(proposal.decided_at)} type={request.draft.eventType ?? null} />}
+          <span className="rounded-ui border border-border px-3 py-1 text-sm">{PROPOSAL_STATUS_LABEL[proposal.status]}</span>
+        </div>
       </div>
 
       {request.status === "cancelled" && <Notice>L&apos;azienda ha annullato questa richiesta.</Notice>}

@@ -85,6 +85,7 @@ export async function loadRequest(id: string) {
     status: r.status,
     clientOrgId: r.client_org_id,
     clientName: r.organizations.name,
+    number: r.number,
     completeness: r.completeness,
     submittedAt: r.submitted_at,
     stages,

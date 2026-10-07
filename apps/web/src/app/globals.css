@@ -269,6 +269,36 @@ samp {
   }
 }
 
+/*
+ * Ticket: the stub sits below the card on phones and on the right from 640 px, behind a dashed
+ * perforation with a notch (radius 8) at each end, cut out of the card with a mask.
+ */
+.ticket {
+  --stub-w: 152px;
+  --stub-h: 52px;
+  --notch: 8px;
+  --perf: color-mix(in srgb, var(--color-control) 55%, transparent);
+  --notch-a: 0 calc(100% - var(--stub-h));
+  --notch-b: 100% calc(100% - var(--stub-h));
+  mask:
+    radial-gradient(circle var(--notch) at var(--notch-a), #0000 calc(var(--notch) - 0.5px), #000 var(--notch)),
+    radial-gradient(circle var(--notch) at var(--notch-b), #0000 calc(var(--notch) - 0.5px), #000 var(--notch));
+  mask-composite: intersect;
+}
+.ticket-stub {
+  min-height: var(--stub-h);
+  background: repeating-linear-gradient(90deg, var(--perf) 0 4px, #0000 4px 8px) center top / calc(100% - 2 * var(--notch) - 8px) 1px no-repeat;
+}
+@media (min-width: 640px) {
+  .ticket {
+    --notch-a: calc(100% - var(--stub-w)) 0;
+    --notch-b: calc(100% - var(--stub-w)) 100%;
+  }
+  .ticket-stub {
+    background: repeating-linear-gradient(180deg, var(--perf) 0 4px, #0000 4px 8px) left center / 1px calc(100% - 2 * var(--notch) - 8px) no-repeat;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

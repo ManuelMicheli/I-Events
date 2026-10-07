@@ -62,6 +62,8 @@ select public.save_request_draft(:'type_client', $${
   "items": [{"category": "catering", "answers": {"format": "buffet"}}]
 }$$::jsonb) as type_req \gset
 select tests.ok((select event_type = 'gala' from public.requests where id = :'type_req'), 'event type saved with the draft');
+select tests.ok((select number > 100 from public.requests where id = :'type_req'), 'every request gets a ticket number');
+select tests.ok(tests.error_of($$update public.requests set number = 1$$) = '42501', 'nobody can change a ticket number');
 select public.submit_request(:'type_req', array[:'type_agency']::uuid[]);
 reset role;
 update public.proposals set status = 'submitted', total_amount = 1000 where request_id = :'type_req';
@@ -69,4 +71,5 @@ set role authenticated;
 select tests.login('eva@types.test');
 select public.accept_proposal((select id from public.proposals where request_id = :'type_req'));
 select tests.ok((select event_type = 'gala' from public.events where request_id = :'type_req'), 'the event takes the type of its request');
+select tests.ok((select e.number = r.number from public.events e join public.requests r on r.id = e.request_id where r.id = :'type_req'), 'the event carries the ticket number of its request');
 reset role;

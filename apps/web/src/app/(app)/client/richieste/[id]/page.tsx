@@ -1,3 +1,4 @@
+import { Stamp, stampDay } from "@/components/ticket";
 import { TypeChip } from "@/components/event-type";
 import { Attachments } from "@/components/attachments/attachments";
 import { BriefView } from "@/components/brief/brief-view";
@@ -8,7 +9,7 @@ import { PROPOSAL_STATUS_LABEL, REQUEST_STATUS_LABEL } from "@/lib/labels";
 import { loadRequest } from "@/lib/requests";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
-import { formatEuro, getServiceCategory, proposalTotal, type ProposalLine, type ProposalStatus } from "@i-events/core";
+import { formatEuro, formatTicketNumber, getServiceCategory, proposalTotal, type ProposalLine, type ProposalStatus } from "@i-events/core";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -33,7 +34,7 @@ export default async function ClientRequestPage({ params }: { params: Promise<{ 
   const [{ data: proposals, error: e1 }, { data: events, error: e2 }] = await Promise.all([
     supabase
       .from("proposals")
-      .select("id, status, summary, lines, total_amount, version, submitted_at, agency:organizations!proposals_agency_org_id_fkey(name, city)")
+      .select("id, status, summary, lines, total_amount, version, submitted_at, decided_at, agency:organizations!proposals_agency_org_id_fkey(name, city)")
       .eq("request_id", id)
       .order("created_at"),
     supabase.from("events").select("id, title, status, start_date, city").eq("request_id", id).order("start_date"),
@@ -52,6 +53,7 @@ export default async function ClientRequestPage({ params }: { params: Promise<{ 
   };
   const path = `/client/richieste/${id}`;
   const open = request.status === "sent";
+  const accepted = request.status === "awarded" ? proposals.find((p) => p.status === "accepted") : undefined;
 
   return (
     <>
@@ -61,16 +63,16 @@ export default async function ClientRequestPage({ params }: { params: Promise<{ 
             Le tue richieste
           </Link>
           <h1 className="text-2xl font-semibold">{request.draft.basics.title}</h1>
-          {request.draft.eventType && (
-            <div className="my-2">
-              <TypeChip type={request.draft.eventType} />
-            </div>
-          )}
+          <div className="my-2 flex flex-wrap items-center gap-3">
+            <span className="font-mono text-sm text-muted">{formatTicketNumber(request.number)}</span>
+            <TypeChip type={request.draft.eventType ?? null} />
+          </div>
           <p className="text-sm text-muted">
             {REQUEST_STATUS_LABEL[request.status]}
             {request.submittedAt && ` il ${dateFmt.format(new Date(request.submittedAt))}`} · {proposals.length} agenzie
           </p>
         </div>
+        {accepted && <Stamp label="Confermato" date={stampDay(accepted.decided_at)} type={request.draft.eventType ?? null} />}
         {open && (
           <form action={cancelRequest}>
             <input type="hidden" name="id" value={id} />

@@ -663,6 +663,7 @@ export type Database = {
           event_type: Database["public"]["Enums"]["event_type"] | null;
           id: string;
           is_public: boolean;
+          number: number;
           proposal_id: string;
           request_id: string;
           stage_id: string | null;
@@ -680,6 +681,7 @@ export type Database = {
           event_type?: Database["public"]["Enums"]["event_type"] | null;
           id?: string;
           is_public?: boolean;
+          number?: number;
           proposal_id: string;
           request_id: string;
           stage_id?: string | null;
@@ -697,6 +699,7 @@ export type Database = {
           event_type?: Database["public"]["Enums"]["event_type"] | null;
           id?: string;
           is_public?: boolean;
+          number?: number;
           proposal_id?: string;
           request_id?: string;
           stage_id?: string | null;
@@ -1378,6 +1381,7 @@ export type Database = {
           id: string;
           is_public: boolean;
           kind: Database["public"]["Enums"]["request_kind"];
+          number: number;
           objective: string;
           start_date: string | null;
           status: Database["public"]["Enums"]["request_status"];
@@ -1402,6 +1406,7 @@ export type Database = {
           id?: string;
           is_public?: boolean;
           kind: Database["public"]["Enums"]["request_kind"];
+          number?: number;
           objective: string;
           start_date?: string | null;
           status?: Database["public"]["Enums"]["request_status"];
@@ -1426,6 +1431,7 @@ export type Database = {
           id?: string;
           is_public?: boolean;
           kind?: Database["public"]["Enums"]["request_kind"];
+          number?: number;
           objective?: string;
           start_date?: string | null;
           status?: Database["public"]["Enums"]["request_status"];
