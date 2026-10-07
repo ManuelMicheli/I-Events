@@ -39,7 +39,7 @@ export function TopActions() {
       >
         <Bell color={c.textPrimary} />
         {unread > 0 && (
-          <View style={[styles.dot, { borderColor: c.bgApp, backgroundColor: c.bgApp }]}>
+          <View testID="bell-dot" style={[styles.dot, { borderColor: c.bgApp, backgroundColor: c.bgApp }]}>
             <LiveDot />
           </View>
         )}
