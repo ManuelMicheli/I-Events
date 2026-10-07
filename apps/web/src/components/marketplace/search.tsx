@@ -1,3 +1,4 @@
+import { LensIcon } from "@/components/icons";
 import { RatingBadge } from "@/components/profiles/reviews";
 import { Button, Card, Empty, Input, Select } from "@/components/ui";
 import { getServiceCategory, SERVICE_CATALOG } from "@i-events/core";
@@ -27,7 +28,7 @@ export function MarketplaceSearchForm({ filters, placeholder, withDate = false }
         Cerca
       </label>
       <span className="search-field relative sm:min-w-64 sm:flex-1">
-        <LensIcon />
+        <LensIcon className="pointer-events-none absolute top-1/2 left-3 -mt-2.5 text-muted" />
         <Input id="q" name="q" type="search" defaultValue={filters.q} placeholder={placeholder} className="pl-10" />
       </span>
       <label htmlFor="servizio" className="sr-only">
@@ -65,15 +66,6 @@ export const serviceNames = (keys: string[]) =>
     .map((k) => getServiceCategory(k)?.name.it)
     .filter(Boolean)
     .join(", ");
-
-function LensIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden className="lens pointer-events-none absolute top-1/2 left-3 -mt-2.5 text-muted">
-      <circle cx="8.5" cy="8.5" r="5.25" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M12.5 12.5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 /** The words found, a weight up (A3): the match reads by weight, never by colour. */
 function Found({ text, query }: { text: string; query: string }) {

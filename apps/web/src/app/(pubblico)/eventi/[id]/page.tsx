@@ -51,8 +51,8 @@ export default async function PublicEventPage({
       {momento && <ClearMoment />}
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10">
         <header className="flex flex-col gap-4 lg:col-start-1">
-          <Link href="/eventi" className="flex w-fit min-h-11 items-center gap-1 text-sm text-muted underline sm:min-h-0">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+          <Link href="/eventi" className="ic-host flex w-fit min-h-11 items-center gap-1 text-sm text-muted underline sm:min-h-0">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className="nudge-l">
               <path d="M10 3.5L5.5 8l4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             Esplora

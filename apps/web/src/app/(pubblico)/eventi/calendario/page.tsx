@@ -181,9 +181,9 @@ function MonthLink({ href, label, dir }: { href: string; label: string; dir: "pr
       href={href}
       aria-label={label}
       scroll={false}
-      className="flex size-11 items-center justify-center rounded-ui border border-border-strong bg-bg hover:bg-surface sm:size-10"
+      className="ic-host flex size-11 items-center justify-center rounded-ui border border-border-strong bg-bg hover:bg-surface sm:size-10"
     >
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className={dir === "prev" ? "nudge-l" : "nudge-r"}>
         <path
           d={dir === "prev" ? "M10 3.5L5.5 8l4.5 4.5" : "M6 3.5L10.5 8 6 12.5"}
           stroke="currentColor"

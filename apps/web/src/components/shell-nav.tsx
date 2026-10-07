@@ -1,5 +1,6 @@
 "use client";
 
+import { MenuIcon } from "./icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
@@ -63,13 +64,7 @@ export function MobileMenu({ items, children }: { items: NavItem[]; children: Re
         aria-controls="menu-sezioni"
         className="flex min-h-11 items-center gap-2 rounded-ui px-3 text-sm font-medium hover:bg-surface"
       >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-          {open ? (
-            <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          ) : (
-            <path d="M3.5 6h13M3.5 10h13M3.5 14h13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          )}
-        </svg>
+        <MenuIcon open={open} />
         Menu
       </button>
       {open && (

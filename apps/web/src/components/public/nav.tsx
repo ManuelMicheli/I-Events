@@ -1,5 +1,6 @@
 "use client";
 
+import { CalendarIcon, CompassIcon, TicketIcon, useBecame } from "@/components/icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -10,7 +11,7 @@ import { usePathname } from "next/navigation";
 const SECTIONS = [
   { href: "/eventi", label: "Esplora", icon: Compass },
   { href: "/eventi/calendario", label: "Calendario", icon: Calendar },
-  { href: "/biglietti", label: "Biglietti", icon: TicketIcon },
+  { href: "/biglietti", label: "Biglietti", icon: Ticket },
 ] as const;
 
 function activeHref(pathname: string) {
@@ -74,42 +75,15 @@ export function TabBar() {
 
 type IconProps = { filled: boolean };
 
+/** Each icon moves when its section opens (A10): the needle settles, a sheet tears off, the stub tugs. */
 function Compass({ filled }: IconProps) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" fill={filled ? "currentColor" : "none"} />
-      <path
-        d="M15.5 8.5l-2 5-5 2 2-5 5-2z"
-        stroke={filled ? "var(--color-app)" : "currentColor"}
-        fill={filled ? "var(--color-app)" : "none"}
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+  return <CompassIcon filled={filled} play={useBecame(filled)} />;
 }
 
 function Calendar({ filled }: IconProps) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect x="3.75" y="5.25" width="16.5" height="15" rx="2.5" stroke="currentColor" strokeWidth="1.5" fill={filled ? "currentColor" : "none"} />
-      <path d="M8 3.25v4M16 3.25v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M3.75 10h16.5" stroke={filled ? "var(--color-app)" : "currentColor"} strokeWidth="1.5" />
-    </svg>
-  );
+  return <CalendarIcon filled={filled} play={useBecame(filled)} />;
 }
 
-function TicketIcon({ filled }: IconProps) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M5 5.75h14a1.75 1.75 0 0 1 1.75 1.75v2.25a2.25 2.25 0 0 0 0 4.5v2.25A1.75 1.75 0 0 1 19 18.25H5a1.75 1.75 0 0 1-1.75-1.75v-2.25a2.25 2.25 0 0 0 0-4.5V7.5A1.75 1.75 0 0 1 5 5.75z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-        fill={filled ? "currentColor" : "none"}
-      />
-      <path d="M9.5 8.5v7" stroke={filled ? "var(--color-app)" : "currentColor"} strokeWidth="1.5" strokeLinecap="round" strokeDasharray="1.5 2" />
-    </svg>
-  );
+function Ticket({ filled }: IconProps) {
+  return <TicketIcon filled={filled} tug={useBecame(filled)} />;
 }
