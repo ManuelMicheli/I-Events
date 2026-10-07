@@ -27,16 +27,19 @@ export function TaskRow({
   detail,
   due,
   late,
+  initialDone = false,
   onToggle,
 }: {
   title: string;
   detail?: string;
   due: string;
   late: boolean;
+  /** Already done when the list loaded: shown ticked and struck through, and can be reopened. */
+  initialDone?: boolean;
   onToggle: (done: boolean) => Promise<void>;
 }) {
   const { c } = useTheme();
-  const [done, setDone] = useState(false);
+  const [done, setDone] = useState(initialDone);
   const [busy, setBusy] = useState(false);
   const toggle = async () => {
     const next = !done;
@@ -75,7 +78,7 @@ export function TaskRow({
           {title}
         </T>
         {detail && (
-          <T variant="caption" tone="secondary" numberOfLines={1}>
+          <T variant="caption" tone="secondary" numberOfLines={2}>
             {detail}
           </T>
         )}
