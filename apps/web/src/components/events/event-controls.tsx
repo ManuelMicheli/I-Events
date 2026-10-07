@@ -29,7 +29,7 @@ export function EventStatusActions({ eventId, moves, quiet = false }: { eventId:
           >
             <input type="hidden" name="eventId" value={eventId} />
             <input type="hidden" name="status" value={m} />
-            <Button type="submit" variant={m === "cancelled" ? "danger" : quiet ? "secondary" : "primary"} disabled={pending}>
+            <Button type="submit" variant={m === "cancelled" ? "tertiary" : quiet ? "secondary" : "primary"} className={m === "cancelled" ? "text-danger!" : undefined} disabled={pending}>
               {MOVE_LABEL[m]}
             </Button>
           </MoveForm>
@@ -45,9 +45,9 @@ type Details = { event_type: EventType | null; start_date: string | null; end_da
 export function EventDetailsForm({ eventId, details }: { eventId: string; details: Details }) {
   const [state, action, pending] = useActionState<EventState, FormData>(saveEventDetails, {});
   return (
-    <form action={action} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <form action={action} className="grid gap-4 sm:grid-cols-2">
       <input type="hidden" name="eventId" value={eventId} />
-      <div className="sm:col-span-2 lg:col-span-4 lg:max-w-[calc(50%-8px)]">
+      <div className="sm:col-span-2">
         <Field label="Che evento è">
           <Select name="event_type" defaultValue={details.event_type ?? ""}>
             {!details.event_type && <option value="">Da indicare</option>}
@@ -71,7 +71,7 @@ export function EventDetailsForm({ eventId, details }: { eventId: string; detail
       <Field label="Location">
         <Input name="venue" defaultValue={details.venue ?? ""} maxLength={200} />
       </Field>
-      <div className="flex items-center gap-3 sm:col-span-2 lg:col-span-4">
+      <div className="flex items-center gap-3 sm:col-span-2">
         <Button type="submit" variant="secondary" disabled={pending}>
           Salva dettagli
         </Button>

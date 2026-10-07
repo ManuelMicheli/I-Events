@@ -162,6 +162,24 @@ export function getServiceCategory(key: string): ServiceCategory | undefined {
   return SERVICE_CATALOG.find((c) => c.key === key);
 }
 
+/**
+ * The four families of services ("Carta e inchiostro"): inside an event, charts take one tone of the
+ * event's ink per family (Regia deep, Spazio full, Palco light, Accoglienza tint), in this order.
+ */
+export const SERVICE_FAMILIES = [
+  { key: "direction", name: { it: "Regia", en: "Direction" }, services: ["organization", "permits"] },
+  { key: "space", name: { it: "Spazio", en: "Space" }, services: ["venue", "setup", "logistics"] },
+  { key: "stage", name: { it: "Palco", en: "Stage" }, services: ["av", "entertainment", "media"] },
+  { key: "hospitality", name: { it: "Accoglienza", en: "Hospitality" }, services: ["staffing", "catering", "security", "cleaning"] },
+] as const satisfies readonly { key: string; name: Localized; services: readonly ServiceKey[] }[];
+
+export type ServiceFamily = (typeof SERVICE_FAMILIES)[number]["key"];
+
+/** The family of a service, or null for a key outside the catalog ("Altro"). */
+export function serviceFamily(key: string): ServiceFamily | null {
+  return SERVICE_FAMILIES.find((f) => (f.services as readonly string[]).includes(key))?.key ?? null;
+}
+
 function questionSchema(q: Question): z.ZodType {
   switch (q.type) {
     case "text": {

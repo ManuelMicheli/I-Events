@@ -168,8 +168,11 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await beta.page.goto(proposalUrl);
   await beta.page.getByRole("link", { name: "Apri lo spazio evento" }).click();
   await expect(beta.page.getByRole("heading", { level: 1, name: title })).toBeVisible();
+  const sections = beta.page.getByRole("navigation", { name: "Sezioni dell'evento" });
+  await sections.getByRole("link", { name: /^Fornitori/ }).click();
   await expect(beta.page.getByText("0 di 2 confermati")).toBeVisible();
   const security = beta.page.getByRole("listitem", { name: "Sicurezza e steward" });
+  await security.getByRole("button", { name: /^Sicurezza e steward/ }).click();
   await security.getByLabel("Fornitore Sicurezza e steward").selectOption({ label: "Vigilanza Rossi" });
   await expect(security.getByRole("link", { name: "WhatsApp a Vigilanza Rossi" })).toBeVisible();
   await security.getByLabel("Stato Sicurezza e steward").selectOption("confirmed");
@@ -178,6 +181,7 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await security.getByRole("button", { name: "Salva Sicurezza e steward" }).click();
   await expect(security.getByText("Sicurezza e steward salvato.")).toBeVisible();
   const catering = beta.page.getByRole("listitem", { name: "Catering e bar" });
+  await catering.getByRole("button", { name: /^Catering e bar/ }).click();
   await catering.getByLabel("Stato Catering e bar").selectOption("confirmed");
   await catering.getByRole("button", { name: "Salva Catering e bar" }).click();
   await expect(catering.getByText("Scegli prima il fornitore")).toBeVisible();
@@ -189,7 +193,11 @@ test("client sends a request to two agencies, compares proposals and accepts one
   // Sold 3700 (1200 + 2500), forecast cost 950 + 1800: margin 950.
   await beta.page.reload();
   await expect(beta.page.getByText("1 di 2 confermati")).toBeVisible();
+  await expect(security.getByRole("button", { name: /^Sicurezza e steward/ })).toContainText("Confermato");
+  await sections.getByRole("link", { name: "Budget" }).click();
   await expect(beta.page.getByRole("definition").filter({ hasText: "%" })).toHaveText(/^950,00\s€26%$/);
+  await expect(beta.page.getByRole("list").filter({ hasText: "Accoglienza" })).toContainText("2.750,00");
+  await sections.getByRole("link", { name: "Dettagli" }).click();
   await beta.page.getByRole("button", { name: "Passa in preparazione" }).click();
   await expect(beta.page.getByText("In preparazione", { exact: true })).toBeVisible();
   await beta.page.goto("/pro/eventi");
@@ -199,6 +207,7 @@ test("client sends a request to two agencies, compares proposals and accepts one
 
   // Tasks: start from the suggested checklist, add one of our own and tick it off.
   await beta.page.getByRole("link", { name: title }).click();
+  await sections.getByRole("link", { name: /^Attività/ }).click();
   const tasks = beta.page.locator("section", { has: beta.page.getByRole("heading", { name: "Attività" }) });
   await tasks.getByRole("button", { name: "Aggiungi 8 attività suggerite" }).click();
   await expect(tasks.getByText("8 da fare")).toBeVisible();
@@ -222,6 +231,7 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await beta.page.getByRole("link", { name: title }).click();
   await expect(beta.page).toHaveURL(/\/pro\/eventi\/[0-9a-f-]+$/);
   const eventUrl = new URL(beta.page.url()).pathname;
+  await sections.getByRole("link", { name: "Preventivo per il cliente" }).click();
   const quote = beta.page.locator("section", { has: beta.page.getByRole("heading", { name: "Preventivo per il cliente" }) });
   await quote.getByRole("button", { name: "Prepara il preventivo" }).click();
   await expect(quote.getByLabel("Importo voce 1")).toHaveValue("1200");
@@ -256,7 +266,7 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await expect(client.getByText("Preventivo approvato.")).toBeVisible();
 
   // Beta's budget now follows the approved quote: sold 3800, forecast cost 2750, margin 1050.
-  await beta.page.goto(eventUrl);
+  await beta.page.goto(`${eventUrl}?vista=budget`);
   await expect(beta.page.getByText("Venduto secondo il preventivo approvato (versione 2)", { exact: false })).toBeVisible();
   await expect(beta.page.getByRole("definition").filter({ hasText: "%" })).toHaveText(/^1\.050,00\s€28%$/);
 
@@ -384,8 +394,9 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await beta.page.getByLabel("Servizio di Gusto Catering").selectOption("catering");
   await beta.page.getByRole("button", { name: "Importa 1 contatto" }).click();
   await expect(beta.page.getByText("1 nuovo contatto")).toBeVisible();
-  await beta.page.goto(eventUrl);
+  await beta.page.goto(`${eventUrl}?vista=fornitori`);
   const cateringRow = beta.page.getByRole("listitem", { name: "Catering e bar" });
+  await cateringRow.getByRole("button", { name: /^Catering e bar/ }).click();
   await cateringRow.getByLabel("Fornitore Catering e bar").selectOption({ label: "Gusto Catering" });
   await cateringRow.getByLabel("Dettaglio Catering e bar").fill("Buffet per 120 persone");
   await cateringRow.getByLabel("Stato Catering e bar").selectOption("requested");
@@ -423,6 +434,8 @@ test("client sends a request to two agencies, compares proposals and accepts one
   // Beta sees the answer on the event and confirms; the caterer gets its schedule.
   await beta.page.goto("/notifiche");
   await beta.page.getByRole("link", { name: `Gusto Srl ${run} è disponibile` }).click();
+  await expect(cateringRow.getByRole("button", { name: /^Catering e bar/ })).toContainText("Disponibile");
+  await cateringRow.getByRole("button", { name: /^Catering e bar/ }).click();
   await expect(cateringRow.getByRole("note")).toHaveText(`Gusto Catering è disponibile a 1.700,00 €: “Bevande incluse”`);
   await cateringRow.getByLabel("Stato Catering e bar").selectOption("confirmed");
   await cateringRow.getByRole("button", { name: "Salva Catering e bar" }).click();

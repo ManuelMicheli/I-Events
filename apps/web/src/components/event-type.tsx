@@ -7,9 +7,19 @@ import type { CSSProperties, ReactNode } from "react";
  */
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
 
-function inkVars(type: EventType): CSSProperties {
+/** The ink's tones as CSS variables, for the elements of one event that carry it. */
+export function inkVars(type: EventType): CSSProperties {
   const { ink } = EVENT_TYPE_INFO[type];
-  return { "--ink-fill": ink.fill, "--ink-fill-dark": ink.darkFill } as CSSProperties;
+  return {
+    "--ink-bg": ink.bg,
+    "--ink-tint": ink.tint,
+    "--ink-light": ink.light,
+    "--ink-fill": ink.fill,
+    "--ink-text": ink.text,
+    "--ink-deep": ink.deep,
+    "--ink-fill-dark": ink.darkFill,
+    "--ink-text-dark": ink.darkText,
+  } as CSSProperties;
 }
 
 /** "Il punto è il live, il quadratino è il tipo": 8x8, radius 2, in the ink's fill tone. */

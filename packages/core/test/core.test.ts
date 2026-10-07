@@ -8,6 +8,8 @@ import {
   getServiceCategory,
   requestDraftSchema,
   SERVICE_CATALOG,
+  SERVICE_FAMILIES,
+  serviceFamily,
   slugify,
   submissionIssues,
 } from "../src";
@@ -27,6 +29,13 @@ describe("service catalog", () => {
       const qs = c.questions.map((q) => q.key);
       expect(new Set(qs).size).toBe(qs.length);
     }
+  });
+
+  it("puts every service in exactly one family", () => {
+    const listed = SERVICE_FAMILIES.flatMap((f) => [...f.services]);
+    expect(listed.sort()).toEqual(SERVICE_CATALOG.map((c) => c.key).sort());
+    expect(serviceFamily("security")).toBe("hospitality");
+    expect(serviceFamily("other")).toBeNull();
   });
 
   it("validates answers against the category questions", () => {
