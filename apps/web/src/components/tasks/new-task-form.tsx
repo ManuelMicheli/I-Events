@@ -34,7 +34,7 @@ export function NewTaskForm({ eventId, members, bookings }: { eventId: string; m
             </option>
           ))}
         </Select>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" variant="secondary" disabled={pending}>
           Aggiungi
         </Button>
       </div>

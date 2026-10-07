@@ -107,6 +107,9 @@ export default async function EventPage({ params, searchParams }: { params: Prom
   const budget = eventBudget(bookings, soldLines);
   const canManage = ["owner", "admin", "manager"].includes(org.role);
   const moves = EVENT_STATUSES.filter((s) => canMoveEvent(event.status, s));
+  // One Fiamma per page: the day-of view while the event is on, else the quote until it has gone out, else the next step.
+  const schedulePlanned = (scheduleRes.data ?? []).length > 0;
+  const main = event.status === "completed" || event.status === "cancelled" ? null : event.status === "live" ? (schedulePlanned ? "day" : "move") : draft || sent.length === 0 ? "quote" : "move";
   const dates = [day(event.start_date), event.end_date && event.end_date !== event.start_date ? day(event.end_date) : null].filter(Boolean).join(" – ");
   const tasks = tasksRes.data!;
   const members = membersRes.data!.map((m) => ({ id: m.user_id, label: m.profiles?.full_name || "Collega senza nome" }));
@@ -165,7 +168,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
         </p>
       </EventHeader>
 
-      {canManage && <EventStatusActions eventId={event.id} moves={moves} />}
+      {canManage && <EventStatusActions eventId={event.id} moves={moves} quiet={main !== "move"} />}
 
       {completed && (toReview.length > 0 || clientReview) && (
         <section id="recensioni">
@@ -186,7 +189,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
                 <p className="text-sm text-muted">Com&apos;è andata con i fornitori? Le recensioni aiutano altre agenzie a sceglierli.</p>
               )}
               {toReview.map((s) => (
-                <ReviewForm key={s.id} eventId={event.id} subjectId={s.id} subjectName={s.name} existing={s.existing} />
+                <ReviewForm key={s.id} eventId={event.id} subjectId={s.id} subjectName={s.name} existing={s.existing} lead={false} />
               ))}
             </div>
           </Card>
@@ -256,18 +259,19 @@ export default async function EventPage({ params, searchParams }: { params: Prom
               initialLines={draft.lines as ProposalLine[]}
               initialNote={draft.note ?? ""}
               nextVersion={(sent[0]?.version ?? 0) + 1}
+              lead={main === "quote"}
             />
           ) : (
             <form action={createQuoteDraft} className="flex flex-wrap items-center gap-3 text-sm">
               <input type="hidden" name="eventId" value={event.id} />
-              <span className="flex-1 text-muted">
+              <span className="min-w-60 flex-1 text-muted">
                 {sent.length === 0
                   ? "Prepara il preventivo dettagliato di questo evento e mandalo al cliente: lo approva il suo responsabile della spesa."
                   : sent[0]!.status === "sent"
                     ? "Il cliente sta valutando l'ultima versione. Puoi comunque prepararne una nuova."
                     : "Per cambiare il preventivo prepara una nuova versione: parte dall'ultima inviata."}
               </span>
-              <Button type="submit" variant={sent.length === 0 ? "primary" : "secondary"}>
+              <Button type="submit" variant={main === "quote" ? "primary" : "secondary"}>
                 {sent.length === 0 ? "Prepara il preventivo" : "Nuova versione"}
               </Button>
             </form>
@@ -310,18 +314,19 @@ export default async function EventPage({ params, searchParams }: { params: Prom
         }
       >
         <div className="flex flex-wrap items-center gap-3 text-sm">
-          <p className="flex-1 text-muted">
+          <p className="min-w-60 flex-1 text-muted">
             {schedule.length === 0
               ? "Prepara la scaletta minuto per minuto e l'elenco di chi deve arrivare: il giorno dell'evento fai i check-in dal telefono, anche senza rete."
               : `Si parte alle ${hhmm(schedule[0]!.starts_at)} con: ${schedule[0]!.title}.${crew.length > 0 ? ` Arrivati ${crew.filter((c) => c.checked_in_at).length} di ${crew.length}.` : ""}`}
           </p>
-          <Link
-            href={`/pro/eventi/${event.id}/scaletta`}
-            className="inline-flex h-10 items-center justify-center rounded-ui border border-border px-4 font-medium"
-          >
+          <ButtonLink href={`/pro/eventi/${event.id}/scaletta`} variant="secondary">
             {schedule.length === 0 ? "Prepara la scaletta" : "Apri la scaletta"}
-          </Link>
-          {schedule.length > 0 && <ButtonLink href={`/pro/eventi/${event.id}/live`}>Giorno dell&apos;evento</ButtonLink>}
+          </ButtonLink>
+          {schedule.length > 0 && (
+            <ButtonLink href={`/pro/eventi/${event.id}/live`} variant={main === "day" ? "primary" : "secondary"}>
+              Giorno dell&apos;evento
+            </ButtonLink>
+          )}
         </div>
       </Card>
 

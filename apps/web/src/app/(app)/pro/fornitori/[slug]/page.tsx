@@ -1,5 +1,5 @@
 import { MarketplaceProfile } from "@/components/marketplace/profile";
-import { Button } from "@/components/ui";
+import { Button, ButtonLink } from "@/components/ui";
 import { requireOrg } from "@/lib/session";
 import { loadProfileExtras } from "@/lib/profiles";
 import { createClient } from "@/lib/supabase/server";
@@ -34,12 +34,9 @@ export default async function SupplierProfilePage({ params }: { params: Promise<
       }
       action={
         contact ? (
-          <Link
-            href={`/pro/rubrica/${contact.id}`}
-            className="inline-flex h-10 items-center rounded-ui border border-border px-4 text-sm font-medium"
-          >
+          <ButtonLink href={`/pro/rubrica/${contact.id}`} variant="secondary">
             Già in rubrica: apri il contatto
-          </Link>
+          </ButtonLink>
         ) : (
           <form action={addMarketplaceSupplier}>
             <input type="hidden" name="supplierId" value={profile.org_id} />
