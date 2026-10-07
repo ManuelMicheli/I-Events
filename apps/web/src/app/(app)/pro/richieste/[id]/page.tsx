@@ -1,3 +1,4 @@
+import { TypeChip } from "@/components/event-type";
 import { Attachments } from "@/components/attachments/attachments";
 import { BriefView } from "@/components/brief/brief-view";
 import { MessageThread } from "@/components/messages";
@@ -69,6 +70,11 @@ export default async function AgencyRequestPage({ params }: { params: Promise<{ 
             Richieste ricevute
           </Link>
           <h1 className="text-2xl font-semibold">{request.draft.basics.title}</h1>
+          {request.draft.eventType && (
+            <div className="mt-2">
+              <TypeChip type={request.draft.eventType} />
+            </div>
+          )}
         </div>
         <span className="rounded-ui border border-border px-3 py-1 text-sm">{PROPOSAL_STATUS_LABEL[proposal.status]}</span>
       </div>

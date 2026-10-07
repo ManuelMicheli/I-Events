@@ -3,7 +3,7 @@
 import { dbErrorMessage } from "@/lib/labels";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
-import { bookingSchema, EVENT_STATUSES, SERVICE_KEYS } from "@i-events/core";
+import { bookingSchema, EVENT_STATUSES, EVENT_TYPES, SERVICE_KEYS } from "@i-events/core";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -98,6 +98,7 @@ export async function saveEventDetails(_: EventState, form: FormData): Promise<E
   const id = z.uuid().parse(form.get("eventId"));
   const parsed = z
     .object({
+      event_type: z.enum(EVENT_TYPES).nullable(),
       start_date: date,
       end_date: date,
       city: z.string().max(120).nullable(),
@@ -105,6 +106,7 @@ export async function saveEventDetails(_: EventState, form: FormData): Promise<E
     })
     .refine((d) => !d.start_date || !d.end_date || d.end_date >= d.start_date, { message: "La fine non può precedere l'inizio." })
     .safeParse({
+      event_type: text(form, "event_type") ?? null,
       start_date: text(form, "start_date") ?? null,
       end_date: text(form, "end_date") ?? null,
       city: text(form, "city") ?? null,

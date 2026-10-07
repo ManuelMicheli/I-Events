@@ -1,3 +1,4 @@
+import { EventHeader } from "@/components/event-type";
 import { BookingRow, type Booking } from "@/components/events/booking-row";
 import { ReviewForm } from "@/components/profiles/review-forms";
 import { EventDetailsForm, EventStatusActions } from "@/components/events/event-controls";
@@ -12,6 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   canMoveEvent,
   EVENT_STATUSES,
+  EVENT_TYPE_INFO,
   eventBudget,
   formatEuro,
   getServiceCategory,
@@ -43,7 +45,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
   const { data: event, error } = await supabase
     .from("events")
-    .select("id, title, status, start_date, end_date, city, venue, proposal_id, client:organizations!events_client_org_id_fkey(name)")
+    .select("id, title, event_type, status, start_date, end_date, city, venue, proposal_id, client:organizations!events_client_org_id_fkey(name)")
     .eq("id", id)
     .eq("agency_org_id", org.id)
     .maybeSingle();
@@ -125,18 +127,22 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
   return (
     <>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+      <EventHeader
+        type={event.event_type}
+        back={
           <Link href="/pro/eventi" className="text-sm text-muted underline">
             Eventi
           </Link>
-          <h1 className="text-2xl font-semibold">{event.title}</h1>
-          <p className="text-sm text-muted">
-            {[event.client.name, dates || "Data da definire", event.city, event.venue].filter(Boolean).join(" · ")}
-          </p>
-        </div>
-        <span className="rounded-ui border border-border px-3 py-1 text-sm">{EVENT_STATUS_LABEL[event.status]}</span>
-      </div>
+        }
+        aside={<span className="rounded-ui border border-border px-3 py-1 text-sm">{EVENT_STATUS_LABEL[event.status]}</span>}
+      >
+        <h1 className="text-2xl font-semibold">{event.title}</h1>
+        <p className="text-sm text-muted">
+          {[event.event_type && EVENT_TYPE_INFO[event.event_type].label, event.client.name, dates || "Data da definire", event.city, event.venue]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
+      </EventHeader>
 
       {canManage && <EventStatusActions eventId={event.id} moves={moves} />}
 

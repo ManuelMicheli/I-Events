@@ -196,9 +196,14 @@ samp {
 }
 
 @layer base {
-  /* Table columns never touch: 16 px between cells. */
+  /* Table columns never touch: 16 px between cells, 12 px on phones. */
   :where(th, td):not(:last-child) {
-    padding-inline-end: 16px;
+    padding-inline-end: 12px;
+  }
+  @media (min-width: 640px) {
+    :where(th, td):not(:last-child) {
+      padding-inline-end: 16px;
+    }
   }
   :where(input[type="file"]) {
     max-width: 100%;

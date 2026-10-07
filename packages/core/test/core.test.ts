@@ -14,6 +14,7 @@ import {
 
 const single = {
   kind: "single",
+  eventType: "brand",
   basics: { title: "Lancio Nutella Plant", objective: "product_launch", startDate: "2026-11-20", guests: 300 },
   items: [{ category: "venue", answers: { space_type: "private", setting: "indoor", capacity: 300 } }],
 };
@@ -85,6 +86,7 @@ describe("request draft", () => {
     const draft = requestDraftSchema.parse(single);
     expect(submissionIssues(draft)).toEqual([]);
     expect(submissionIssues({ ...draft, items: [] })).toHaveLength(1);
+    expect(submissionIssues({ ...draft, eventType: undefined })).toEqual(["Scegli che evento è"]);
     const score = briefCompleteness(draft);
     expect(score).toBeGreaterThan(0);
     expect(score).toBeLessThan(100);

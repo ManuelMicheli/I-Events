@@ -8,6 +8,7 @@ export function draftToPayload(draft: RequestDraft): Json {
   const b = draft.basics;
   return {
     kind: draft.kind,
+    event_type: draft.eventType ?? null,
     title: b.title,
     objective: b.objective,
     start_date: b.startDate ?? null,
@@ -52,6 +53,7 @@ export async function loadRequest(id: string) {
 
   const draft: RequestDraft = {
     kind: r.kind,
+    eventType: opt(r.event_type),
     basics: {
       title: r.title,
       objective: r.objective as RequestDraft["basics"]["objective"],

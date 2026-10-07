@@ -47,3 +47,26 @@ select public.cancel_request(:'req');
 select tests.ok((select status from public.requests where id = :'req') = 'cancelled', 'request cancelled');
 select tests.ok((select status from public.proposals where request_id = :'req') = 'rejected', 'open proposals closed');
 reset role;
+
+-- The event type is saved with the draft and passes to the events of the accepted proposal.
+select tests.create_user('eva@types.test') as type_client_user \gset
+select tests.create_user('leo@types.test') as type_agency_user \gset
+set role authenticated;
+select tests.login('leo@types.test');
+select public.create_organization('agency', 'Agenzia Tipi', 'agenzia-tipi') as type_agency \gset
+update public.marketplace_profiles set is_listed = true where org_id = :'type_agency';
+select tests.login('eva@types.test');
+select public.create_organization('client', 'Cliente Tipi', 'cliente-tipi') as type_client \gset
+select public.save_request_draft(:'type_client', $${
+  "kind": "single", "event_type": "gala", "title": "Gala Riva", "objective": "other", "start_date": "2027-11-21",
+  "items": [{"category": "catering", "answers": {"format": "buffet"}}]
+}$$::jsonb) as type_req \gset
+select tests.ok((select event_type = 'gala' from public.requests where id = :'type_req'), 'event type saved with the draft');
+select public.submit_request(:'type_req', array[:'type_agency']::uuid[]);
+reset role;
+update public.proposals set status = 'submitted', total_amount = 1000 where request_id = :'type_req';
+set role authenticated;
+select tests.login('eva@types.test');
+select public.accept_proposal((select id from public.proposals where request_id = :'type_req'));
+select tests.ok((select event_type = 'gala' from public.events where request_id = :'type_req'), 'the event takes the type of its request');
+reset role;

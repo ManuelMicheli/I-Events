@@ -1,3 +1,4 @@
+import { TypedTitle } from "@/components/event-type";
 import { Card, Empty } from "@/components/ui";
 import { EVENT_STATUS_LABEL, QUOTE_STATUS_LABEL } from "@/lib/labels";
 import { requireOrg } from "@/lib/session";
@@ -15,7 +16,7 @@ export default async function ClientEventsPage() {
   const supabase = await createClient();
   const { data: events, error } = await supabase
     .from("events")
-    .select("id, title, status, start_date, city, agency:organizations!events_agency_org_id_fkey(name), event_quotes(version, status)")
+    .select("id, title, event_type, status, start_date, city, agency:organizations!events_agency_org_id_fkey(name), event_quotes(version, status)")
     .eq("client_org_id", org.id)
     .order("start_date", { ascending: true, nullsFirst: false });
   if (error) throw error;
@@ -43,9 +44,11 @@ export default async function ClientEventsPage() {
                 return (
                   <tr key={e.id} className="border-t border-border">
                     <td className="py-2">
-                      <Link href={`/client/eventi/${e.id}`} className="font-medium underline">
-                        {e.title}
-                      </Link>
+                      <TypedTitle type={e.event_type}>
+                        <Link href={`/client/eventi/${e.id}`} className="font-medium underline">
+                          {e.title}
+                        </Link>
+                      </TypedTitle>
                     </td>
                     <td data-label="Agenzia" className="py-2">{e.agency.name}</td>
                     <td data-label="Data" className="py-2">{e.start_date ? dateFmt.format(new Date(`${e.start_date}T12:00:00`)) : "Da definire"}</td>

@@ -1,3 +1,4 @@
+import { EventHeader } from "@/components/event-type";
 import { ReviewForm } from "@/components/profiles/review-forms";
 import { QuoteDecision } from "@/components/quotes/quote-decision";
 import { QuoteHistory, type SentQuote } from "@/components/quotes/quote-history";
@@ -5,7 +6,7 @@ import { Card, Empty, Notice } from "@/components/ui";
 import { EVENT_STATUS_LABEL } from "@/lib/labels";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
-import { can } from "@i-events/core";
+import { can, EVENT_TYPE_INFO } from "@i-events/core";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -23,7 +24,7 @@ export default async function ClientEventPage({ params }: { params: Promise<{ id
   const supabase = await createClient();
   const { data: event, error } = await supabase
     .from("events")
-    .select("id, title, status, start_date, end_date, city, venue, request_id, agency_org_id, agency:organizations!events_agency_org_id_fkey(name)")
+    .select("id, title, event_type, status, start_date, end_date, city, venue, request_id, agency_org_id, agency:organizations!events_agency_org_id_fkey(name)")
     .eq("id", id)
     .eq("client_org_id", org.id)
     .maybeSingle();
@@ -54,16 +55,22 @@ export default async function ClientEventPage({ params }: { params: Promise<{ id
 
   return (
     <>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+      <EventHeader
+        type={event.event_type}
+        back={
           <Link href="/client/eventi" className="text-sm text-muted underline">
             Eventi
           </Link>
-          <h1 className="text-2xl font-semibold">{event.title}</h1>
-          <p className="text-sm text-muted">{[event.agency.name, dates || "Data da definire", event.city, event.venue].filter(Boolean).join(" · ")}</p>
-        </div>
-        <span className="rounded-ui border border-border px-3 py-1 text-sm">{EVENT_STATUS_LABEL[event.status]}</span>
-      </div>
+        }
+        aside={<span className="rounded-ui border border-border px-3 py-1 text-sm">{EVENT_STATUS_LABEL[event.status]}</span>}
+      >
+        <h1 className="text-2xl font-semibold">{event.title}</h1>
+        <p className="text-sm text-muted">
+          {[event.event_type && EVENT_TYPE_INFO[event.event_type].label, event.agency.name, dates || "Data da definire", event.city, event.venue]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
+      </EventHeader>
 
       {event.status === "completed" && (
         <section id="recensione">

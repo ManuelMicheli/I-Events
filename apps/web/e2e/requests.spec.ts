@@ -77,6 +77,8 @@ test("client sends a request to two agencies, compares proposals and accepts one
   // Wizard: single event with two services, sent to both agencies.
   const title = `Lancio ${run}`;
   await client.getByRole("link", { name: "Nuova richiesta" }).click();
+  await client.getByRole("radio", { name: /Brand e lanci/ }).click();
+  await client.getByRole("button", { name: "Scegli Brand e lanci" }).click();
   await client.getByRole("button", { name: /Evento singolo/ }).click();
   await client.getByLabel("Nome dell'evento o della campagna *").fill(title);
   await client.getByLabel("Data", { exact: true }).fill("2027-06-15");

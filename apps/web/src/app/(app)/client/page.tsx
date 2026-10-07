@@ -1,3 +1,4 @@
+import { TypedTitle } from "@/components/event-type";
 import { ButtonLink, Card, Empty } from "@/components/ui";
 import { REQUEST_STATUS_LABEL } from "@/lib/labels";
 import { requireOrg } from "@/lib/session";
@@ -12,7 +13,7 @@ export default async function ClientHome() {
   const supabase = await createClient();
   const { data: requests, error } = await supabase
     .from("requests")
-    .select("id, title, kind, status, start_date, updated_at, proposals(count)")
+    .select("id, title, kind, event_type, status, start_date, updated_at, proposals(count)")
     .eq("client_org_id", org.id)
     .order("updated_at", { ascending: false });
   if (error) throw error;
@@ -29,13 +30,13 @@ export default async function ClientHome() {
         ) : (
           <ul className="divide-y divide-border">
             {requests.map((r) => (
-              <li key={r.id} className="flex items-center justify-between py-3 text-sm">
-                <span>
+              <li key={r.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3 text-sm">
+                <TypedTitle type={r.event_type}>
                   <Link href={r.status === "draft" ? `/client/richieste/${r.id}/modifica` : `/client/richieste/${r.id}`} className="font-medium underline">
                     {r.title}
                   </Link>
                   <span className="ml-2 text-muted">{r.kind === "campaign" ? "Campagna" : "Evento"}</span>
-                </span>
+                </TypedTitle>
                 <span className="text-muted">
                   {REQUEST_STATUS_LABEL[r.status]} · {r.proposals[0]?.count ?? 0} agenzie
                 </span>

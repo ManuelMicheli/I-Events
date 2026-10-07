@@ -1,3 +1,4 @@
+import { TypedTitle } from "@/components/event-type";
 import { Card, Empty } from "@/components/ui";
 import { PROPOSAL_STATUS_LABEL } from "@/lib/labels";
 import { requireOrg } from "@/lib/session";
@@ -14,7 +15,7 @@ export default async function ProHome() {
   const supabase = await createClient();
   const { data: proposals, error } = await supabase
     .from("proposals")
-    .select("id, status, updated_at, requests!inner(title, kind, start_date, guests, city, organizations!inner(name))")
+    .select("id, status, updated_at, requests!inner(title, kind, event_type, start_date, guests, city, organizations!inner(name))")
     .eq("agency_org_id", org.id)
     .order("updated_at", { ascending: false });
   if (error) throw error;
@@ -41,9 +42,11 @@ export default async function ProHome() {
               {proposals.map((p) => (
                 <tr key={p.id} className="border-t border-border">
                   <td className="py-2">
-                    <Link href={`/pro/richieste/${p.id}`} className="font-medium underline">
-                      {p.requests.title}
-                    </Link>
+                    <TypedTitle type={p.requests.event_type}>
+                      <Link href={`/pro/richieste/${p.id}`} className="font-medium underline">
+                        {p.requests.title}
+                      </Link>
+                    </TypedTitle>
                   </td>
                   <td data-label="Azienda" className="py-2">{p.requests.organizations.name}</td>
                   <td data-label="Tipo" className="py-2">{p.requests.kind === "campaign" ? "Campagna" : "Evento"}</td>
