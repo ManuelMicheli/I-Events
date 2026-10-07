@@ -14,6 +14,7 @@ import { Screen } from "@/components/screen";
 import { Segmented } from "@/components/segmented";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
+import { useToast } from "@/components/toast";
 import { Confirmation, StatusRow, TicketTag } from "@/components/ticket";
 import { InlineError } from "@/components/text-field";
 import { errorMessage } from "@/lib/errors";
@@ -47,6 +48,7 @@ export default function ProposalScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const org = useActiveOrg();
   const q = useQuery(`proposal:${org.id}:${id}`, () => fetchAgencyProposal(id, org.id));
+  const toast = useToast();
   const [moving, setMoving] = useState<Move | null>(null);
   const [moveError, setMoveError] = useState<string>();
   const [tab, setTab] = useState<"request" | "proposal">("request");
@@ -222,7 +224,10 @@ export default function ProposalScreen() {
               initialSummary={proposal.summary ?? ""}
               resubmit={proposal.version > 0}
               budget={{ min: request.draft.basics.budgetMin, max: request.draft.basics.budgetMax }}
-              onSent={q.refresh}
+              onSent={() => {
+                toast({ text: `Proposta inviata a ${request.clientName}` });
+                q.refresh();
+              }}
             />
           ) : proposal.version > 0 ? (
             <Card>

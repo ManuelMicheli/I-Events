@@ -547,29 +547,34 @@ function Wizard({
               );
             })}
           </View>
-          {SERVICE_CATALOG.filter((s) => itemFor(s.key)).map((s) => {
-            const item = itemFor(s.key)!;
-            const itemIndex = draft.items.indexOf(item);
-            return (
-              <Card key={`${s.key}:${scope ?? "all"}`} style={styles.stage}>
-                <View style={styles.row}>
-                  <Ionicons name={serviceIcon(s.key)} size={20} color={c.textPrimary} />
-                  <T variant="title3" style={styles.flex}>
-                    {s.name.it}
-                  </T>
-                </View>
-                {s.questions.map((q) => (
-                  <QuestionField
-                    key={q.key}
-                    question={q}
-                    value={item.answers[q.key]}
-                    onChange={(v) => setAnswer(s.key, q.key, v)}
-                    error={fieldError(`items.${itemIndex}.answers.${q.key}`)}
-                  />
-                ))}
-              </Card>
-            );
-          })}
+          {/* The service just added goes on top, right under the tiles, above the ones added before. */}
+          {draft.items
+            .filter((i) => i.stageIndex === scope)
+            .reverse()
+            .map((item) => {
+              const s = SERVICE_CATALOG.find((x) => x.key === item.category);
+              if (!s) return null;
+              const itemIndex = draft.items.indexOf(item);
+              return (
+                <Card key={`${s.key}:${scope ?? "all"}`} style={styles.stage}>
+                  <View style={styles.row}>
+                    <Ionicons name={serviceIcon(s.key)} size={20} color={c.textPrimary} />
+                    <T variant="title3" style={styles.flex}>
+                      {s.name.it}
+                    </T>
+                  </View>
+                  {s.questions.map((q) => (
+                    <QuestionField
+                      key={q.key}
+                      question={q}
+                      value={item.answers[q.key]}
+                      onChange={(v) => setAnswer(s.key, q.key, v)}
+                      error={fieldError(`items.${itemIndex}.answers.${q.key}`)}
+                    />
+                  ))}
+                </Card>
+              );
+            })}
         </StepBody>
       )}
 

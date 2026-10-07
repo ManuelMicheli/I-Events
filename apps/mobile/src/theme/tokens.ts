@@ -33,6 +33,8 @@ export type Palette = {
   infoBg: string;
   focus: string;
   scrim: string;
+  /** The text action on a toast: Fiamma 400 on Grafite, inverted in dark mode. */
+  toastAction: string;
 };
 
 export const light: Palette = {
@@ -63,6 +65,7 @@ export const light: Palette = {
   infoBg: "#E8EEFB",
   focus: "#1C1B19",
   scrim: "rgba(28,27,25,0.32)",
+  toastAction: "#FF6A47",
 };
 
 export const dark: Palette = {
@@ -93,6 +96,7 @@ export const dark: Palette = {
   infoBg: "#272934",
   focus: "#F1ECE4",
   scrim: "rgba(0,0,0,0.6)",
+  toastAction: "#C8300F",
 };
 
 /** Spacing scale, base 4: no other values are allowed. */

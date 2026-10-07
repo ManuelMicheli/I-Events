@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import type { ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button } from "@/components/button";
+import { PlusIcon } from "@/components/icons";
 import { Card } from "@/components/card";
 import { EventCard } from "@/components/event-card";
 import { MetricGrid } from "@/components/metric";
@@ -78,7 +79,7 @@ function HomeFrame({
   );
 }
 
-const newRequestButton = <Button icon="add" label="Nuova richiesta" onPress={() => router.push("/nuova-richiesta")} />;
+const newRequestButton = <Button leading={(color, pressed) => <PlusIcon color={color} turn={pressed} />} label="Nuova richiesta" onPress={() => router.push("/nuova-richiesta")} />;
 
 const seeAll = (path: "/richieste" | "/eventi") => (
   <Button

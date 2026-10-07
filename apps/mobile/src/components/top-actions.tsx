@@ -1,42 +1,58 @@
 import { router } from "expo-router";
+import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useMyName } from "@/lib/profile";
+import { useSession } from "@/lib/session";
 import { useUnreadArrivals, useUnreadCount } from "@/lib/unread";
 import { control, radius, space, useTheme } from "@/theme";
+import { AccountSheet } from "./account-sheet";
 import { Avatar } from "./avatar";
-import { BellIcon } from "./icons";
-import { T } from "./text";
+import { LiveDot } from "./badge";
+import { BellIcon, LensIcon } from "./icons";
 
-/** Top right of the main sections: notifications with the unread count, then the account. */
+/**
+ * Top right of the main sections, as on the website: search, the bell with a live dot when something
+ * is unread (the count is in the label and on the Notifiche screen), then the avatar with the account.
+ */
 export function TopActions() {
   const { c } = useTheme();
   const unread = useUnreadCount();
   const name = useMyName();
+  const { session } = useSession();
+  const [account, setAccount] = useState(false);
+  const shown = name ?? (session?.user.email?.split("@")[0] || "Account");
   return (
     <View style={styles.row}>
       <Pressable
+        onPress={() => router.push("/cerca")}
+        accessibilityRole="button"
+        accessibilityLabel="Trova richieste, eventi e contatti"
+        style={({ pressed }) => [styles.button, pressed && { backgroundColor: c.bgSubtle }]}
+      >
+        {({ pressed }) => <LensIcon color={c.textPrimary} look={pressed} />}
+      </Pressable>
+      <Pressable
         onPress={() => router.push("/notifiche")}
         accessibilityRole="button"
-        accessibilityLabel={unread > 0 ? `Notifiche, ${unread} da leggere` : "Notifiche"}
+        accessibilityLabel={unread > 0 ? `Notifiche, ${unread} non lette` : "Notifiche"}
         style={({ pressed }) => [styles.button, pressed && { backgroundColor: c.bgSubtle }]}
       >
         <Bell color={c.textPrimary} />
         {unread > 0 && (
-          <View style={[styles.badge, { backgroundColor: c.accentFill, borderColor: c.bgApp }]}>
-            <T variant="caption" tone="onAccent" maxFontSizeMultiplier={1.2}>
-              {unread > 99 ? "99+" : unread}
-            </T>
+          <View testID="bell-dot" style={[styles.dot, { borderColor: c.bgApp, backgroundColor: c.bgApp }]}>
+            <LiveDot />
           </View>
         )}
       </Pressable>
       <Pressable
-        onPress={() => router.push("/account")}
+        onPress={() => setAccount(true)}
         accessibilityRole="button"
-        accessibilityLabel="Account"
+        accessibilityLabel={`Account di ${shown}`}
         style={({ pressed }) => [styles.button, pressed && { opacity: 0.6 }]}
       >
-        <Avatar name={name} size={32} />
+        <Avatar name={shown} size={32} />
       </Pressable>
+      <AccountSheet visible={account} onClose={() => setAccount(false)} />
     </View>
   );
 }
@@ -50,7 +66,7 @@ function Bell({ color }: { color: string }) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center", gap: space[1], marginRight: -space[2] },
+  row: { flexDirection: "row", alignItems: "center", gap: space[1], marginRight: -space[2], flexShrink: 0 },
   button: {
     width: control.touch,
     height: control.touch,
@@ -58,16 +74,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  badge: {
-    position: "absolute",
-    top: 4,
-    right: 2,
-    minWidth: 20,
-    height: 20,
-    paddingHorizontal: 4,
-    borderRadius: radius.full,
-    borderWidth: 2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  // On the bell's shoulder, ringed in the page colour so it stands off the outline.
+  dot: { position: "absolute", top: 9, right: 10, borderRadius: radius.full, borderWidth: 2 },
 });

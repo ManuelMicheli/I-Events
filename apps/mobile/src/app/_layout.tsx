@@ -12,6 +12,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Button } from "@/components/button";
 import { Perforation } from "@/components/perforation";
 import { T } from "@/components/text";
+import { ToastProvider } from "@/components/toast";
 import { missingEnv } from "@/lib/env";
 import { SessionProvider, useSession } from "@/lib/session";
 import { fonts, space, useTheme } from "@/theme";
@@ -48,7 +49,9 @@ export default function RootLayout() {
           <MissingConfig />
         ) : (
           <SessionProvider>
-            <RootStack ready={fontsLoaded || fontError !== null} />
+            <ToastProvider>
+              <RootStack ready={fontsLoaded || fontError !== null} />
+            </ToastProvider>
           </SessionProvider>
         )}
       </ThemeProvider>
@@ -117,12 +120,15 @@ function RootStack({ ready }: { ready: boolean }) {
         <Stack.Screen name="notifiche" options={{ title: "Notifiche" }} />
         <Stack.Screen name="account" options={{ title: "Account" }} />
         <Stack.Screen name="attivita" options={{ title: "Attività" }} />
+        <Stack.Screen name="messaggi" options={{ title: "Messaggi" }} />
         <Stack.Screen name="nuova-richiesta" options={{ title: "Nuova richiesta" }} />
         <Stack.Screen name="rubrica/index" options={{ title: "Rubrica" }} />
         <Stack.Screen name="rubrica/[id]" options={{ title: "Contatto" }} />
         <Stack.Screen name="rubrica/nuovo" options={{ title: "Nuovo contatto" }} />
         <Stack.Screen name="trova/index" options={{ title: "Trova" }} />
         <Stack.Screen name="trova/[slug]" options={{ title: "Profilo" }} />
+        <Stack.Screen name="cerca" options={{ title: "Cerca" }} />
+        <Stack.Screen name="nuovo-account" options={{ title: "Nuovo account" }} />
       </Stack.Protected>
       {/* The public area is open to everyone, signed in or not. */}
       <Stack.Screen name="pubblico" options={{ headerShown: false }} />

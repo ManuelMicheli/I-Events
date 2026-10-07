@@ -2,6 +2,7 @@ import { EVENT_TYPE_INFO, type ProposalStatus, type SupplierRequestBucket } from
 import { router } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import { Button } from "@/components/button";
+import { PlusIcon } from "@/components/icons";
 import { Card } from "@/components/card";
 import { OrgSwitcher } from "@/components/org-switcher";
 import { AgencyRequestCard, ClientRequestCard, Count, SupplierRequestCard } from "@/components/request-cards";
@@ -77,7 +78,7 @@ function ClientRequests({ orgId }: { orgId: string }) {
       title="Richieste"
       actions={<TopActions />}
       header={<OrgSwitcher />}
-      footer={<Button icon="add" label="Nuova richiesta" onPress={() => router.push("/nuova-richiesta")} />}
+      footer={<Button leading={(color, pressed) => <PlusIcon color={color} turn={pressed} />} label="Nuova richiesta" onPress={() => router.push("/nuova-richiesta")} />}
       refreshing={q.refreshing || drafts.refreshing}
       onRefresh={refresh}
     >

@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Alert, Share, StyleSheet, View } from "react-native";
 import { Button } from "@/components/button";
+import { ShareIcon } from "@/components/icons";
 import { PublicTicket } from "@/components/public";
 import { Screen } from "@/components/screen";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
@@ -95,7 +96,7 @@ export default function TicketScreen() {
           {siteOnline && (
             <Button
               variant="secondary"
-              icon="share-outline"
+              leading={(color, pressed) => <ShareIcon color={color} play={pressed} size={20} />}
               label="Condividi il biglietto"
               onPress={() => Share.share({ message: `Il mio biglietto per ${ticket.title}: ${link}` }).catch(() => {})}
             />

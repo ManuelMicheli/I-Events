@@ -5,6 +5,7 @@ import * as WebBrowser from "expo-web-browser";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button } from "@/components/button";
+import { LogoutIcon } from "@/components/icons";
 import { Card } from "@/components/card";
 import { PushSetting } from "@/components/push-prompt";
 import { Divider, ListRow } from "@/components/rows";
@@ -101,7 +102,7 @@ export default function AccountScreen() {
 
       <Button
         variant="tertiary"
-        icon="log-out-outline"
+        leading={(color, pressed) => <LogoutIcon color={color} play={pressed} />}
         label="Esci dall'account"
         loading={leaving}
         onPress={async () => {
