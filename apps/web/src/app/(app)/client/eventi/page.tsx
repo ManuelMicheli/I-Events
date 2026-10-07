@@ -27,7 +27,7 @@ export default async function ClientEventsPage() {
         {events.length === 0 ? (
           <Empty>Quando accetti la proposta di un&apos;agenzia, l&apos;evento compare qui.</Empty>
         ) : (
-          <table className="w-full text-left text-sm">
+          <table className="list-table w-full text-left text-sm">
             <thead className="text-muted">
               <tr>
                 <th className="py-2 font-medium">Evento</th>
@@ -47,12 +47,12 @@ export default async function ClientEventsPage() {
                         {e.title}
                       </Link>
                     </td>
-                    <td className="py-2">{e.agency.name}</td>
-                    <td className="py-2">{e.start_date ? dateFmt.format(new Date(`${e.start_date}T12:00:00`)) : "Da definire"}</td>
-                    <td className={`py-2 ${latest?.status === "sent" ? "font-medium" : "text-muted"}`}>
+                    <td data-label="Agenzia" className="py-2">{e.agency.name}</td>
+                    <td data-label="Data" className="py-2">{e.start_date ? dateFmt.format(new Date(`${e.start_date}T12:00:00`)) : "Da definire"}</td>
+                    <td data-label="Preventivo" className={`py-2 ${latest?.status === "sent" ? "font-medium" : "text-muted"}`}>
                       {latest ? QUOTE_STATUS_LABEL[latest.status as QuoteStatus] : "In preparazione"}
                     </td>
-                    <td className="py-2">{EVENT_STATUS_LABEL[e.status]}</td>
+                    <td data-label="Stato" className="py-2">{EVENT_STATUS_LABEL[e.status]}</td>
                   </tr>
                 );
               })}

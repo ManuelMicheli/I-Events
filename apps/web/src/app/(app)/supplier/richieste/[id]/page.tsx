@@ -95,7 +95,7 @@ export default async function SupplierRequestPage({ params }: { params: Promise<
           ) : (
             days.map((d) => (
               <section key={d} aria-label={dayLabel(d)} className="mb-3">
-                {days.length > 1 && <h3 className="text-sm font-semibold capitalize">{dayLabel(d)}</h3>}
+                {days.length > 1 && <h3 className="text-sm font-semibold first-letter:uppercase">{dayLabel(d)}</h3>}
                 <ul className="flex flex-col gap-2 text-sm">
                   {schedule
                     .filter((s) => s.day === d)

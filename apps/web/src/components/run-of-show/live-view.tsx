@@ -130,7 +130,7 @@ export function LiveRunOfShow({
         <div role="group" aria-label="Giorno" className="flex flex-wrap gap-2">
           {days.map((d) => (
             <Button key={d} type="button" variant={d === day ? "primary" : "secondary"} aria-pressed={d === day} onClick={() => setChosenDay(d)}>
-              <span className="capitalize">{dayLabel(d)}</span>
+              <span className="inline-block first-letter:uppercase">{dayLabel(d)}</span>
             </Button>
           ))}
         </div>
@@ -151,7 +151,7 @@ export function LiveRunOfShow({
         {next && (
           <p className="mt-2 text-sm">
             <span className="text-muted">Dopo: </span>
-            {next.item.day !== now?.day && <span className="capitalize">{dayLabel(next.item.day)}, </span>}
+            {next.item.day !== now?.day && <span className="inline-block first-letter:uppercase">{dayLabel(next.item.day)},&nbsp;</span>}
             <span className="font-mono tabular-nums">{hhmm(next.item.starts_at)}</span> {next.item.title}
           </p>
         )}

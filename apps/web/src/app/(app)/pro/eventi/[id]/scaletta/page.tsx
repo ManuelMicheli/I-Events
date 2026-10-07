@@ -42,7 +42,7 @@ export default async function RunOfShowPage({ params }: { params: Promise<{ id: 
               .filter((d) => items.some((i) => i.day === d))
               .map((d) => (
                 <section key={d} aria-label={dayLabel(d)}>
-                  {planDays.length > 1 && <h3 className="text-sm font-semibold capitalize">{dayLabel(d)}</h3>}
+                  {planDays.length > 1 && <h3 className="text-sm font-semibold first-letter:uppercase">{dayLabel(d)}</h3>}
                   <ul className="divide-y divide-border">
                     {items
                       .filter((i) => i.day === d)
@@ -81,7 +81,7 @@ export default async function RunOfShowPage({ params }: { params: Promise<{ id: 
               .filter((d) => crew.some((c) => c.day === d))
               .map((d) => (
                 <section key={d} aria-label={`Arrivi ${dayLabel(d)}`}>
-                  {planDays.length > 1 && <h3 className="text-sm font-semibold capitalize">{dayLabel(d)}</h3>}
+                  {planDays.length > 1 && <h3 className="text-sm font-semibold first-letter:uppercase">{dayLabel(d)}</h3>}
                   <ul className="divide-y divide-border">
                     {crew
                       .filter((c) => c.day === d)

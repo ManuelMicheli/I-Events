@@ -32,7 +32,7 @@ function StarPicker({ name, defaultValue, label }: { name: string; defaultValue:
               aria-label={`${n} ${n === 1 ? "stella" : "stelle"}, ${LABELS[n]!.toLowerCase()}`}
               aria-describedby={id}
             />
-            <span aria-hidden className={n <= shown ? "text-accent" : "text-muted"}>
+            <span aria-hidden className={n <= shown ? "text-text" : "text-muted"}>
               {n <= shown ? "★" : "☆"}
             </span>
           </label>

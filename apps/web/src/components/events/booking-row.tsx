@@ -121,11 +121,11 @@ export function BookingRow({
           <Input name="actual_cost" aria-label={`Costo reale ${name}`} type="number" min={0} step="0.01" inputMode="decimal" defaultValue={booking.actual_cost ?? ""} />
           {f.actual_cost && <span className="text-danger">{f.actual_cost}</span>}
         </label>
-        <label className="flex flex-col gap-1.5 text-sm md:col-span-4">
+        <label className="flex flex-col gap-1.5 text-sm md:col-span-3">
           <span className="sr-only">Note {name}</span>
           <Input name="notes" aria-label={`Note ${name}`} defaultValue={booking.notes ?? ""} placeholder="Note interne (orari, accordi, referente sul posto)" maxLength={2000} />
         </label>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 md:col-span-2 md:justify-end">
           <Button type="submit" variant="secondary" disabled={pending} aria-label={`Salva ${name}`}>
             Salva
           </Button>

@@ -26,7 +26,7 @@ export default async function ProHome() {
         {proposals.length === 0 ? (
           <Empty>Nessuna richiesta per ora. Collega le aziende con cui lavori dalla sezione Aziende collegate.</Empty>
         ) : (
-          <table className="w-full text-left text-sm">
+          <table className="list-table w-full text-left text-sm">
             <thead className="text-muted">
               <tr>
                 <th className="py-2 font-medium">Richiesta</th>
@@ -45,11 +45,11 @@ export default async function ProHome() {
                       {p.requests.title}
                     </Link>
                   </td>
-                  <td className="py-2">{p.requests.organizations.name}</td>
-                  <td className="py-2">{p.requests.kind === "campaign" ? "Campagna" : "Evento"}</td>
-                  <td className="py-2">{p.requests.start_date ? dateFmt.format(new Date(p.requests.start_date)) : "Da definire"}</td>
-                  <td className="py-2">{p.requests.guests ?? "–"}</td>
-                  <td className="py-2">{PROPOSAL_STATUS_LABEL[p.status]}</td>
+                  <td data-label="Azienda" className="py-2">{p.requests.organizations.name}</td>
+                  <td data-label="Tipo" className="py-2">{p.requests.kind === "campaign" ? "Campagna" : "Evento"}</td>
+                  <td data-label="Data" className="py-2">{p.requests.start_date ? dateFmt.format(new Date(p.requests.start_date)) : "Da definire"}</td>
+                  <td data-label="Ospiti" className="py-2">{p.requests.guests ?? "–"}</td>
+                  <td data-label="Stato" className="py-2">{PROPOSAL_STATUS_LABEL[p.status]}</td>
                 </tr>
               ))}
             </tbody>

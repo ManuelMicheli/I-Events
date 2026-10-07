@@ -41,7 +41,7 @@ export default async function NotificationsPage() {
                 <a href={`/notifiche/${n.id}`} className="flex items-start justify-between gap-4 py-3 text-sm">
                   <span>
                     <span className={n.read_at ? "" : "font-semibold"}>{n.title}</span>
-                    {!n.read_at && <span className="ml-2 text-xs text-accent">nuova</span>}
+                    {!n.read_at && <span className="ml-2 inline-flex items-center gap-1 text-xs text-accent-ink"><span aria-hidden className="h-2 w-2 rounded-full bg-accent" />nuova</span>}
                     {n.body && <span className="block text-muted">{n.body}</span>}
                   </span>
                   <span className="shrink-0 text-right text-xs text-muted">

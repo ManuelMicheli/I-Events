@@ -67,7 +67,7 @@ export function TaskRow({
             type="submit"
             aria-label={done ? `Riapri ${task.title}` : `Segna come fatta ${task.title}`}
             aria-pressed={done}
-            className={`mt-0.5 h-5 w-5 shrink-0 rounded-full border ${done ? "border-success bg-success" : "border-border"}`}
+            className={`relative mt-0.5 h-5 w-5 shrink-0 rounded-full border after:absolute after:-inset-3 after:content-[''] ${done ? "border-success bg-success" : "border-control hover:bg-surface"}`}
           />
         </form>
         <div className="min-w-0 flex-1 text-sm">

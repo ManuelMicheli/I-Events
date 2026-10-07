@@ -37,7 +37,8 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
 
   const members = memberships.map((m) => ({ id: m.user_id, label: m.profiles?.full_name || "Collega senza nome" }));
   const events = Object.fromEntries(tasks.map((t) => [t.event_id, { title: t.event.title, start_date: t.event.start_date }]));
-  const tab = (active: boolean) => `rounded-ui px-3 py-1.5 text-sm ${active ? "bg-surface font-medium" : "text-muted"}`;
+  const tab = (active: boolean) =>
+    `flex min-h-11 items-center rounded-full px-3 text-sm sm:min-h-10 ${active ? "bg-surface font-medium" : "text-muted hover:bg-surface hover:text-text"}`;
 
   return (
     <>

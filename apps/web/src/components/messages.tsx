@@ -21,8 +21,8 @@ export async function MessageThread({ proposalId, viewerOrgId, isAgency, path, t
         {messages.map((m) => {
           const mine = m.author_org_id === viewerOrgId;
           return (
-            <li key={m.id} className={`max-w-[85%] rounded-ui border p-3 text-sm ${mine ? "self-end border-accent" : "self-start border-border"} ${m.internal ? "border-dashed" : ""}`}>
-              <p className="mb-1 text-xs text-muted">
+            <li key={m.id} className={`max-w-[85%] rounded-card border p-3 text-sm ${mine ? "self-end rounded-br-[4px] border-text bg-text text-bg" : "self-start rounded-bl-[4px] border-border bg-bg"} ${m.internal ? "border-dashed" : ""}`}>
+              <p className={`mb-1 text-xs ${mine ? "opacity-80" : "text-muted"}`}>
                 {[m.author?.full_name, m.org?.name].filter(Boolean).join(" · ")} · {timeFmt.format(new Date(m.created_at))}
                 {m.internal && " · nota interna"}
               </p>
