@@ -198,7 +198,7 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await expect(ticket).toContainText("In preparazione · fornitori 1/2 confermati");
 
   // Tasks: start from the suggested checklist, add one of our own and tick it off.
-  await beta.page.getByRole("link", { name: title }).click();
+  await beta.page.getByRole("link", { name: title, exact: true }).click();
   const tasks = beta.page.locator("section", { has: beta.page.getByRole("heading", { name: "Attività" }) });
   await tasks.getByRole("button", { name: "Aggiungi 8 attività suggerite" }).click();
   await expect(tasks.getByText("8 da fare")).toBeVisible();
@@ -219,7 +219,7 @@ test("client sends a request to two agencies, compares proposals and accepts one
 
   // Quote: Beta sends the detailed quote, the client asks for a change, then approves version 2.
   await beta.page.goto("/pro/eventi");
-  await beta.page.getByRole("link", { name: title }).click();
+  await beta.page.getByRole("link", { name: title, exact: true }).click();
   await expect(beta.page).toHaveURL(/\/pro\/eventi\/[0-9a-f-]+$/);
   const eventUrl = new URL(beta.page.url()).pathname;
   const quote = beta.page.locator("section", { has: beta.page.getByRole("heading", { name: "Preventivo per il cliente" }) });
@@ -249,7 +249,7 @@ test("client sends a request to two agencies, compares proposals and accepts one
 
   await client.goto("/client/eventi");
   await expect(client.getByRole("article", { name: new RegExp(`^${title}, biglietto`) })).toContainText("preventivo: da approvare");
-  await client.getByRole("link", { name: title }).click();
+  await client.getByRole("link", { name: title, exact: true }).click();
   await expect(client.getByRole("region", { name: "Versione 2" })).toContainText(/3\.800,00/);
   await client.getByRole("button", { name: "Approva il preventivo" }).click();
   await client.getByRole("dialog").getByRole("button", { name: /^Approva / }).click();
