@@ -30,9 +30,9 @@ export default async function AddressBookPage({ searchParams }: { searchParams: 
         <h1 className="text-2xl font-semibold">Rubrica</h1>
         <div className="flex gap-2">
           <ButtonLink href="/pro/rubrica/importa">Importa contatti</ButtonLink>
-          <Link href="/pro/rubrica/nuovo" className="inline-flex h-10 items-center rounded-ui border border-border px-4 text-sm font-medium">
+          <ButtonLink href="/pro/rubrica/nuovo" variant="secondary">
             Nuovo contatto
-          </Link>
+          </ButtonLink>
         </div>
       </div>
       <form className="flex flex-wrap gap-2" role="search">

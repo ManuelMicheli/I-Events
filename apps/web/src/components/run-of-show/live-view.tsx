@@ -205,7 +205,7 @@ export function LiveRunOfShow({
                   {m.pending && <span className="text-muted">Da inviare</span>}
                   <Button
                     type="button"
-                    variant={m.checked_in_at ? "secondary" : "primary"}
+                    variant={m.checked_in_at ? "tertiary" : "secondary"}
                     className="h-12 min-w-32"
                     aria-label={m.checked_in_at ? `Annulla check-in di ${m.name}` : `Check-in ${m.name}`}
                     onClick={() => tap(m)}

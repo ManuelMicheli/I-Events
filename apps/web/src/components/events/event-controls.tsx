@@ -13,7 +13,8 @@ const MOVE_LABEL: Record<EventStatus, string> = {
   cancelled: "Annulla evento",
 };
 
-export function EventStatusActions({ eventId, moves }: { eventId: string; moves: EventStatus[] }) {
+/** The next step of the event; `quiet` when another action on the page is the main one (one Fiamma per page). */
+export function EventStatusActions({ eventId, moves, quiet = false }: { eventId: string; moves: EventStatus[]; quiet?: boolean }) {
   const [state, action, pending] = useActionState<EventState, FormData>(moveEvent, {});
   if (moves.length === 0) return null;
   return (
@@ -29,7 +30,7 @@ export function EventStatusActions({ eventId, moves }: { eventId: string; moves:
           >
             <input type="hidden" name="eventId" value={eventId} />
             <input type="hidden" name="status" value={m} />
-            <Button type="submit" variant={m === "cancelled" ? "danger" : "primary"} disabled={pending}>
+            <Button type="submit" variant={m === "cancelled" ? "danger" : quiet ? "secondary" : "primary"} disabled={pending}>
               {MOVE_LABEL[m]}
             </Button>
           </form>

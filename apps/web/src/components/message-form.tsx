@@ -19,7 +19,7 @@ export function MessageForm({ proposalId, isAgency, path }: { proposalId: string
       </label>
       <textarea id={`msg-${proposalId}`} name="body" rows={3} required maxLength={10000} placeholder="Scrivi un messaggio" className="rounded-ui border border-border bg-bg p-3 text-sm" />
       <div className="flex items-center gap-4">
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" variant="secondary" disabled={pending}>
           Invia
         </Button>
         {isAgency && (

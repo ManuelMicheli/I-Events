@@ -96,7 +96,7 @@ function ItemFields({
   );
 }
 
-export function NewScheduleItemForm(props: { eventId: string; days: string[]; defaultDay: string; members: Option[]; bookings: Option[] }) {
+export function NewScheduleItemForm({ lead = true, ...props }: { eventId: string; days: string[]; defaultDay: string; members: Option[]; bookings: Option[]; lead?: boolean }) {
   const [state, action, pending] = useActionState<RosState, FormData>(addScheduleItem, {});
   const form = useRef<HTMLFormElement>(null);
   useEffect(() => {
@@ -107,7 +107,7 @@ export function NewScheduleItemForm(props: { eventId: string; days: string[]; de
       <input type="hidden" name="eventId" value={props.eventId} />
       <ItemFields {...props} state={state} />
       <div className="flex items-end">
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" variant={lead ? "primary" : "secondary"} disabled={pending}>
           Aggiungi alla scaletta
         </Button>
       </div>

@@ -44,7 +44,7 @@ export function CrewRow({ eventId, member, days, passLink }: { eventId: string; 
           <CrewStatus member={member} now={now} />
           <Button
             type="button"
-            variant={arrived ? "secondary" : "primary"}
+            variant={arrived ? "tertiary" : "secondary"}
             onClick={toggle}
             disabled={saving}
             aria-label={arrived ? `Annulla check-in di ${member.name}` : `Check-in ${member.name}`}

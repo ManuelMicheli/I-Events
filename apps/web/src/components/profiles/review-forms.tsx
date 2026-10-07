@@ -51,11 +51,14 @@ export function ReviewForm({
   subjectId,
   subjectName,
   existing,
+  lead = true,
 }: {
   eventId: string;
   subjectId: string;
   subjectName: string;
   existing: { rating: number; comment: string } | null;
+  /** Whether publishing is the page's main action (the one Fiamma button). */
+  lead?: boolean;
 }) {
   const [state, action, pending] = useActionState<FormState, FormData>(leaveReview, {});
   const f = state.fields ?? {};
@@ -79,7 +82,7 @@ export function ReviewForm({
       </label>
       {state.error && !f.rating && <Notice tone="error">{state.error}</Notice>}
       {state.ok && <Notice tone="success">Grazie, recensione pubblicata.</Notice>}
-      <Button type="submit" disabled={pending} className="self-start">
+      <Button type="submit" variant={lead ? "primary" : "secondary"} disabled={pending} className="self-start">
         {existing ? "Aggiorna la recensione" : "Pubblica la recensione"}
       </Button>
     </form>
@@ -109,7 +112,7 @@ export function ReplyForm({ reviewId, reply }: { reviewId: string; reply: string
       </label>
       {state.error && <Notice tone="error">{state.error}</Notice>}
       <div className="flex gap-2">
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" variant="secondary" disabled={pending}>
           Pubblica
         </Button>
         <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
