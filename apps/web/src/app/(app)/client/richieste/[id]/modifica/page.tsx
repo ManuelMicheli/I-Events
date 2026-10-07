@@ -15,8 +15,9 @@ export default async function EditRequestPage({ params, searchParams }: { params
   if (!request || request.clientOrgId !== org.id) notFound();
   if (request.status !== "draft") redirect(`/client/richieste/${id}`);
   const agencies = await reachableAgencies(org.id);
+  // A form reads top to bottom: on wide screens it sits in a centred column (A11 in globals.css).
   return (
-    <>
+    <div className="flex flex-col gap-6 2xl:mx-auto 2xl:w-full 2xl:max-w-form">
       <h1 className="text-2xl font-semibold">{request.draft.basics.title}</h1>
       <RequestWizard
         requestId={id}
@@ -33,6 +34,6 @@ export default async function EditRequestPage({ params, searchParams }: { params
           />
         }
       />
-    </>
+    </div>
   );
 }

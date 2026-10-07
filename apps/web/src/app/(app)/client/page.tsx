@@ -112,7 +112,7 @@ export default async function ClientHome() {
 
       <Metrics columns={3} items={metrics} />
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px] 3xl:grid-cols-[minmax(0,1fr)_26rem] 4xl:grid-cols-[minmax(0,1fr)_30rem]">
         <Card title="Da fare">
           {todo.length === 0 ? (
             <p className="text-sm text-muted">
@@ -191,8 +191,9 @@ export default async function ClientHome() {
             preventivi.
           </Empty>
         ) : (
-          <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {h.open.slice(0, 3).map((r) => {
+          <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4">
+            {/* A fourth card fills the fourth column from 1920 px. */}
+            {h.open.slice(0, 4).map((r, i) => {
               const fresh = r.proposals.filter((p) => p.status === "submitted").length;
               const priced = r.proposals.filter((p) => PROPOSALS_PRICED.includes(p.status)).length;
               const badge: { tone: BadgeTone; label: string } =
@@ -205,7 +206,7 @@ export default async function ClientHome() {
               return (
                 <li
                   key={r.id}
-                  className="flex flex-col gap-3 rounded-card border border-border bg-bg p-4 sm:p-5"
+                  className={`${i < 3 ? "flex" : "hidden 3xl:flex"} flex-col gap-3 rounded-card border border-border bg-bg p-4 sm:p-5`}
                 >
                   <div>
                     <Badge tone={badge.tone}>{badge.label}</Badge>

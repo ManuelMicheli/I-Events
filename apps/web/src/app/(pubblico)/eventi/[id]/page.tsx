@@ -71,7 +71,7 @@ export default async function PublicEventPage({
   return (
     <>
       {momento && <ClearMoment />}
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10">
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10 3xl:grid-cols-[minmax(0,1fr)_26rem] 3xl:gap-12">
         <header className="flex flex-col gap-4 lg:col-start-1">
           <Link
             href="/eventi"

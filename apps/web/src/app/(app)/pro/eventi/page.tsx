@@ -79,7 +79,7 @@ export default async function EventsPage() {
         {upcoming.length === 0 ? (
           <Empty>Quando un cliente sceglie una tua proposta, l&apos;evento compare qui.</Empty>
         ) : (
-          <ul className="flex flex-col gap-3">
+          <ul className="grid gap-3 3xl:grid-cols-2">
             {upcoming.map((e) => {
               const s = suppliers(e);
               return (

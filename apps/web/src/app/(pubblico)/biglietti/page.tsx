@@ -34,7 +34,7 @@ export default async function Tickets() {
           </ButtonLink>
         </div>
       ) : (
-        <div className="flex max-w-2xl flex-col gap-8">
+        <div className="flex max-w-2xl flex-col gap-8 3xl:grid 3xl:max-w-none 3xl:grid-cols-2 3xl:items-start 3xl:gap-12">
           <List title="Prossimi" items={next} empty="Nessun evento in arrivo." />
           {past.length > 0 && <List title="Passati" items={past} />}
         </div>

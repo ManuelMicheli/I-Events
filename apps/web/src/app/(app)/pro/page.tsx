@@ -88,7 +88,8 @@ export default async function ProHome() {
             <LiveDot />
             Oggi
           </h2>
-          <ul className="flex flex-col gap-3">
+          {/* A ticket stays ticket-sized: two side by side from 1920 px. */}
+          <ul className="grid gap-3 3xl:grid-cols-2">
             {h.todays.map((e, i) => (
               <li key={e.id}>
                 <EventTicket
@@ -122,7 +123,7 @@ export default async function ProHome() {
         </section>
       )}
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px] 3xl:grid-cols-[minmax(0,1fr)_26rem] 4xl:grid-cols-[minmax(0,5fr)_minmax(0,4fr)]">
         <Card
           title="Richieste ricevute"
           action={<SeeAll href="/pro/richieste" label="Vedi tutte le richieste" />}
@@ -169,7 +170,8 @@ export default async function ProHome() {
           )}
         </Card>
 
-        <div className="flex flex-col gap-6">
+        {/* On 2K monitors the side column holds the week and the tasks side by side. */}
+        <div className="flex flex-col gap-6 4xl:grid 4xl:grid-cols-2 4xl:items-start">
           <Card
             title="Questa settimana"
             action={

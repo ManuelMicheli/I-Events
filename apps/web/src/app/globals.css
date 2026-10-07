@@ -1930,3 +1930,53 @@ samp {
     animation: fade-in 120ms linear both !important;
   }
 }
+
+/*
+ * A11 Larghezze schermo. From 1920 px (3xl) and 2560 px (4xl, the 2K monitors) the app area fills
+ * the width beside the sidebar and everything grows a little: the root goes to 17 px and 18 px, and
+ * the Carta text styles follow it in rem, so a 2K monitor at 100% looks as a 1440 laptop does.
+ * Below 1920 px the sizes stay as they are. Media queries in rem use the browser's 16 px, not the root's.
+ */
+@theme {
+  --breakpoint-3xl: 120rem;
+  --breakpoint-4xl: 160rem;
+  /* Forms and the request wizard read top to bottom: from 1536 px (2xl) a centred column this wide. */
+  --container-form: 56rem;
+  /* Public area from 1920 px: the page stops here (1632 px at 1920, 1728 at 2560). */
+  --container-public: 96rem;
+}
+@media (min-width: 120rem) {
+  :root {
+    font-size: 106.25%;
+    --text-xs: 0.75rem;
+    --text-xs--line-height: 1rem;
+    --text-label: 0.8125rem;
+    --text-label--line-height: 1.125rem;
+    --text-sm: 1rem;
+    --text-sm--line-height: 1.5rem;
+    --text-base: 1rem;
+    --text-base--line-height: 1.5rem;
+    --text-lg: 1.0625rem;
+    --text-lg--line-height: 1.625rem;
+    --text-xl: 1.25rem;
+    --text-xl--line-height: 1.625rem;
+    --text-title2: 1.5rem;
+    --text-title2--line-height: 1.875rem;
+    --text-2xl: 2rem;
+    --text-2xl--line-height: 2.375rem;
+    --text-3xl: 3rem;
+    --text-3xl--line-height: 3.25rem;
+    --text-4xl: 4rem;
+    --text-4xl--line-height: 4rem;
+  }
+  body,
+  :where(input:not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="color"]), select, textarea) {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+}
+@media (min-width: 160rem) {
+  :root {
+    font-size: 112.5%;
+  }
+}

@@ -66,7 +66,7 @@ export async function Shell({ org, children }: { org: MyOrg; children: ReactNode
 
   return (
     <ToastProvider flash={flash} tabBar>
-      <div className="min-h-dvh lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
+      <div className="min-h-dvh lg:grid lg:grid-cols-[15rem_minmax(0,1fr)]">
         <aside className="sticky top-0 hidden h-dvh flex-col gap-6 border-r border-border px-3 pb-3 lg:flex">
           <Link href={AREA_BY_TYPE[org.type]} className="flex h-14 shrink-0 items-center rounded-ui px-3" aria-label="I-Events, home">
             <Logo />
@@ -79,7 +79,7 @@ export async function Shell({ org, children }: { org: MyOrg; children: ReactNode
           </div>
         </aside>
         <div className="flex min-w-0 flex-col">
-          <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border bg-app/90 px-4 backdrop-blur sm:px-6 lg:gap-4 lg:px-8">
+          <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border bg-app/90 px-4 backdrop-blur sm:px-6 lg:gap-4 lg:px-8 3xl:px-12 4xl:px-16">
             <Link href={AREA_BY_TYPE[org.type]} className="mr-auto flex min-h-11 items-center lg:hidden" aria-label="I-Events, home">
               <Logo />
             </Link>
@@ -101,7 +101,7 @@ export async function Shell({ org, children }: { org: MyOrg; children: ReactNode
             </Link>
             <AccountMenu {...account} variant="bar" />
           </header>
-          <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-4 pt-8 pb-[calc(56px+env(safe-area-inset-bottom)+32px)] sm:px-6 lg:px-8 lg:pb-8">{children}</main>
+          <main className="flex w-full flex-col gap-6 px-4 pt-8 pb-[calc(56px+env(safe-area-inset-bottom)+32px)] sm:px-6 lg:px-8 lg:pb-8 3xl:px-12 3xl:pt-10 3xl:pb-10 4xl:px-16">{children}</main>
         </div>
       </div>
       <TabBar items={nav} counts={counts} />
