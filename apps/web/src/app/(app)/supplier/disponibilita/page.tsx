@@ -36,40 +36,45 @@ export default async function AvailabilityPage() {
         </p>
       </div>
 
-      <Card>
-        <AvailabilityCalendar from={from} months={MONTHS} days={days} today={today} />
-      </Card>
-
-      {canEdit && (
-        <Card title="Segna giorni non disponibili">
-          <UnavailabilityForm today={today} />
+      {/* From 1920 px the calendar takes the width and the periods sit in a column on the right (A11 in globals.css). */}
+      <div className="flex flex-col gap-6 3xl:grid 3xl:grid-cols-[minmax(0,1fr)_28rem] 3xl:items-start 4xl:grid-cols-[minmax(0,1fr)_32rem]">
+        <Card>
+          <AvailabilityCalendar from={from} months={MONTHS} days={days} today={today} />
         </Card>
-      )}
 
-      <Card title="Periodi non disponibili">
-        {periodsRes.data.length === 0 ? (
-          <Empty>Nessun periodo segnato.</Empty>
-        ) : (
-          <ul className="divide-y divide-border">
-            {periodsRes.data.map((p) => (
-              <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
-                <span>
-                  <span className="font-medium">{rangeLabel({ from: p.starts_on, to: p.ends_on })}</span>
-                  {p.note && <span className="ml-2 text-muted">{p.note}</span>}
-                </span>
-                {canEdit && (
-                  <form action={removeUnavailability}>
-                    <input type="hidden" name="id" value={p.id} />
-                    <Button type="submit" variant="secondary" aria-label={`Torna disponibile ${rangeLabel({ from: p.starts_on, to: p.ends_on })}`}>
-                      Torna disponibile
-                    </Button>
-                  </form>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
+        <div className="flex flex-col gap-6">
+          {canEdit && (
+            <Card title="Segna giorni non disponibili">
+              <UnavailabilityForm today={today} />
+            </Card>
+          )}
+
+          <Card title="Periodi non disponibili">
+            {periodsRes.data.length === 0 ? (
+              <Empty>Nessun periodo segnato.</Empty>
+            ) : (
+              <ul className="divide-y divide-border">
+                {periodsRes.data.map((p) => (
+                  <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+                    <span>
+                      <span className="font-medium">{rangeLabel({ from: p.starts_on, to: p.ends_on })}</span>
+                      {p.note && <span className="ml-2 text-muted">{p.note}</span>}
+                    </span>
+                    {canEdit && (
+                      <form action={removeUnavailability}>
+                        <input type="hidden" name="id" value={p.id} />
+                        <Button type="submit" variant="secondary" aria-label={`Torna disponibile ${rangeLabel({ from: p.starts_on, to: p.ends_on })}`}>
+                          Torna disponibile
+                        </Button>
+                      </form>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        </div>
+      </div>
     </>
   );
 }

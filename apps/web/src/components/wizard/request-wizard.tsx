@@ -10,6 +10,7 @@ import {
   briefCompleteness,
   EVENT_TYPE_INFO,
   EVENT_TYPES,
+  formatEuro,
   MAX_CAMPAIGN_EVENTS,
   OBJECTIVES,
   SERVICE_CATALOG,
@@ -144,9 +145,11 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
     return !q || a.name.toLowerCase().includes(q) || (a.city ?? "").toLowerCase().includes(q) || a.regions.some((r) => r.toLowerCase().includes(q));
   });
 
+  // From 1536 px the chosen details stay in view in a panel on the right; from 1920 px the steps move to a
+  // column on the left, so the step itself gets the middle (A11 in globals.css).
   return (
-    <div className="flex flex-col gap-6">
-      <ol className="flex flex-wrap gap-1 text-sm" aria-label="Passaggi">
+    <div className="flex flex-col gap-6 2xl:grid 2xl:grid-cols-[minmax(0,1fr)_22rem] 2xl:items-start 3xl:grid-cols-[13rem_minmax(0,1fr)_24rem] 4xl:grid-cols-[14rem_minmax(0,1fr)_28rem] 4xl:gap-8">
+      <ol className="flex flex-wrap gap-2 text-sm 2xl:col-start-1 2xl:row-start-1 3xl:sticky 3xl:top-20 3xl:flex-col 3xl:flex-nowrap" aria-label="Passaggi">
         {steps.map((s, i) => (
           <li key={s}>
             <button
@@ -154,7 +157,7 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
               disabled={pending || (i > index && !requestId)}
               onClick={() => go(s)}
               aria-current={s === step ? "step" : undefined}
-              className={`min-h-10 rounded-full px-3 transition-colors duration-[120ms] disabled:text-disabled ${
+              className={`min-h-11 rounded-full px-3 transition-colors lg:min-h-10 3xl:w-full 3xl:text-left duration-[120ms] disabled:text-disabled ${
                 s === step ? "bg-surface font-medium text-text" : "text-muted hover:bg-surface hover:text-text"
               }`}
             >
@@ -164,6 +167,7 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
         ))}
       </ol>
 
+      <div className="flex min-w-0 flex-col gap-6 2xl:col-start-1 2xl:row-start-2 3xl:col-start-2 3xl:row-start-1">
       {step === "evento" && (
         <div className="flex flex-col gap-6">
           <h2 className="text-xl font-medium">Che evento è?</h2>
@@ -365,7 +369,7 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
               ))}
             </div>
           )}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 4xl:grid-cols-4">
             {SERVICE_CATALOG.map((c) => {
               const on = Boolean(itemFor(c.key));
               return (
@@ -376,8 +380,14 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
               );
             })}
           </div>
-          {SERVICE_CATALOG.filter((c) => itemFor(c.key)).map((c) => {
-            const item = itemFor(c.key)!;
+          {/* Newest first: the service just ticked opens right under the tiles, above the ones already filled in.
+              draft.items keeps the order of selection, and that is the order saved and shown to the agencies. */}
+          {draft.items
+            .filter((i) => i.stageIndex === scope)
+            .reverse()
+            .map((item) => {
+            const c = SERVICE_CATALOG.find((x) => x.key === item.category);
+            if (!c) return null;
             const itemIndex = draft.items.indexOf(item);
             return (
               <Card key={c.key} title={c.name.it}>
@@ -401,6 +411,7 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
       )}
 
       {step === "note" && (
+        <div className={`grid items-start gap-6 ${attachments ? "4xl:grid-cols-2" : ""}`}>
         <Card>
           <Field label="Richieste libere" hint="Tutto quello che non rientra nei servizi: idee, vincoli, riferimenti.">
             <textarea
@@ -412,8 +423,9 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
             />
           </Field>
         </Card>
+        {attachments}
+        </div>
       )}
-      {step === "note" && attachments}
 
       {step === "agenzie" && (
         <Card title="A chi inviare la richiesta">
@@ -479,8 +491,11 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
             {pending ? "Salvataggio…" : "Bozza salvata"}
           </span>
         )}
-        <span className="ml-auto text-sm text-muted">Completezza del brief: {completeness}%</span>
+        <span className="ml-auto text-sm text-muted 2xl:hidden">Completezza del brief: {completeness}%</span>
       </div>
+      </div>
+
+      <Summary draft={draft} completeness={completeness} agencies={agencies.filter((a) => selectedAgencies.includes(a.id))} />
     </div>
   );
 }
@@ -529,5 +544,63 @@ function Review({ draft, completeness, agencies }: { draft: RequestDraft; comple
         </div>
       )}
     </Card>
+  );
+}
+
+const dayFmt = new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+const day = (d: string) => dayFmt.format(new Date(`${d}T00:00:00Z`));
+
+/** From 1536 px, beside the steps: what has been chosen so far. The services read newest first, as in the step. */
+function Summary({ draft, completeness, agencies }: { draft: RequestDraft; completeness: number; agencies: ReachableAgency[] }) {
+  const b = draft.basics;
+  const services = [...new Set([...draft.items].reverse().map((i) => SERVICE_CATALOG.find((c) => c.key === i.category)?.name.it ?? i.category))];
+  const cities = draft.kind === "campaign" ? [...new Set(draft.campaign?.stages.map((s) => s.city).filter(Boolean))] : [];
+  const where = cities.length ? cities.join(", ") : b.city;
+  const budget =
+    b.budgetMin !== undefined || b.budgetMax !== undefined
+      ? [b.budgetMin, b.budgetMax].filter((v) => v !== undefined).map((v) => formatEuro(v)).join(" – ")
+      : undefined;
+  const empty = <span className="text-muted">–</span>;
+  const rows: { label: string; value: ReactNode }[] = [
+    { label: "Che evento è", value: draft.eventType ? <TypeChip type={draft.eventType} /> : empty },
+    { label: "Formato", value: draft.kind === "campaign" ? `Campagna di ${draft.campaign?.eventsCount ?? 2} eventi` : "Evento singolo" },
+    { label: "Nome", value: b.title || empty },
+    {
+      label: "Quando",
+      value: b.startDate ? <span className="font-mono tabular-nums">{[b.startDate, b.endDate].filter(Boolean).map((d) => day(d!)).join(" → ")}</span> : empty,
+    },
+    { label: "Dove", value: where || empty },
+    { label: draft.kind === "campaign" ? "Ospiti per evento" : "Ospiti", value: b.guests ? <span className="font-mono tabular-nums">{b.guests}</span> : empty },
+    { label: "Budget", value: budget ? <span className="font-mono tabular-nums">{budget}</span> : empty },
+    {
+      label: "Servizi",
+      value: services.length ? (
+        <ul className="flex flex-col gap-1">
+          {services.map((s) => (
+            <li key={s}>{s}</li>
+          ))}
+        </ul>
+      ) : (
+        empty
+      ),
+    },
+    { label: "Agenzie", value: agencies.length ? agencies.map((a) => a.name).join(", ") : empty },
+  ];
+  return (
+    <aside aria-label="Riepilogo richiesta" className="hidden 2xl:sticky 2xl:top-20 2xl:col-start-2 2xl:row-span-2 2xl:row-start-1 2xl:block 3xl:col-start-3 3xl:row-span-1">
+      <Card title="Riepilogo richiesta">
+        <dl className="flex flex-col gap-3 text-sm">
+          {rows.map((r) => (
+            <div key={r.label} className="grid grid-cols-[7rem_minmax(0,1fr)] gap-3">
+              <dt className="text-muted">{r.label}</dt>
+              <dd className="min-w-0 break-words">{r.value}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="mt-4 border-t border-border pt-4 text-sm">
+          Completezza del brief: <span className="font-mono tabular-nums">{completeness}%</span>
+        </p>
+      </Card>
+    </aside>
   );
 }
