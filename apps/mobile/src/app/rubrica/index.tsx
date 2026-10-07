@@ -6,7 +6,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { Avatar } from "@/components/avatar";
 import { Badge } from "@/components/badge";
 import { Button } from "@/components/button";
-import { ImportIcon } from "@/components/icons";
+import { ImportIcon, PlusIcon } from "@/components/icons";
 import { Card } from "@/components/card";
 import { Chip, ChipRow } from "@/components/chip";
 import { Divider } from "@/components/rows";
@@ -55,7 +55,7 @@ export default function AddressBookScreen() {
           </ChipRow>
         </View>
       }
-      footer={<Button icon="add" label="Nuovo contatto" onPress={() => router.push("/rubrica/nuovo")} />}
+      footer={<Button leading={(color, pressed) => <PlusIcon color={color} turn={pressed} />} label="Nuovo contatto" onPress={() => router.push("/rubrica/nuovo")} />}
       refreshing={q.refreshing}
       onRefresh={q.refresh}
     >

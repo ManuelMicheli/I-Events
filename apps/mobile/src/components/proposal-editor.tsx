@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { control, radius, space, useTheme } from "@/theme";
 import { Badge } from "./badge";
 import { Button } from "./button";
-import { SendIcon, TrashIcon } from "./icons";
+import { PlusIcon, SendIcon, TrashIcon } from "./icons";
 import { Card, TicketDivider } from "./card";
 import { serviceName } from "./proposal-lines";
 import { Divider, ListRow } from "./rows";
@@ -145,7 +145,7 @@ export function ProposalEditor({ proposalId, clientName, initialLines, initialSu
         ))}
         <Button
           variant="tertiary"
-          icon="add"
+          leading={(color, pressed) => <PlusIcon color={color} turn={pressed} />}
           label="Aggiungi voce"
           onPress={() => setLines((ls) => [...ls, { category: "other", description: "", amount: "" }])}
         />

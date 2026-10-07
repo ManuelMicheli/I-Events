@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Animated, Easing, StyleSheet, View, type EasingFunction } from "react-native";
-import Svg, { Circle, Ellipse, G, Path, Rect } from "react-native-svg";
+import { Animated, Easing, StyleSheet } from "react-native";
+import { Circle, Ellipse, G, Path, Rect } from "react-native-svg";
 import { haptics } from "@/lib/haptics";
 import { easeInOut, easeOut, useReduceMotion } from "@/lib/motion";
+import { AnimatedPath, Box, deg, Draw, ease, give, grid20, keyframes, Part, steps, strain, swing, useOnChange, usePlay, usePlayer, useValues, type Frame } from "./icon-kit";
 
 /**
  * Icons in motion (A10, "Carta e inchiostro"), as on the website: each icon is drawn in parts that
@@ -18,113 +18,6 @@ import { easeInOut, easeOut, useReduceMotion } from "@/lib/motion";
  * grid where the real object would hinge. The keyframes are the ones under A10 in the website's
  * globals.css.
  */
-
-/** A keyframe: where in the animation (0-100), the value, and the easing up to the next keyframe. */
-type Frame = [at: number, value: number, easing?: EasingFunction];
-
-const swing = Easing.bezier(0.45, 0, 0.55, 1);
-const strain = Easing.bezier(0.5, 0, 0.8, 0.4);
-const give = Easing.bezier(0.2, 0.6, 0.3, 1);
-
-/** The keyframes from wherever the value is now: the first one only gives the easing of the first step. */
-function steps(v: Animated.Value, frames: Frame[], duration: number, native = true) {
-  const all = frames.slice(1).map(([at, value], i) => {
-    const [from, , easing] = frames[i]!;
-    return Animated.timing(v, { toValue: value, duration: ((at - from) / 100) * duration, easing: easing ?? Easing.linear, useNativeDriver: native });
-  });
-  return Animated.sequence(all);
-}
-
-function keyframes(v: Animated.Value, frames: Frame[], duration: number, native = true) {
-  v.setValue(frames[0]![1]);
-  return steps(v, frames, duration, native);
-}
-
-/** A change of state that eases, like a CSS transition. */
-function ease(v: Animated.Value, toValue: number, duration: number, easing: EasingFunction) {
-  return Animated.timing(v, { toValue, duration, easing, useNativeDriver: true });
-}
-
-/** One value per moving property, kept for the life of the icon. */
-function useValues<K extends string>(rest: Record<K, number>) {
-  const [values] = useState(() => Object.fromEntries(Object.entries(rest).map(([k, n]) => [k, new Animated.Value(n as number)])) as Record<K, Animated.Value>);
-  return values;
-}
-
-/** A moment of an animation, in ms from its start, when something else happens (a haptic tap). */
-type Cue = [ms: number, run: () => void];
-
-/** Runs one animation at a time, with its cues, and stops both when the icon goes away. */
-function usePlayer() {
-  const running = useRef<{ animation: Animated.CompositeAnimation; timers: ReturnType<typeof setTimeout>[] } | null>(null);
-  useEffect(
-    () => () => {
-      running.current?.animation.stop();
-      running.current?.timers.forEach(clearTimeout);
-    },
-    [],
-  );
-  return (animation: Animated.CompositeAnimation, cues: Cue[] = []) => {
-    running.current?.animation.stop();
-    running.current?.timers.forEach(clearTimeout);
-    running.current = { animation, timers: cues.map(([ms, run]) => setTimeout(run, ms)) };
-    animation.start();
-  };
-}
-
-const deg = (v: Animated.Value) => v.interpolate({ inputRange: [-360, 360], outputRange: ["-360deg", "360deg"] });
-
-/** A layer that moves: the whole icon box, turning around (x, y) of the grid. */
-function Part({ k, origin, style, children }: { k: number; origin: [number, number]; style?: object; children: ReactNode }) {
-  return (
-    <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { transformOrigin: `${origin[0] * k}px ${origin[1] * k}px` }, style]}>
-      {children}
-    </Animated.View>
-  );
-}
-
-/** The drawing of one layer, on the icon's grid. */
-function Draw({ size, grid, children }: { size: number; grid: number; children: ReactNode }) {
-  return (
-    <Svg width={size} height={size} viewBox={`0 0 ${grid} ${grid}`} fill="none" style={StyleSheet.absoluteFill}>
-      {children}
-    </Svg>
-  );
-}
-
-function Box({ size, children }: { size: number; children: ReactNode }) {
-  return (
-    <View style={{ width: size, height: size }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" pointerEvents="none">
-      {children}
-    </View>
-  );
-}
-
-/**
- * Calls `run` each time `value` changes, with the new value and the one before; on the first render
- * only when it differs from `from`, the value it is taken to come from (by default, itself).
- */
-function useOnChange<T>(value: T, run: (value: T, before: T) => void, from: T = value) {
-  const last = useRef(from);
-  const latest = useRef(run);
-  useEffect(() => {
-    latest.current = run;
-  });
-  useEffect(() => {
-    if (value === last.current) return;
-    const before = last.current;
-    last.current = value;
-    latest.current(value, before);
-  }, [value]);
-}
-
-/**
- * Calls `play` each time `trigger` changes to a value that is not 0 or false (a new count, or true:
- * the finger on the button); never on the first render.
- */
-function usePlay(trigger: number | boolean, play: () => void) {
-  useOnChange(trigger, (t) => t !== 0 && t !== false && play());
-}
 
 /**
  * The bell: each time `ring` changes it swings from its hook, the clapper lags and strikes and two
@@ -378,14 +271,6 @@ export function CalendarIcon({ color, hole, filled, play }: { color: string; hol
     </Box>
   );
 }
-
-const AnimatedPath = Animated.createAnimatedComponent(Path);
-
-/** The icons below are drawn on a 20 grid, like the website's; their lines stay 1.5 wide at any size. */
-const grid20 = (size: number) => {
-  const k = size / 20;
-  return { k, w: (n: number) => n / k };
-};
 
 /**
  * Invia: the paper plane. While `lean` is true (the finger on the button) it lifts a little towards
@@ -721,6 +606,180 @@ export function GearIcon({ color, turn, size = 20 }: { color: string; turn: numb
           <Circle cx="10" cy="10" r="2.5" stroke={color} strokeWidth={w(1.5)} />
         </Draw>
       </Part>
+    </Box>
+  );
+}
+
+/** Aggiungi: each time `turn` changes (or turns true) the plus tightens, turns a quarter with an overshoot and opens again, 560 ms. */
+export function PlusIcon({ color, turn, size = 20 }: { color: string; turn: number | boolean; size?: number }) {
+  const reduce = useReduceMotion();
+  const v = useValues({ turn: 0, scale: 1 });
+  const player = usePlayer();
+  usePlay(turn, () => {
+    if (reduce) return;
+    const d = 560;
+    const tighten = Easing.bezier(0.3, 0, 0.5, 1);
+    const open = Easing.bezier(0.2, 0.6, 0.35, 1);
+    player(
+      Animated.parallel([
+        // A quarter turn looks as it did, so each turn starts again from 0.
+        keyframes(v.turn, [[0, 0, tighten], [22, 0, open], [64, 102, swing], [84, 86, swing], [100, 90]], d),
+        keyframes(v.scale, [[0, 1, tighten], [22, 0.78, open], [64, 1.06, swing], [84, 1, swing], [100, 1]], d),
+      ]),
+    );
+  });
+  const { k, w } = grid20(size);
+  return (
+    <Box size={size}>
+      <Part k={k} origin={[10, 10]} style={{ transform: [{ rotate: deg(v.turn) }, { scale: v.scale }] }}>
+        <Draw size={size} grid={20}>
+          <Path d="M10 4.5v11M4.5 10h11" stroke={color} strokeWidth={w(1.5)} strokeLinecap="round" />
+        </Draw>
+      </Part>
+    </Box>
+  );
+}
+
+/** Condividi: each time `play` changes (or turns true) the sharing node pulses and sends a wave; the other two nodes take it in turn, 720 ms. Drawn on a 16 grid. */
+export function ShareIcon({ color, play, size = 16 }: { color: string; play: number | boolean; size?: number }) {
+  const reduce = useReduceMotion();
+  const v = useValues({ hub: 1, wave: 0, waveScale: 1, n1: 1, n2: 1 });
+  const player = usePlayer();
+  usePlay(play, () => {
+    if (reduce) return;
+    const d = 720;
+    const node: Frame[] = [[0, 1], [30, 1, Easing.bezier(0.2, 0.7, 0.3, 1)], [48, 1.22, swing], [70, 0.96, swing], [100, 1]];
+    player(
+      Animated.parallel([
+        keyframes(v.hub, [[0, 1, Easing.bezier(0.3, 0, 0.5, 1)], [18, 1.3, swing], [40, 1], [100, 1]], d),
+        keyframes(v.wave, [[0, 0], [10, 0], [18, 0.8, easeOut], [60, 0], [100, 0]], d),
+        keyframes(v.waveScale, [[0, 1], [10, 1], [60, 2.6], [100, 2.6]], d),
+        keyframes(v.n1, node, d),
+        Animated.sequence([Animated.delay(70), keyframes(v.n2, node, d)]),
+      ]),
+    );
+  });
+  const k = size / 16;
+  const w = (n: number) => n / k;
+  const circle = (cx: number, cy: number, s: Animated.Value, width = 1.5) => (
+    <Part k={k} origin={[cx, cy]} style={{ transform: [{ scale: s }] }}>
+      <Draw size={size} grid={16}>
+        <Circle cx={cx} cy={cy} r="1.75" stroke={color} strokeWidth={w(width)} />
+      </Draw>
+    </Part>
+  );
+  return (
+    <Box size={size}>
+      <Animated.View style={[StyleSheet.absoluteFill, { opacity: v.wave }]}>{circle(4.5, 8, v.waveScale, 1)}</Animated.View>
+      <Draw size={size} grid={16}>
+        <Path d="M6.72 6.65l2.56-1.55M6.72 9.35l2.56 1.55" stroke={color} strokeWidth={w(1.5)} strokeLinecap="round" />
+      </Draw>
+      {circle(4.5, 8, v.hub)}
+      {circle(11.5, 3.75, v.n1)}
+      {circle(11.5, 12.25, v.n2)}
+    </Box>
+  );
+}
+
+/** Esci: each time `play` changes (or turns true) the arrow walks out through the door and comes back in from the left, 640 ms. */
+export function LogoutIcon({ color, play, size = 20 }: { color: string; play: number | boolean; size?: number }) {
+  const reduce = useReduceMotion();
+  const v = useValues({ x: 0, opacity: 1 });
+  const player = usePlayer();
+  usePlay(play, () => {
+    if (reduce) return;
+    const d = 640;
+    const out = Easing.bezier(0.5, 0, 0.9, 0.5);
+    const back = Easing.bezier(0.2, 0.7, 0.3, 1);
+    player(
+      Animated.parallel([
+        keyframes(v.x, [[0, 0, out], [40, 5], [41, -4, back], [100, 0]], d),
+        keyframes(v.opacity, [[0, 1, out], [40, 0], [41, 0, back], [100, 1]], d),
+      ]),
+    );
+  });
+  const { k, w } = grid20(size);
+  return (
+    <Box size={size}>
+      <Draw size={size} grid={20}>
+        <Path d="M8 3.5H5.25A1.75 1.75 0 0 0 3.5 5.25v9.5a1.75 1.75 0 0 0 1.75 1.75H8" stroke={color} strokeWidth={w(1.5)} strokeLinecap="round" strokeLinejoin="round" />
+      </Draw>
+      <Part k={k} origin={[10, 10]} style={{ opacity: v.opacity, transform: [{ translateX: Animated.multiply(v.x, k) }] }}>
+        <Draw size={size} grid={20}>
+          <Path d="M8.5 10h8M13.5 6.75L16.75 10l-3.25 3.25" stroke={color} strokeWidth={w(1.5)} strokeLinecap="round" strokeLinejoin="round" />
+        </Draw>
+      </Part>
+    </Box>
+  );
+}
+
+/** Lente: each time `look` changes (or turns true) the lens looks around once and a glint crosses the glass, 640 ms. Filled, the glint takes `hole`. */
+export function LensIcon({ color, look, filled = false, hole, size = 20 }: { color: string; look: number | boolean; filled?: boolean; hole?: string; size?: number }) {
+  const reduce = useReduceMotion();
+  const v = useValues({ x: 0, y: 0, turn: 0, glint: 0, glintTurn: -40 });
+  const player = usePlayer();
+  usePlay(look, () => {
+    if (reduce) return;
+    const d = 640;
+    const at = [0, 30, 62, 84, 100];
+    const track = (values: number[]): Frame[] => at.map((p, i) => [p, values[i]!, i < 3 ? swing : undefined]);
+    player(
+      Animated.parallel([
+        keyframes(v.x, track([0, -1.25, 1, 0, 0]), d),
+        keyframes(v.y, track([0, -0.5, -1, 0.25, 0]), d),
+        keyframes(v.turn, track([0, -10, 7, -2, 0]), d),
+        keyframes(v.glint, [[0, 0, easeOut], [20, 0, easeOut], [45, 0.9, easeOut], [100, 0]], d),
+        keyframes(v.glintTurn, [[0, -40, easeOut], [20, -40, easeOut], [100, 70]], d),
+      ]),
+    );
+  });
+  const { k, w } = grid20(size);
+  return (
+    <Box size={size}>
+      <Part
+        k={k}
+        origin={[8.5, 8.5]}
+        style={{ transform: [{ translateX: Animated.multiply(v.x, k) }, { translateY: Animated.multiply(v.y, k) }, { rotate: deg(v.turn) }] }}
+      >
+        <Draw size={size} grid={20}>
+          <Circle cx="8.5" cy="8.5" r="5.25" stroke={color} strokeWidth={w(1.5)} fill={filled ? color : "none"} />
+          <Path d="M12.5 12.5l4 4" stroke={color} strokeWidth={w(1.5)} strokeLinecap="round" />
+        </Draw>
+        <Part k={k} origin={[8.5, 8.5]} style={{ opacity: v.glint, transform: [{ rotate: deg(v.glintTurn) }] }}>
+          <Draw size={size} grid={20}>
+            <Path d="M6 7.25a2.75 2.75 0 0 1 2.25-2.5" stroke={filled && hole ? hole : color} strokeWidth={w(1.25)} strokeLinecap="round" />
+          </Draw>
+        </Part>
+      </Part>
+    </Box>
+  );
+}
+
+/** Menu (Altro): when `open` turns true the outer lines meet in the middle and turn into a cross, the middle one draws back; false undoes it. */
+export function MenuIcon({ color, open, size = 20 }: { color: string; open: boolean; size?: number }) {
+  const reduce = useReduceMotion();
+  const v = useValues({ cross: open ? 1 : 0, mid: open ? 0 : 1 });
+  useOnChange(open, (on) => {
+    if (reduce) {
+      v.cross.setValue(on ? 1 : 0);
+      return v.mid.setValue(on ? 0 : 1);
+    }
+    Animated.parallel([ease(v.cross, on ? 1 : 0, 280, Easing.bezier(0.65, 0, 0.35, 1)), ease(v.mid, on ? 0 : 1, 160, easeOut)]).start();
+  });
+  const { k, w } = grid20(size);
+  const bar = (y: number, style: object) => (
+    <Part k={k} origin={[10, 10]} style={style}>
+      <Draw size={size} grid={20}>
+        <Path d={`M3.5 ${y}h13`} stroke={color} strokeWidth={w(1.5)} strokeLinecap="round" />
+      </Draw>
+    </Part>
+  );
+  const turn = (to: string) => v.cross.interpolate({ inputRange: [0, 1], outputRange: ["0deg", to] });
+  return (
+    <Box size={size}>
+      {bar(6, { transform: [{ rotate: turn("45deg") }, { translateY: Animated.multiply(v.cross, 4 * k) }] })}
+      {bar(10, { opacity: v.mid, transform: [{ scaleX: v.mid.interpolate({ inputRange: [0, 1], outputRange: [0.2, 1] }) }] })}
+      {bar(14, { transform: [{ rotate: turn("-45deg") }, { translateY: Animated.multiply(v.cross, -4 * k) }] })}
     </Box>
   );
 }

@@ -3,6 +3,7 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Image, Linking, ScrollView, StyleSheet, View } from "react-native";
 import { Button } from "@/components/button";
+import { PlusIcon } from "@/components/icons";
 import { Card } from "@/components/card";
 import { Notice } from "@/components/notice";
 import { OrgLogo } from "@/components/org-logo";
@@ -80,7 +81,7 @@ export default function MarketplaceProfileScreen() {
         onPress={() => router.push({ pathname: "/rubrica/[id]", params: { id: data.contactId! } })}
       />
     ) : (
-      <Button block icon="person-add-outline" label="Aggiungi alla rubrica" loading={adding} onPress={add} />
+      <Button block leading={(color, pressed) => <PlusIcon color={color} turn={pressed} />} label="Aggiungi alla rubrica" loading={adding} onPress={add} />
     );
 
   return (

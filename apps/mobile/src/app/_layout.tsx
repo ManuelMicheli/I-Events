@@ -117,6 +117,7 @@ function RootStack({ ready }: { ready: boolean }) {
         <Stack.Screen name="notifiche" options={{ title: "Notifiche" }} />
         <Stack.Screen name="account" options={{ title: "Account" }} />
         <Stack.Screen name="attivita" options={{ title: "Attività" }} />
+        <Stack.Screen name="messaggi" options={{ title: "Messaggi" }} />
         <Stack.Screen name="nuova-richiesta" options={{ title: "Nuova richiesta" }} />
         <Stack.Screen name="rubrica/index" options={{ title: "Rubrica" }} />
         <Stack.Screen name="rubrica/[id]" options={{ title: "Contatto" }} />

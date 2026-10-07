@@ -2,26 +2,24 @@ import { router } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Avatar } from "@/components/avatar";
 import { Card } from "@/components/card";
-import { OrgSwitcher } from "@/components/org-switcher";
 import { Divider } from "@/components/rows";
 import { Screen } from "@/components/screen";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
-import { TopActions } from "@/components/top-actions";
 import { ago } from "@/lib/format";
 import { fetchConversations, type Conversation } from "@/lib/messages";
 import { useActiveOrg } from "@/lib/session";
 import { useQuery } from "@/lib/use-query";
 import { control, radius, space, useTheme } from "@/theme";
 
-/** Every conversation of the organization, one per request and agency, the most recent first. */
+/** Every conversation of the organization, one per request and agency, the most recent first; opened from Altro. */
 export default function MessagesScreen() {
   const org = useActiveOrg();
   const side = org.type === "supplier" ? null : org.type;
   const q = useQuery(side && `conversations:${org.id}`, () => fetchConversations(org.id, side!));
   if (!side) return null;
   return (
-    <Screen title="Messaggi" actions={<TopActions />} header={<OrgSwitcher />} refreshing={q.refreshing} onRefresh={q.refresh}>
+    <Screen refreshing={q.refreshing} onRefresh={q.refresh}>
       {q.loading ? (
         <CardSkeletons />
       ) : q.error && !q.data ? (
