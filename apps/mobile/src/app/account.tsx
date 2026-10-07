@@ -49,6 +49,17 @@ export default function AccountScreen() {
         </Section>
       )}
 
+      <Section title="Area pubblica">
+        <Card style={styles.list}>
+          <ListRow
+            title="Eventi aperti al pubblico"
+            subtitle="Esplora, calendario e i biglietti presi da questo telefono"
+            onPress={() => router.push("/pubblico")}
+            trailing={chevron}
+          />
+        </Card>
+      </Section>
+
       <Section title="Organizzazioni">
         <Card style={styles.list}>
           {orgs.map((o, i) => (

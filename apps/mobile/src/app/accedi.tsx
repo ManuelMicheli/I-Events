@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { useRef, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, type TextInput } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -165,6 +166,13 @@ export default function SignInScreen() {
           </T>
           <Button variant="tertiary" align="center" label={mode === "signin" ? "Crea un account" : "Accedi"} onPress={switchMode} />
         </View>
+
+        <View style={[styles.public, { borderTopColor: c.borderDefault }]}>
+          <T variant="callout" tone="secondary">
+            Cerchi un evento a cui andare?
+          </T>
+          <Button variant="secondary" align="center" icon="compass-outline" label="Eventi aperti al pubblico" onPress={() => router.push("/pubblico")} />
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -176,4 +184,5 @@ const styles = StyleSheet.create({
   intro: { gap: space[3] },
   form: { gap: space[5] },
   switch: { alignItems: "center", gap: space[1] },
+  public: { alignItems: "center", gap: space[3], paddingTop: space[6], borderTopWidth: StyleSheet.hairlineWidth },
 });
