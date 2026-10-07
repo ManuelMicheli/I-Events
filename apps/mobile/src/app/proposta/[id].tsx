@@ -1,7 +1,7 @@
 import { formatTicketNumber, getServiceCategory, type ProposalLine, type ProposalStatus } from "@i-events/core";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Attachments } from "@/components/attachments";
 import { Badge } from "@/components/badge";
 import { Brief } from "@/components/brief";
@@ -14,6 +14,7 @@ import { Screen } from "@/components/screen";
 import { Segmented } from "@/components/segmented";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
+import { useConfirm } from "@/components/confirm";
 import { useToast } from "@/components/toast";
 import { Confirmation, StatusRow, TicketTag } from "@/components/ticket";
 import { InlineError } from "@/components/text-field";
@@ -49,6 +50,7 @@ export default function ProposalScreen() {
   const org = useActiveOrg();
   const q = useQuery(`proposal:${org.id}:${id}`, () => fetchAgencyProposal(id, org.id));
   const toast = useToast();
+  const confirm = useConfirm();
   const [moving, setMoving] = useState<Move | null>(null);
   const [moveError, setMoveError] = useState<string>();
   const [tab, setTab] = useState<"request" | "proposal">("request");
@@ -105,16 +107,17 @@ export default function ProposalScreen() {
       else q.refresh();
     };
     if (to === "declined" || to === "withdrawn")
-      Alert.alert(
-        to === "declined" ? "Rifiutare la richiesta?" : "Ritirare la proposta?",
-        to === "declined"
-          ? `${request.clientName} saprà che non partecipi.`
-          : `${request.clientName} non potrà più sceglierla finché non ne invii una nuova.`,
-        [
-          { text: "Annulla", style: "cancel" },
-          { text: to === "declined" ? "Rifiuta" : "Ritira", style: "destructive", onPress: run },
-        ],
-      );
+      void confirm({
+        title: to === "declined" ? "Rifiutare la richiesta?" : "Ritirare la proposta?",
+        body:
+          to === "declined"
+            ? `${request.clientName} saprà che non partecipi.`
+            : `${request.clientName} non potrà più sceglierla finché non ne invii una nuova.`,
+        confirmLabel: to === "declined" ? "Rifiuta" : "Ritira",
+        danger: true,
+      }).then((ok) => {
+        if (ok) void run();
+      });
     else void run();
   };
   const moves = open ? (MOVES[proposal.status] ?? []) : [];

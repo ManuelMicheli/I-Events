@@ -12,11 +12,12 @@ import {
 } from "@i-events/core";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, Switch, useWindowDimensions, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
 import { Button } from "@/components/button";
 import { SaveIcon, SendIcon } from "@/components/icons";
 import { Card } from "@/components/card";
 import { Chip, ChipRow } from "@/components/chip";
+import { CheckBox, Stepper, Toggle } from "@/components/controls";
 import { DateField } from "@/components/date-field";
 import { EventCover, TypeChip } from "@/components/event-type";
 import { Notice } from "@/components/notice";
@@ -435,8 +436,8 @@ function Wizard({
               />
             </View>
           </View>
-          <ToggleRow
-            label="Aperto al pubblico"
+          <Toggle
+            label="Evento aperto al pubblico"
             hint="Comparirà nel calendario pubblico di I-Events."
             value={draft.basics.isPublic}
             onChange={(v) => setBasics({ isPublic: v })}
@@ -451,10 +452,12 @@ function Wizard({
               Quanti eventi?
             </T>
             <Stepper
+              label="Eventi"
               value={draft.campaign.eventsCount}
               min={2}
               max={MAX_CAMPAIGN_EVENTS}
-              onChange={(n) => {
+              onChange={(v) => {
+                const n = Math.min(MAX_CAMPAIGN_EVENTS, Math.max(2, v ?? 2));
                 setDraft((d) => resizeStages(d, n));
                 setStageTab((t) => Math.min(t, n - 1));
               }}
@@ -462,12 +465,13 @@ function Wizard({
           </View>
           <View style={styles.group}>
             <T variant="label" tone="secondary">
-              Dove
+              Dove si tengono?
             </T>
             <Segmented
+              kind="choice"
               value={draft.campaign.sameVenue ? "same" : "different"}
               onChange={(v) => setDraft((d) => ({ ...d, campaign: { ...d.campaign!, sameVenue: v === "same" } }))}
-              accessibilityLabel="Dove"
+              accessibilityLabel="Dove si tengono?"
               options={[
                 { value: "same", label: "Stesso posto" },
                 { value: "different", label: "Posti diversi" },
@@ -476,13 +480,14 @@ function Wizard({
           </View>
           <View style={styles.group}>
             <T variant="label" tone="secondary">
-              Servizi
+              Servizi delle tappe
             </T>
             <Segmented
+              kind="choice"
               value={draft.campaign.servicesMode}
               // Switching mode starts the service choice again, to avoid half-assigned items.
               onChange={(v) => setDraft((d) => ({ ...d, campaign: { ...d.campaign!, servicesMode: v }, items: [] }))}
-              accessibilityLabel="Servizi"
+              accessibilityLabel="Servizi delle tappe"
               options={[
                 { value: "shared", label: "Uguali per tutte" },
                 { value: "per_stage", label: "Diversi per tappa" },
@@ -667,54 +672,6 @@ function NumberField({
   );
 }
 
-function ToggleRow({ label, hint, value, onChange }: { label: string; hint: string; value: boolean; onChange: (v: boolean) => void }) {
-  const { c } = useTheme();
-  return (
-    <View style={styles.toggle}>
-      <View style={styles.flex}>
-        <T variant="bodyStrong" nativeID="public-label">
-          {label}
-        </T>
-        <T variant="caption" tone="secondary">
-          {hint}
-        </T>
-      </View>
-      <Switch
-        value={value}
-        onValueChange={onChange}
-        trackColor={{ false: c.borderControl, true: c.textPrimary }}
-        thumbColor={c.bgSurface}
-        accessibilityLabel={label}
-      />
-    </View>
-  );
-}
-
-/** − 4 +: big buttons for a small number. */
-function Stepper({ value, min, max, onChange }: { value: number; min: number; max: number; onChange: (n: number) => void }) {
-  const { c } = useTheme();
-  const button = (icon: "remove" | "add", to: number, label: string) => (
-    <Pressable
-      onPress={() => onChange(to)}
-      disabled={to < min || to > max}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      style={({ pressed }) => [styles.stepperButton, { borderColor: c.borderStrong, backgroundColor: pressed ? c.bgSubtle : c.bgSurface }]}
-    >
-      <Ionicons name={icon} size={24} color={to < min || to > max ? c.textDisabled : c.textPrimary} />
-    </Pressable>
-  );
-  return (
-    <View style={styles.stepper}>
-      {button("remove", value - 1, "Un evento in meno")}
-      <T variant="monoMetric" accessibilityLiveRegion="polite" accessibilityLabel={plural(value, "evento", "eventi")} style={styles.stepperValue}>
-        {String(value)}
-      </T>
-      {button("add", value + 1, "Un evento in più")}
-    </View>
-  );
-}
-
 function AgencyRow({ agency: a, selected, onToggle }: { agency: ReachableAgency; selected: boolean; onToggle: () => void }) {
   const { c } = useTheme();
   const detail = [a.city, a.headline].filter(Boolean).join(" · ");
@@ -726,11 +683,7 @@ function AgencyRow({ agency: a, selected, onToggle }: { agency: ReachableAgency;
       accessibilityLabel={[a.name, a.connected ? "collegata" : null, detail].filter(Boolean).join(", ")}
       style={({ pressed }) => [styles.agency, pressed && { backgroundColor: c.bgSubtle }]}
     >
-      <View
-        style={[styles.box, { borderColor: selected ? c.textPrimary : c.borderControl, backgroundColor: selected ? c.textPrimary : "transparent" }]}
-      >
-        {selected && <Ionicons name="checkmark" size={16} color={c.bgApp} />}
-      </View>
+      <CheckBox checked={selected} />
       <View style={styles.flex}>
         <T variant="bodyStrong">{a.name}</T>
         {detail !== "" && (
@@ -795,7 +748,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: space[3] },
   group: { gap: space[2] },
   pair: { flexDirection: "row", gap: space[3] },
-  toggle: { flexDirection: "row", alignItems: "center", gap: space[3], minHeight: control.l },
   stage: { gap: space[4] },
   notes: { minHeight: 160 },
   list: { paddingVertical: space[1], gap: 0 },
@@ -809,9 +761,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: space[2],
     borderRadius: radius.sm,
   },
-  box: { width: 24, height: 24, borderRadius: radius.xs, borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  stepper: { flexDirection: "row", alignItems: "center", gap: space[4] },
-  stepperButton: { width: 48, height: 48, borderRadius: radius.md, borderWidth: 1, alignItems: "center", justifyContent: "center" },
-  stepperValue: { minWidth: 56, textAlign: "center" },
   facts: { gap: space[4] },
 });

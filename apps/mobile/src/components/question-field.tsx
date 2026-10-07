@@ -3,10 +3,11 @@ import type { ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 import { space } from "@/theme";
 import { Chip, ChipWrap } from "./chip";
+import { Stepper, Toggle } from "./controls";
 import { T } from "./text";
 import { InlineError, TextField } from "./text-field";
 
-/** One question of a service, drawn by its type; choices are chips. Empty values become undefined. */
+/** One question of a service, drawn by its type as on the website: chips, switch, stepper or field. Empty values become undefined. */
 export function QuestionField({
   question: q,
   value,
@@ -33,6 +34,17 @@ export function QuestionField({
         />
       );
     case "number":
+      // A small count (at most 100) takes the stepper, as on the website; bigger numbers are typed.
+      if (q.max !== undefined && q.max <= 100)
+        return (
+          <View style={styles.group}>
+            <T variant="label" tone="secondary">
+              {q.unit ? `${label} (${q.unit})` : label}
+            </T>
+            <Stepper label={q.label.it} min={q.min} max={q.max} value={value as number | undefined} onChange={(n) => onChange(n)} />
+            {error && <InlineError message={error} />}
+          </View>
+        );
       return (
         <TextField
           label={q.unit ? `${label} (${q.unit})` : label}
@@ -46,11 +58,7 @@ export function QuestionField({
         />
       );
     case "boolean":
-      return (
-        <ChipWrap>
-          <Chip multi label={q.label.it} selected={value === true} onPress={() => onChange(value === true ? undefined : true)} />
-        </ChipWrap>
-      );
+      return <Toggle label={q.label.it} value={value === true} onChange={(on) => onChange(on ? true : undefined)} />;
     case "select":
       return (
         <Choices label={label} error={error}>

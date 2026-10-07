@@ -2,11 +2,12 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { can, formatPhone, getServiceCategory, whatsappUrl } from "@i-events/core";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Alert, Linking, StyleSheet, View } from "react-native";
+import { Linking, StyleSheet, View } from "react-native";
 import { Badge } from "@/components/badge";
 import { Button } from "@/components/button";
 import { TrashIcon } from "@/components/icons";
 import { Card } from "@/components/card";
+import { useConfirm } from "@/components/confirm";
 import { ContactForm } from "@/components/contact-form";
 import { Notice } from "@/components/notice";
 import { InfoRow } from "@/components/rows";
@@ -31,6 +32,7 @@ export default function ContactScreen() {
   // The bin keeps its lid up while the question is open.
   const [asking, setAsking] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
+  const confirm = useConfirm();
 
   if (q.loading) {
     return (
@@ -74,32 +76,25 @@ export default function ContactScreen() {
     );
   }
 
-  const remove = () => {
+  const remove = async () => {
     setAsking(true);
-    Alert.alert(
-      `Eliminare ${contact.name}?`,
-      "Il contatto sparisce dalla rubrica di tutta l'agenzia.",
-      [
-        { text: "Annulla", style: "cancel", onPress: () => setAsking(false) },
-        {
-          text: "Elimina",
-          style: "destructive",
-          onPress: async () => {
-            setAsking(false);
-            setDeleting(true);
-            setFailure(null);
-            try {
-              await deleteContact(contact.id, org.id);
-              router.back();
-            } catch (e) {
-              setFailure(errorMessage(e));
-              setDeleting(false);
-            }
-          },
-        },
-      ],
-      { cancelable: true, onDismiss: () => setAsking(false) },
-    );
+    const ok = await confirm({
+      title: `Eliminare ${contact.name}?`,
+      body: "Il contatto sparisce dalla rubrica di tutta l'agenzia.",
+      confirmLabel: "Elimina",
+      danger: true,
+    });
+    setAsking(false);
+    if (!ok) return;
+    setDeleting(true);
+    setFailure(null);
+    try {
+      await deleteContact(contact.id, org.id);
+      router.back();
+    } catch (e) {
+      setFailure(errorMessage(e));
+      setDeleting(false);
+    }
   };
 
   return (

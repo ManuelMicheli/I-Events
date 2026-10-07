@@ -1,7 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { proposalSchema, proposalTotal, SERVICE_CATALOG, type ProposalLine } from "@i-events/core";
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { errorMessage } from "@/lib/errors";
 import { euro } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
@@ -10,6 +10,7 @@ import { Badge } from "./badge";
 import { Button } from "./button";
 import { PlusIcon, SendIcon, TrashIcon } from "./icons";
 import { Card, TicketDivider } from "./card";
+import { useConfirm } from "./confirm";
 import { serviceName } from "./proposal-lines";
 import { Divider, ListRow } from "./rows";
 import { Section } from "./screen";
@@ -56,6 +57,7 @@ export function ProposalEditor({ proposalId, clientName, initialLines, initialSu
   const [picking, setPicking] = useState<number | null>(null);
   const [error, setError] = useState<string>();
   const [sending, setSending] = useState(false);
+  const confirm = useConfirm();
 
   const amounts = lines.map((l) => parseAmount(l.amount));
   const total = proposalTotal(amounts.map((a) => ({ amount: a ?? 0 })));
@@ -69,7 +71,7 @@ export function ProposalEditor({ proposalId, clientName, initialLines, initialSu
           ? ({ label: "Sotto il budget", tone: "neutral" } as const)
           : ({ label: "Dentro il budget", tone: "success", icon: "checkmark" } as const);
 
-  const send = () => {
+  const send = async () => {
     setError(undefined);
     if (amounts.some((a) => a === null)) return setError("Controlla gli importi: scrivi solo cifre, ad esempio 1.500,00.");
     const parsed = proposalSchema.safeParse({
@@ -81,28 +83,22 @@ export function ProposalEditor({ proposalId, clientName, initialLines, initialSu
       })),
     });
     if (!parsed.success) return setError(parsed.error.issues[0]?.message);
-    Alert.alert(
-      resubmit ? "Inviare la proposta aggiornata?" : "Inviare la proposta?",
-      `${clientName} la riceve subito, con il totale di ${euro(total)}.`,
-      [
-        { text: "Annulla", style: "cancel" },
-        {
-          text: "Invia",
-          onPress: async () => {
-            setSending(true);
-            const { error: e } = await supabase.rpc("submit_proposal", {
-              p_proposal: proposalId,
-              p_total: proposalTotal(parsed.data.lines),
-              p_summary: parsed.data.summary,
-              p_lines: parsed.data.lines,
-            });
-            setSending(false);
-            if (e) setError(e.code === "22023" ? "La richiesta non accetta più proposte." : errorMessage(e));
-            else onSent();
-          },
-        },
-      ],
-    );
+    const ok = await confirm({
+      title: resubmit ? "Inviare la proposta aggiornata?" : "Inviare la proposta?",
+      body: `${clientName} la riceve subito, con il totale di ${euro(total)}.`,
+      confirmLabel: "Invia",
+    });
+    if (!ok) return;
+    setSending(true);
+    const { error: e } = await supabase.rpc("submit_proposal", {
+      p_proposal: proposalId,
+      p_total: proposalTotal(parsed.data.lines),
+      p_summary: parsed.data.summary,
+      p_lines: parsed.data.lines,
+    });
+    setSending(false);
+    if (e) setError(e.code === "22023" ? "La richiesta non accetta più proposte." : errorMessage(e));
+    else onSent();
   };
 
   return (

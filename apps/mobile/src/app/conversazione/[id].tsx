@@ -1,8 +1,9 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
-import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Switch, TextInput, View } from "react-native";
+import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Toggle } from "@/components/controls";
 import { MessageIcon, SendIcon } from "@/components/icons";
 import { Screen } from "@/components/screen";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
@@ -182,19 +183,7 @@ function Chat({
       <View style={[styles.composer, { borderTopColor: c.borderDefault, paddingBottom: Math.max(insets.bottom, space[3]) }]}>
         {error && <InlineError message={error} />}
         {orgType === "agency" && (
-          <View style={styles.internal}>
-            <T variant="callout" tone="secondary" style={styles.flex} nativeID="internal-label">
-              Nota interna, l&apos;azienda non la vede
-            </T>
-            <Switch
-              value={internal}
-              onValueChange={setInternal}
-              trackColor={{ false: c.borderControl, true: c.textPrimary }}
-              thumbColor={c.bgSurface}
-              accessibilityLabelledBy="internal-label"
-              accessibilityLabel="Nota interna"
-            />
-          </View>
+          <Toggle tone="secondary" label="Nota interna, l'azienda non la vede" value={internal} onChange={setInternal} />
         )}
         <View style={styles.inputRow}>
           <TextInput
@@ -270,7 +259,6 @@ const styles = StyleSheet.create({
     paddingTop: space[3],
     gap: space[2],
   },
-  internal: { flexDirection: "row", alignItems: "center", gap: space[3], minHeight: control.touch },
   inputRow: { flexDirection: "row", alignItems: "flex-end", gap: space[2] },
   input: {
     flex: 1,

@@ -1,13 +1,15 @@
 import { ticketUrl, todayInItaly } from "@i-events/core";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Alert, Share, StyleSheet, View } from "react-native";
+import { Share, StyleSheet, View } from "react-native";
 import { Button } from "@/components/button";
+import { useConfirm } from "@/components/confirm";
 import { ShareIcon } from "@/components/icons";
 import { PublicTicket } from "@/components/public";
 import { Screen } from "@/components/screen";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
+import { useToast } from "@/components/toast";
 import { env, siteOnline } from "@/lib/env";
 import { errorMessage } from "@/lib/errors";
 import { cancelTicket, getTicket, isOver } from "@/lib/public-events";
@@ -24,6 +26,8 @@ export default function TicketScreen() {
   const [moment] = useState(momento);
   const q = useQuery(`pubblico-biglietto-${token}`, () => getTicket(token));
   const [leaving, setLeaving] = useState(false);
+  const confirm = useConfirm();
+  const toast = useToast();
 
   if (q.loading)
     return (
@@ -55,24 +59,24 @@ export default function TicketScreen() {
   const cancelled = ticket.status === "cancelled";
   const over = isOver(ticket, todayInItaly());
 
-  const giveBack = () =>
-    Alert.alert("Annullare l'iscrizione?", "Il biglietto smette di funzionare e il posto torna libero per altri.", [
-      { text: "Tieni il biglietto", style: "cancel" },
-      {
-        text: "Annulla iscrizione",
-        style: "destructive",
-        onPress: async () => {
-          setLeaving(true);
-          try {
-            await cancelTicket(token);
-            router.replace({ pathname: "/pubblico/evento/[id]", params: { id: ticket.event_id, momento: "annullata" } });
-          } catch (e) {
-            setLeaving(false);
-            Alert.alert("Non riusciamo ad annullare", errorMessage(e));
-          }
-        },
-      },
-    ]);
+  const giveBack = async () => {
+    const ok = await confirm({
+      title: "Annullare l'iscrizione?",
+      body: "Il biglietto smette di funzionare e il posto torna libero per altri.",
+      confirmLabel: "Annulla iscrizione",
+      cancelLabel: "Tieni il biglietto",
+      danger: true,
+    });
+    if (!ok) return;
+    setLeaving(true);
+    try {
+      await cancelTicket(token);
+      router.replace({ pathname: "/pubblico/evento/[id]", params: { id: ticket.event_id, momento: "annullata" } });
+    } catch (e) {
+      setLeaving(false);
+      toast({ text: `Non riusciamo ad annullare. ${errorMessage(e)}`, tone: "error" });
+    }
+  };
 
   return (
     <Screen refreshing={q.refreshing} onRefresh={q.refresh}>
