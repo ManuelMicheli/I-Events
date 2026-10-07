@@ -72,7 +72,10 @@ export function EventCover({ type, title, className }: { type: EventType; title?
         style={{ color: ink.text }}
         strokeWidth={title ? 3 : 4}
       >
-        <Pattern pattern={pattern} />
+        {/* A8: on hover the texture slides 4 px along the diagonal, as if the ticket moved under the light. */}
+        <g className="motion-safe:transition-transform motion-safe:duration-[240ms] motion-safe:ease-out motion-safe:group-hover:translate-x-[8px] motion-safe:group-hover:-translate-y-[8px]">
+          <Pattern pattern={pattern} />
+        </g>
       </svg>
       {title && (
         <p className="absolute bottom-4 left-4 right-[45%] text-xl font-semibold text-white sm:bottom-6 sm:left-6">{title}</p>

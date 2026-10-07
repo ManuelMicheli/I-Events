@@ -3,7 +3,7 @@
 import { inviteSupplier } from "@/app/(app)/pro/rubrica/actions";
 import { Button, Card } from "@/components/ui";
 import { whatsappUrl } from "@i-events/core";
-import { useState } from "react";
+import { CopyButton } from "@/components/copy-button";
 
 /**
  * Whether the supplier behind a contact is on I-Events. If not, the agency gets a link to send them:
@@ -26,7 +26,6 @@ export function SupplierAccountCard({
   inviteLink: string | null;
   agencyName: string;
 }) {
-  const [copied, setCopied] = useState(false);
   const text = `Ciao ${name}, ${agencyName} ti invita su I-Events: riceverai lì le nostre richieste per gli eventi e potrai rispondere e vedere gli orari. Attiva il tuo account qui: ${inviteLink}`;
 
   return (
@@ -46,9 +45,7 @@ export function SupplierAccountCard({
             <>
               <p>
                 Link d&apos;invito: <code className="break-all">{inviteLink}</code>{" "}
-                <button type="button" className="underline" onClick={() => navigator.clipboard.writeText(inviteLink).then(() => setCopied(true))}>
-                  {copied ? "Copiato" : "Copia"}
-                </button>
+                <CopyButton text={inviteLink} />
               </p>
               <p className="flex flex-wrap gap-4">
                 {phone && (

@@ -299,11 +299,206 @@ samp {
   }
 }
 
+/*
+ * Motion ("Carta e inchiostro", design-research/personalita-spec.md, A1-A9): 120 / 180 / 240 / 320 ms,
+ * ease-out to enter and answer, ease-in-out to move, no bounce, only transform and opacity. Every
+ * animation says what happened; none is decoration.
+ */
+
+/* A1 Perforazione: six dashes, one at a time goes dark, as if running along a perforation. */
+.perf {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.perf > i {
+  width: 12px;
+  height: 3px;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.3;
+  animation: perf-step 1200ms var(--ease-in-out) infinite;
+}
+.perf-s {
+  gap: 3px;
+}
+.perf-s > i {
+  width: 6px;
+  height: 2px;
+}
+.perf > i:nth-child(2) {
+  animation-delay: 200ms;
+}
+.perf > i:nth-child(3) {
+  animation-delay: 400ms;
+}
+.perf > i:nth-child(4) {
+  animation-delay: 600ms;
+}
+.perf > i:nth-child(5) {
+  animation-delay: 800ms;
+}
+.perf > i:nth-child(6) {
+  animation-delay: 1000ms;
+}
+@keyframes perf-step {
+  0%,
+  16.67%,
+  100% {
+    opacity: 0.3;
+  }
+  8.33% {
+    opacity: 1;
+  }
+}
+/* Waits shorter than 200 ms show nothing. */
+.perf-late {
+  animation: fade-in 120ms var(--ease-out) 200ms both;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* A3 Ricerca: results come in one after the other (4 px up, 24 ms apart, the first eight). */
+.cascade > * {
+  animation: rise 180ms var(--ease-out) both;
+}
+.cascade > :nth-child(2) {
+  animation-delay: 24ms;
+}
+.cascade > :nth-child(3) {
+  animation-delay: 48ms;
+}
+.cascade > :nth-child(4) {
+  animation-delay: 72ms;
+}
+.cascade > :nth-child(5) {
+  animation-delay: 96ms;
+}
+.cascade > :nth-child(6) {
+  animation-delay: 120ms;
+}
+.cascade > :nth-child(7) {
+  animation-delay: 144ms;
+}
+.cascade > :nth-child(n + 8) {
+  animation-delay: 168ms;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+}
+.search-field:focus-within .lens {
+  animation: lens 180ms var(--ease-out);
+}
+@keyframes lens {
+  50% {
+    rotate: -12deg;
+  }
+}
+
+/* A6 Campanella: one swing from the top when a notification has arrived. */
+.bell-ring {
+  transform-origin: 50% 2px;
+  animation: bell 320ms var(--ease-out);
+}
+@keyframes bell {
+  25% {
+    rotate: 14deg;
+  }
+  50% {
+    rotate: -10deg;
+  }
+  75% {
+    rotate: 6deg;
+  }
+}
+.icon-in {
+  animation: icon-in 120ms var(--ease-out);
+}
+@keyframes icon-in {
+  from {
+    scale: 0.8;
+    opacity: 0;
+  }
+}
+
+/* A7 Il biglietto si stampa: it comes out of a slot from the top, then the stub shows its number. */
+.ticket-slot {
+  overflow: hidden;
+  border-top: 2px solid var(--color-border-strong);
+  border-radius: 2px;
+  padding-top: 4px;
+}
+.ticket-print {
+  animation: print 320ms var(--ease-out) both;
+}
+.ticket-print .ticket-stub > * {
+  animation: fade-in 180ms var(--ease-out) 320ms both;
+}
+@keyframes print {
+  from {
+    translate: 0 -100%;
+  }
+}
+
+/* A7 Il timbro: it lands from 1.2 to 1, then an ink halo spreads and fades. */
+.stamp-in {
+  animation: stamp 180ms var(--ease-out) both;
+}
+.stamp-in::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 12px;
+  background: currentColor;
+  opacity: 0;
+  animation: halo 240ms var(--ease-out) 150ms;
+  pointer-events: none;
+}
+@keyframes stamp {
+  from {
+    opacity: 0;
+    scale: 1.2;
+  }
+}
+@keyframes halo {
+  from {
+    opacity: 0.2;
+    scale: 0.9;
+  }
+  to {
+    opacity: 0;
+    scale: 1.2;
+  }
+}
+
+/* A9 Riduci movimento: everything becomes a 120 ms fade, loops stop. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     transition-duration: 120ms !important;
     animation: none !important;
+  }
+  .perf > i {
+    animation: perf-pulse 1500ms ease-in-out infinite !important;
+  }
+  .cascade > *,
+  .ticket-print,
+  .ticket-print .ticket-stub > *,
+  .stamp-in,
+  .icon-in,
+  .perf-late {
+    animation: fade-in 120ms ease-out both !important;
+  }
+}
+@keyframes perf-pulse {
+  50% {
+    opacity: 1;
   }
 }

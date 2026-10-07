@@ -22,7 +22,12 @@ export function proposalTotal(lines: readonly Pick<ProposalLine, "amount">[]): n
   return cents / 100;
 }
 
+/** `useGrouping: "always"` (ES2023), not yet in this TypeScript lib. */
+const ALWAYS_GROUP = { useGrouping: "always" } as unknown as Intl.NumberFormatOptions;
+
 export function formatEuro(amount: number | null | undefined, locale = "it-IT"): string {
   if (amount === null || amount === undefined) return "–";
-  return new Intl.NumberFormat(locale, { style: "currency", currency: "EUR", maximumFractionDigits: 2 }).format(amount);
+  // Always group thousands ("1.700,00 €"): Node and browsers disagree on 4-digit amounts in it-IT,
+  // so the same figure would read differently on the server, in the browser and in the app.
+  return new Intl.NumberFormat(locale, { style: "currency", currency: "EUR", maximumFractionDigits: 2, ...ALWAYS_GROUP }).format(amount);
 }

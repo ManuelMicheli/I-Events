@@ -459,22 +459,22 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
 
       <div className="flex flex-wrap items-center gap-3">
         {index > 0 && (
-          <Button type="button" variant="secondary" disabled={pending} onClick={() => go(steps[index - 1]!)}>
+          <Button type="button" pending={pending} variant="secondary" disabled={pending} onClick={() => go(steps[index - 1]!)}>
             Indietro
           </Button>
         )}
         {step !== "evento" && step !== "tipo" && step !== "riepilogo" && (
-          <Button type="button" disabled={pending} onClick={() => go(steps[index + 1]!)}>
+          <Button type="button" pending={pending} disabled={pending} onClick={() => go(steps[index + 1]!)}>
             Avanti
           </Button>
         )}
         {step === "riepilogo" && (
-          <Button type="button" disabled={pending || selectedAgencies.length === 0} onClick={submit}>
+          <Button type="button" pending={pending} disabled={pending || selectedAgencies.length === 0} onClick={submit}>
             Invia a {selectedAgencies.length} {selectedAgencies.length === 1 ? "agenzia" : "agenzie"}
           </Button>
         )}
         {step !== "evento" && step !== "tipo" && (
-          <Button type="button" variant="secondary" disabled={pending} onClick={() => persist()}>
+          <Button type="button" pending={pending} variant="secondary" disabled={pending} onClick={() => persist()}>
             Salva bozza
           </Button>
         )}

@@ -4,6 +4,7 @@ import { AREA_BY_TYPE, getMyOrgs, type MyOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Bell } from "./bell";
 import { MobileMenu, NavList, type NavItem } from "./shell-nav";
 import { buttonClass, Logo } from "./ui";
 
@@ -96,7 +97,7 @@ export async function Shell({ org, children }: { org: MyOrg; children: ReactNode
             className="ml-auto flex min-h-11 items-center gap-2 rounded-ui px-3 text-sm font-medium hover:bg-surface"
             aria-label={unread ? `Notifiche, ${unread} non lette` : "Notifiche"}
           >
-            <BellIcon />
+            <Bell unread={unread ?? 0} />
             <span className="hidden sm:inline">Notifiche</span>
             {unread ? (
               <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-accent px-2 font-mono text-xs leading-6 text-accent-text">
@@ -109,19 +110,5 @@ export async function Shell({ org, children }: { org: MyOrg; children: ReactNode
         <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">{children}</main>
       </div>
     </div>
-  );
-}
-
-function BellIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden className="shrink-0">
-      <path
-        d="M5 8a5 5 0 0 1 10 0v3.5l1.5 2.5h-13L5 11.5V8Z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      <path d="M8 16.5a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
   );
 }

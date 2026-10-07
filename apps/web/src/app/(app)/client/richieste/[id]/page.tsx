@@ -1,4 +1,5 @@
-import { Stamp, stampDay } from "@/components/ticket";
+import { ClearMoment } from "@/components/moment";
+import { Stamp, stampDay, Ticket, TicketStub } from "@/components/ticket";
 import { TypeChip } from "@/components/event-type";
 import { Attachments } from "@/components/attachments/attachments";
 import { BriefView } from "@/components/brief/brief-view";
@@ -23,8 +24,9 @@ const PRICED: ProposalStatus[] = ["submitted", "revision_requested", "accepted",
 
 const dateFmt = new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short", year: "numeric" });
 
-export default async function ClientRequestPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ClientRequestPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ momento?: string }> }) {
   const { id } = await params;
+  const { momento } = await searchParams;
   const org = await requireOrg("client");
   const request = await loadRequest(id);
   if (!request || request.clientOrgId !== org.id) notFound();
@@ -72,7 +74,7 @@ export default async function ClientRequestPage({ params }: { params: Promise<{ 
             {request.submittedAt && ` il ${dateFmt.format(new Date(request.submittedAt))}`} · {proposals.length} agenzie
           </p>
         </div>
-        {accepted && <Stamp label="Confermato" date={stampDay(accepted.decided_at)} type={request.draft.eventType ?? null} />}
+        {accepted && <Stamp label="Confermato" date={stampDay(accepted.decided_at)} type={request.draft.eventType ?? null} fresh={momento === "confermato"} />}
         {open && (
           <form action={cancelRequest}>
             <input type="hidden" name="id" value={id} />
@@ -82,6 +84,23 @@ export default async function ClientRequestPage({ params }: { params: Promise<{ 
           </form>
         )}
       </div>
+
+      {momento && <ClearMoment />}
+      {momento === "inviata" && open && (
+        <div className="ticket-slot">
+          <div className="ticket-print">
+            <Ticket
+              label={`Richiesta inviata, biglietto ${formatTicketNumber(request.number)}`}
+              stub={<TicketStub number={formatTicketNumber(request.number)} countdown={{ label: "INVIATA", live: false }} />}
+            >
+              <p className="font-medium">Richiesta inviata</p>
+              <p className="text-sm text-muted">
+                {proposals.length === 1 ? "È arrivata all'agenzia" : `È arrivata alle ${proposals.length} agenzie`}. Ti avvisiamo quando arrivano le proposte.
+              </p>
+            </Ticket>
+          </div>
+        </div>
+      )}
 
       {request.status === "cancelled" && <Notice>Hai annullato questa richiesta.</Notice>}
 

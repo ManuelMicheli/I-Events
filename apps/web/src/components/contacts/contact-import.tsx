@@ -144,6 +144,7 @@ export function ContactImport() {
             />
             <Button
               type="button"
+              pending={pending}
               disabled={pending || !text.trim()}
               onClick={() => {
                 setSource("text");
@@ -202,6 +203,7 @@ export function ContactImport() {
             </Button>
             <Button
               type="button"
+              pending={pending}
               disabled={pending || !mapping.some((m) => ["name", "first_name", "last_name", "company", "email", "phone"].includes(m))}
               onClick={() => review(rowsToContacts(table.rows, mapping))}
             >
@@ -272,10 +274,10 @@ export function ContactImport() {
             </table>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <Button type="button" variant="secondary" disabled={pending} onClick={() => setStep(table ? "mapping" : "source")}>
+            <Button type="button" pending={pending} variant="secondary" disabled={pending} onClick={() => setStep(table ? "mapping" : "source")}>
               Indietro
             </Button>
-            <Button type="button" disabled={pending || included === 0} onClick={runImport}>
+            <Button type="button" pending={pending} disabled={pending || included === 0} onClick={runImport}>
               Importa {included} {included === 1 ? "contatto" : "contatti"}
             </Button>
             {progress && <span className="text-sm text-muted">{progress}</span>}
