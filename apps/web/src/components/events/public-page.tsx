@@ -1,5 +1,6 @@
 "use client";
 
+import { Toggle } from "@/components/controls";
 import { savePublicPage, type EventState } from "@/app/(app)/pro/eventi/actions";
 import { Button, Field, Input } from "@/components/ui";
 import { hhmm } from "@i-events/core";
@@ -23,22 +24,14 @@ export function PublicPageForm({ eventId, page, canManage }: { eventId: string; 
   return (
     <form action={action} className="flex flex-col gap-4">
       <input type="hidden" name="eventId" value={eventId} />
-      <label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm">
-        <input
-          type="checkbox"
-          name="is_public"
-          checked={open}
-          onChange={(e) => setOpen(e.target.checked)}
-          disabled={!canManage}
-          className="mt-1 shrink-0"
-        />
-        <span>
-          <span className="font-medium">Aperto al pubblico</span>
-          <span className="block text-muted">
-            L&apos;evento compare in Esplora e nel calendario pubblico; chi vuole venire si iscrive gratis e riceve il biglietto.
-          </span>
-        </span>
-      </label>
+      <Toggle
+        name="is_public"
+        label="Aperto al pubblico"
+        hint="L'evento compare in Esplora e nel calendario pubblico; chi vuole venire si iscrive gratis e riceve il biglietto."
+        checked={open}
+        onChange={setOpen}
+        disabled={!canManage}
+      />
       {/* Hidden, not removed: closing the page keeps what was written for when it opens again. */}
       <div hidden={!open} className="grid gap-4 sm:grid-cols-3">
         <div className="sm:col-span-3">

@@ -41,6 +41,7 @@
   /* The veil under modals and sheets, and the action on a toast (Fiamma 400 on Grafite, 6,1:1). */
   --color-veil: rgba(28, 27, 25, 0.32);
   --color-toast-action: #ff6a47;
+  --check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M2.5 6.25l2.25 2.25 4.75-5' stroke='%23ffffff' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   color-scheme: light;
 }
 
@@ -76,6 +77,7 @@
     --shadow-3: 0 12px 32px rgba(0, 0, 0, 0.5);
     --color-veil: rgba(0, 0, 0, 0.56);
     --color-toast-action: #c8300f;
+    --check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M2.5 6.25l2.25 2.25 4.75-5' stroke='%23121110' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     color-scheme: dark;
   }
 }
@@ -198,10 +200,85 @@ samp {
 :where(input, select, textarea)[aria-invalid="true"] {
   border-color: var(--color-danger);
 }
-:where(input[type="checkbox"], input[type="radio"]) {
-  accent-color: var(--color-text);
+/*
+ * Carta checkbox and radio (item 3): 16 px on the web, 20 on touch screens; checked in Grafite with
+ * the mark in Carta. Monochrome on purpose. Chips, segments and switches draw their own.
+ */
+:where(input[type="checkbox"]:not(.sr-only, .ghost, [role="switch"]), input[type="radio"]:not(.sr-only, .ghost)) {
+  appearance: none;
+  flex-shrink: 0;
   width: 16px;
   height: 16px;
+  margin: 0;
+  border: 1.5px solid var(--color-control);
+  background: var(--color-bg) center / 12px 12px no-repeat;
+  cursor: pointer;
+  transition: background-color 120ms var(--ease-out), border-color 120ms var(--ease-out);
+}
+:where(input[type="checkbox"]:not(.sr-only, .ghost, [role="switch"])) {
+  border-radius: 4px;
+}
+:where(input[type="radio"]:not(.sr-only, .ghost)) {
+  border-radius: 9999px;
+}
+:where(input[type="checkbox"]:not(.sr-only, .ghost, [role="switch"])):checked {
+  border-color: var(--color-text);
+  background-color: var(--color-text);
+  background-image: var(--check-mark);
+}
+:where(input[type="radio"]:not(.sr-only, .ghost)):checked {
+  border: 5px solid var(--color-text);
+}
+:where(input[type="checkbox"], input[type="radio"]):disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+@media (pointer: coarse) {
+  :where(input[type="checkbox"]:not(.sr-only, .ghost, [role="switch"]), input[type="radio"]:not(.sr-only, .ghost)) {
+    width: 20px;
+    height: 20px;
+    background-size: 14px 14px;
+  }
+  :where(input[type="radio"]:not(.sr-only, .ghost)):checked {
+    border-width: 6px;
+  }
+}
+
+/* Switch (Toggle, item 3): 36 x 20 pill, on in Grafite, off in the control grey, white knob. */
+input[role="switch"] {
+  appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 20px;
+  margin: 0;
+  border-radius: 9999px;
+  background: var(--color-control);
+  cursor: pointer;
+  transition: background-color 160ms var(--ease-out);
+}
+input[role="switch"]::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(28, 27, 25, 0.2);
+  transition: transform 160ms var(--ease-out);
+}
+input[role="switch"]:checked {
+  background: var(--color-text);
+}
+input[role="switch"]:checked::before {
+  transform: translateX(16px);
+}
+@media (prefers-color-scheme: dark) {
+  input[role="switch"]:checked::before {
+    background: var(--color-app);
+  }
 }
 
 @layer base {
@@ -1936,12 +2013,12 @@ samp {
  * the width beside the sidebar and everything grows a little: the root goes to 17 px and 18 px, and
  * the Carta text styles follow it in rem, so a 2K monitor at 100% looks as a 1440 laptop does.
  * Below 1920 px the sizes stay as they are. Media queries in rem use the browser's 16 px, not the root's.
+ * The app pages never shrink to a centred column: from 1536 px (2xl) or 1920 px (3xl) forms, profiles and
+ * the request wizard split into columns (a side panel, sections side by side) and use the whole width.
  */
 @theme {
   --breakpoint-3xl: 120rem;
   --breakpoint-4xl: 160rem;
-  /* Forms and the request wizard read top to bottom: from 1536 px (2xl) a centred column this wide. */
-  --container-form: 56rem;
   /* Public area from 1920 px: the page stops here (1632 px at 1920, 1728 at 2560). */
   --container-public: 96rem;
 }
@@ -1979,4 +2056,182 @@ samp {
   :root {
     font-size: 112.5%;
   }
+}
+
+/* Controlli Carta: chips (item 7), segmented (item 4) and the stepper's field. */
+.chip {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+}
+/* The real input lies over the chip, transparent: it takes the tap, the keyboard and the reader. */
+.ghost {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.chip > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 9999px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
+  transition: background-color 120ms var(--ease-out), border-color 120ms var(--ease-out);
+}
+@media (min-width: 640px) {
+  .chip > span {
+    min-height: 32px;
+    padding: 0 12px;
+  }
+}
+.chip:hover > span {
+  border-color: var(--color-control);
+}
+.chip .chip-tick {
+  display: none;
+  margin-left: -2px;
+}
+.chip > input:checked + span {
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+.chip > input:checked + span .chip-tick {
+  display: block;
+}
+.chip > input:focus-visible + span,
+.segmented input:focus-visible + span {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.ghost:focus-visible {
+  outline: none;
+}
+.segmented {
+  display: grid;
+  max-width: 30rem;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+.segmented label {
+  position: relative;
+  display: flex;
+  cursor: pointer;
+}
+.segmented span {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
+  text-align: center;
+  transition: background-color 120ms var(--ease-out), color 120ms var(--ease-out);
+}
+.segmented label:hover span {
+  color: var(--color-text);
+}
+.segmented input:checked + span {
+  background: var(--color-bg);
+  box-shadow: var(--shadow-1);
+  color: var(--color-text);
+  font-weight: 500;
+}
+/* Numbers are typed (amounts, people): no browser arrows; the stepper brings its own buttons. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+.stepper input {
+  border-radius: 0;
+  border-top: 0;
+  border-bottom: 0;
+}
+.stepper:focus-within {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.stepper input {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.stepper input:focus-visible {
+  outline: none;
+}
+.modal {
+  animation: sheet-up 240ms var(--ease-out) both;
+}
+@media (min-width: 640px) {
+  .modal {
+    animation: pop 200ms var(--ease-out) both;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal {
+    animation: fade-in 120ms linear both !important;
+  }
+}
+.chip[aria-current] > span {
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+.chip[aria-current] .chip-tick {
+  display: block;
+}
+a.chip:focus-visible {
+  outline: none;
+}
+a.chip:focus-visible > span {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+@media (prefers-color-scheme: dark) {
+  .segmented input:checked + span {
+    background: var(--color-pressed);
+  }
+}
+
+/* A perforation across a card (the proposal card on phones): dashes and a notch at each edge. */
+.perforation {
+  position: relative;
+  height: 1px;
+  background: repeating-linear-gradient(90deg, var(--color-border-strong) 0 4px, #0000 4px 8px) center / calc(100% - 32px) 1px no-repeat;
+}
+.perforation::before,
+.perforation::after {
+  content: "";
+  position: absolute;
+  top: -8px;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  background: var(--color-app);
+}
+.perforation::before {
+  left: -9px;
+  clip-path: inset(0 0 0 50%);
+}
+.perforation::after {
+  right: -9px;
+  clip-path: inset(0 50% 0 0);
 }

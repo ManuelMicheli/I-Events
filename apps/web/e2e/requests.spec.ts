@@ -88,7 +88,7 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await client.getByLabel("Sicurezza e steward").check();
   await client.getByLabel("Addetti alla sicurezza").fill("4");
   await client.getByLabel("Catering e bar").check();
-  await client.getByLabel("Formula *").selectOption("buffet");
+  await client.getByRole("radio", { name: "Buffet" }).check();
   await client.getByRole("button", { name: "Avanti" }).click();
   await client.getByLabel("Richieste libere").fill("Vorremmo un angolo per le foto con il prodotto.");
   await client.getByLabel("Aggiungi file").setInputFiles(pdf("Planimetria sala è.pdf"));
@@ -114,8 +114,11 @@ test("client sends a request to two agencies, compares proposals and accepts one
 
   // The client compares, asks Alfa for changes and sees the question.
   await client.goto(requestUrl);
-  await expect(client.getByRole("heading", { name: "Confronto voce per voce" })).toBeVisible();
-  await expect(client.getByRole("row", { name: new RegExp(`Beta ${run}.*più bassa`) })).toBeVisible();
+  await expect(client.getByRole("listitem").filter({ hasText: `Beta ${run}` }).getByText("la più bassa")).toBeVisible();
+  await client.getByRole("link", { name: "Confronta le proposte" }).click();
+  await expect(client.getByRole("heading", { name: "Confronta le proposte" })).toBeVisible();
+  await expect(client.locator("#voce-per-voce").getByText("Prezzo più basso")).toBeVisible();
+  await client.goto(requestUrl);
   await expect(client.getByRole("link", { name: "Preventivo Alfa.pdf" })).toBeVisible();
   await client.goto("/notifiche");
   await expect(client.getByText(`Nuova proposta da Alfa ${run}`)).toBeVisible();
@@ -139,13 +142,17 @@ test("client sends a request to two agencies, compares proposals and accepts one
   // The client accepts Beta: the event is created and Alfa is told.
   await client.reload();
   await expect(client.getByRole("heading", { name: new RegExp(`Proposta di Alfa ${run} · versione 2`) })).toBeVisible();
-  client.once("dialog", (d) => d.accept());
   await client.getByRole("button", { name: `Accetta la proposta di Beta ${run}` }).click();
-  await expect(client.getByRole("heading", { name: "Evento creato" })).toBeVisible();
-  await expect(client.getByText("Assegnata", { exact: false }).first()).toBeVisible();
+  await client.getByRole("dialog").getByLabel("Le scrivo anche un messaggio mio").check();
+  await client.getByRole("dialog").getByRole("button", { name: /^Accetta / }).click();
+  await expect(client.getByRole("heading", { name: `Il tuo evento è in mano a Beta ${run}` })).toBeVisible();
+  await expect(client.getByText("Confermato", { exact: true })).toBeVisible();
+  await client.getByRole("button", { name: "Invia", exact: true }).click();
+  await expect(client.getByText("Messaggio inviato all'altra agenzia")).toBeVisible();
 
   await alfa.page.reload();
   await expect(alfa.page.getByText("L'azienda ha scelto un'altra proposta.")).toBeVisible();
+  await expect(alfa.page.getByText("Grazie per la proposta", { exact: false })).toBeVisible();
   await beta.page.reload();
   await expect(beta.page.getByText("L'azienda ha scelto la tua proposta.", { exact: false })).toBeVisible();
   const proposalUrl = new URL(beta.page.url()).pathname;
@@ -211,8 +218,6 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await expect(beta.page.getByRole("region", { name: "Più avanti" })).toContainText("Confermare il menu e le intolleranze");
 
   // Quote: Beta sends the detailed quote, the client asks for a change, then approves version 2.
-  beta.page.on("dialog", (d) => d.accept());
-  client.on("dialog", (d) => d.accept());
   await beta.page.goto("/pro/eventi");
   await beta.page.getByRole("link", { name: title }).click();
   await expect(beta.page).toHaveURL(/\/pro\/eventi\/[0-9a-f-]+$/);
@@ -222,6 +227,7 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await expect(quote.getByLabel("Importo voce 1")).toHaveValue("1200");
   await quote.getByLabel("Importo voce 2").fill("2700");
   await quote.getByRole("button", { name: "Invia al cliente per l'approvazione" }).click();
+  await beta.page.getByRole("dialog").getByRole("button", { name: "Invia al cliente" }).click();
   await expect(quote.getByRole("region", { name: "Versione 1" })).toContainText("Da approvare");
 
   await client.goto("/notifiche");
@@ -238,6 +244,7 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await expect(quote.getByLabel("Importo voce 2")).toHaveValue("2700");
   await quote.getByLabel("Importo voce 1").fill("1100");
   await quote.getByRole("button", { name: "Invia al cliente per l'approvazione" }).click();
+  await beta.page.getByRole("dialog").getByRole("button", { name: "Invia al cliente" }).click();
   await expect(quote.getByRole("region", { name: "Versione 2" })).toContainText("Da approvare");
 
   await client.goto("/client/eventi");
@@ -245,6 +252,7 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await client.getByRole("link", { name: title }).click();
   await expect(client.getByRole("region", { name: "Versione 2" })).toContainText(/3\.800,00/);
   await client.getByRole("button", { name: "Approva il preventivo" }).click();
+  await client.getByRole("dialog").getByRole("button", { name: /^Approva / }).click();
   await expect(client.getByText("Preventivo approvato.")).toBeVisible();
 
   // Beta's budget now follows the approved quote: sold 3800, forecast cost 2750, margin 1050.
@@ -406,7 +414,7 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await caterer.getByRole("link", { name: title }).click();
   await expect(caterer.getByText("Buffet per 120 persone")).toBeVisible();
   await expect(caterer.getByText("Margine")).toBeHidden();
-  await caterer.getByRole("radio", { name: "Sì, sono disponibile" }).check();
+  await caterer.getByRole("radio", { name: "Sì, disponibile" }).check();
   await caterer.getByLabel("Il tuo prezzo €").fill("1700");
   await caterer.getByLabel("Messaggio per l'agenzia").fill("Bevande incluse");
   await caterer.getByRole("button", { name: "Invia risposta" }).click();

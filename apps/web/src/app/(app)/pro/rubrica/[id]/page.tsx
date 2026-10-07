@@ -38,9 +38,9 @@ export default async function ContactPage({
   if (supplierRes.error) throw supplierRes.error;
   if (inviteRes.error) throw inviteRes.error;
   const invite = inviteRes.data && inviteRes.data.expires_at > nowIso() ? inviteRes.data : null;
-  // A form reads top to bottom: on wide screens it sits in a centred column (A11 in globals.css).
+  // From 1536 px the form takes the width and the I-Events account sits in a column on the right (A11 in globals.css).
   return (
-    <div className="flex flex-col gap-6 2xl:mx-auto 2xl:w-full 2xl:max-w-form">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <Link href="/pro/rubrica" className="text-sm text-muted underline">
@@ -52,16 +52,22 @@ export default async function ContactPage({
       </div>
       {salvato && <Notice tone="success">Contatto salvato.</Notice>}
       {aggiunto && <Notice tone="success">Aggiunto alla rubrica. Ora puoi sceglierlo per i servizi dei tuoi eventi.</Notice>}
-      <SupplierAccountCard
-        contactId={contact.id}
-        name={contact.name}
-        phone={contact.phone}
-        email={contact.email}
-        supplierName={contact.supplier_org_id ? (supplierRes.data?.name ?? contact.company ?? contact.name) : null}
-        inviteLink={invite ? `${env.siteUrl}/invito/${invite.token}` : null}
-        agencyName={org.name}
-      />
-      <ContactForm key={contact.updated_at} contact={contact} canDelete={can(org.type, org.role, "contacts.delete")} />
+      <div className="flex flex-col gap-6 2xl:grid 2xl:grid-cols-[minmax(0,1fr)_24rem] 2xl:items-start 3xl:grid-cols-[minmax(0,1fr)_28rem] 4xl:grid-cols-[minmax(0,1fr)_30rem]">
+        <div className="2xl:sticky 2xl:top-20 2xl:col-start-2 2xl:row-start-1">
+          <SupplierAccountCard
+            contactId={contact.id}
+            name={contact.name}
+            phone={contact.phone}
+            email={contact.email}
+            supplierName={contact.supplier_org_id ? (supplierRes.data?.name ?? contact.company ?? contact.name) : null}
+            inviteLink={invite ? `${env.siteUrl}/invito/${invite.token}` : null}
+            agencyName={org.name}
+          />
+        </div>
+        <div className="2xl:col-start-1 2xl:row-start-1">
+          <ContactForm key={contact.updated_at} contact={contact} canDelete={can(org.type, org.role, "contacts.delete")} />
+        </div>
+      </div>
     </div>
   );
 }

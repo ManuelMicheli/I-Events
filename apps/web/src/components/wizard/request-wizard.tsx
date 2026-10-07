@@ -3,12 +3,14 @@
 import { submitDraft, saveDraft, type SaveResult } from "@/app/(app)/client/richieste/actions";
 import { EventCover, TypeChip } from "@/components/event-type";
 import { SaveIcon, SendIcon } from "@/components/icons";
-import { Button, buttonClass, Card, Field, Input, Notice, Select } from "@/components/ui";
+import { Chips, Segmented, Stepper, Toggle } from "@/components/controls";
+import { Button, buttonClass, Card, Field, Input, Notice } from "@/components/ui";
 import type { ReachableAgency } from "@/lib/requests";
 import {
   briefCompleteness,
   EVENT_TYPE_INFO,
   EVENT_TYPES,
+  formatEuro,
   MAX_CAMPAIGN_EVENTS,
   OBJECTIVES,
   SERVICE_CATALOG,
@@ -143,9 +145,11 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
     return !q || a.name.toLowerCase().includes(q) || (a.city ?? "").toLowerCase().includes(q) || a.regions.some((r) => r.toLowerCase().includes(q));
   });
 
+  // From 1536 px the chosen details stay in view in a panel on the right; from 1920 px the steps move to a
+  // column on the left, so the step itself gets the middle (A11 in globals.css).
   return (
-    <div className="flex flex-col gap-6">
-      <ol className="flex flex-wrap gap-1 text-sm" aria-label="Passaggi">
+    <div className="flex flex-col gap-6 2xl:grid 2xl:grid-cols-[minmax(0,1fr)_22rem] 2xl:items-start 3xl:grid-cols-[13rem_minmax(0,1fr)_24rem] 4xl:grid-cols-[14rem_minmax(0,1fr)_28rem] 4xl:gap-8">
+      <ol className="flex flex-wrap gap-2 text-sm 2xl:col-start-1 2xl:row-start-1 3xl:sticky 3xl:top-20 3xl:flex-col 3xl:flex-nowrap" aria-label="Passaggi">
         {steps.map((s, i) => (
           <li key={s}>
             <button
@@ -153,7 +157,7 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
               disabled={pending || (i > index && !requestId)}
               onClick={() => go(s)}
               aria-current={s === step ? "step" : undefined}
-              className={`min-h-10 rounded-full px-3 transition-colors duration-[120ms] disabled:text-disabled ${
+              className={`min-h-11 rounded-full px-3 transition-colors lg:min-h-10 3xl:w-full 3xl:text-left duration-[120ms] disabled:text-disabled ${
                 s === step ? "bg-surface font-medium text-text" : "text-muted hover:bg-surface hover:text-text"
               }`}
             >
@@ -163,6 +167,7 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
         ))}
       </ol>
 
+      <div className="flex min-w-0 flex-col gap-6 2xl:col-start-1 2xl:row-start-2 3xl:col-start-2 3xl:row-start-1">
       {step === "evento" && (
         <div className="flex flex-col gap-6">
           <h2 className="text-xl font-medium">Che evento è?</h2>
@@ -235,15 +240,14 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
                 <Input value={draft.basics.title} onChange={(e) => setBasics({ title: e.target.value })} maxLength={120} />
               </Field>
             </div>
-            <Field label="Obiettivo *">
-              <Select value={draft.basics.objective} onChange={(e) => setBasics({ objective: e.target.value as RequestDraft["basics"]["objective"] })}>
-                {OBJECTIVES.map((o) => (
-                  <option key={o} value={o}>
-                    {OBJECTIVE_LABEL[o]}
-                  </option>
-                ))}
-              </Select>
-            </Field>
+            <div className="sm:col-span-2">
+              <Chips
+                legend="Obiettivo *"
+                options={OBJECTIVES.map((o) => ({ value: o, label: OBJECTIVE_LABEL[o] }))}
+                value={draft.basics.objective}
+                onChange={(v) => setBasics({ objective: v as RequestDraft["basics"]["objective"] })}
+              />
+            </div>
             <Field label="Città o zona" error={fieldError("basics.city")}>
               <Input value={draft.basics.city ?? ""} onChange={(e) => setBasics({ city: e.target.value || undefined })} />
             </Field>
@@ -265,10 +269,14 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
             <Field label="Budget massimo (€)" error={fieldError("basics.budgetMax")}>
               <Input type="number" min={0} value={draft.basics.budgetMax ?? ""} onChange={(e) => setBasics({ budgetMax: e.target.value ? Number(e.target.value) : undefined })} />
             </Field>
-            <label className="flex items-center gap-2 text-sm sm:col-span-2">
-              <input type="checkbox" checked={draft.basics.isPublic} onChange={(e) => setBasics({ isPublic: e.target.checked })} />
-              Evento aperto al pubblico (comparirà nel calendario pubblico)
-            </label>
+            <div className="sm:col-span-2">
+              <Toggle
+                label="Evento aperto al pubblico"
+                hint="Comparirà nel calendario pubblico di I-Events."
+                checked={draft.basics.isPublic}
+                onChange={(on) => setBasics({ isPublic: on })}
+              />
+            </div>
           </div>
         </Card>
       )}
@@ -277,50 +285,39 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
         <Card>
           <div className="flex flex-col gap-5">
             <Field label="Quanti eventi?" error={fieldError("campaign.eventsCount") ?? fieldError("campaign.stages")}>
-              <Input
-                type="number"
+              <Stepper
+                label="Eventi"
                 min={2}
                 max={MAX_CAMPAIGN_EVENTS}
                 value={draft.campaign.eventsCount}
-                onChange={(e) => setDraft((d) => resizeStages(d, Math.min(MAX_CAMPAIGN_EVENTS, Math.max(2, Number(e.target.value) || 2))))}
+                onChange={(n) => setDraft((d) => resizeStages(d, Math.min(MAX_CAMPAIGN_EVENTS, Math.max(2, n ?? 2))))}
               />
             </Field>
-            <fieldset className="flex flex-col gap-2 text-sm">
-              <legend className="mb-1 font-medium">Dove</legend>
-              {[
-                { v: true, label: "Tutti nello stesso posto" },
-                { v: false, label: "In posti diversi" },
-              ].map((o) => (
-                <label key={String(o.v)} className="flex items-center gap-2">
-                  <input type="radio" name="sameVenue" checked={draft.campaign!.sameVenue === o.v} onChange={() => setDraft((d) => ({ ...d, campaign: { ...d.campaign!, sameVenue: o.v } }))} />
-                  {o.label}
-                </label>
-              ))}
-            </fieldset>
-            <fieldset className="flex flex-col gap-2 text-sm">
-              <legend className="mb-1 font-medium">Servizi</legend>
-              {[
-                { v: "shared", label: "Gli stessi servizi per tutte le tappe" },
-                { v: "per_stage", label: "Servizi diversi per ogni tappa" },
-              ].map((o) => (
-                <label key={o.v} className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="servicesMode"
-                    checked={draft.campaign!.servicesMode === o.v}
-                    onChange={() =>
-                      setDraft((d) => ({
-                        ...d,
-                        campaign: { ...d.campaign!, servicesMode: o.v as "shared" | "per_stage" },
-                        // Switching mode starts the service choice again, to avoid half-assigned items.
-                        items: [],
-                      }))
-                    }
-                  />
-                  {o.label}
-                </label>
-              ))}
-            </fieldset>
+            <Segmented
+              legend="Dove si tengono?"
+              options={[
+                { value: "same", label: "Stesso posto" },
+                { value: "different", label: "Posti diversi" },
+              ]}
+              value={draft.campaign.sameVenue ? "same" : "different"}
+              onChange={(v) => setDraft((d) => ({ ...d, campaign: { ...d.campaign!, sameVenue: v === "same" } }))}
+            />
+            <Segmented
+              legend="Servizi delle tappe"
+              options={[
+                { value: "shared", label: "Uguali per tutte" },
+                { value: "per_stage", label: "Diversi per tappa" },
+              ]}
+              value={draft.campaign.servicesMode}
+              onChange={(v) =>
+                setDraft((d) => ({
+                  ...d,
+                  campaign: { ...d.campaign!, servicesMode: v },
+                  // Switching mode starts the service choice again, to avoid half-assigned items.
+                  items: [],
+                }))
+              }
+            />
             <div className="flex flex-col gap-3">
               <h3 className="text-sm font-medium">Tappe</h3>
               {draft.campaign.stages.map((s, i) => (
@@ -372,7 +369,7 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
               ))}
             </div>
           )}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 4xl:grid-cols-4">
             {SERVICE_CATALOG.map((c) => {
               const on = Boolean(itemFor(c.key));
               return (
@@ -383,8 +380,14 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
               );
             })}
           </div>
-          {SERVICE_CATALOG.filter((c) => itemFor(c.key)).map((c) => {
-            const item = itemFor(c.key)!;
+          {/* Newest first: the service just ticked opens right under the tiles, above the ones already filled in.
+              draft.items keeps the order of selection, and that is the order saved and shown to the agencies. */}
+          {draft.items
+            .filter((i) => i.stageIndex === scope)
+            .reverse()
+            .map((item) => {
+            const c = SERVICE_CATALOG.find((x) => x.key === item.category);
+            if (!c) return null;
             const itemIndex = draft.items.indexOf(item);
             return (
               <Card key={c.key} title={c.name.it}>
@@ -408,6 +411,7 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
       )}
 
       {step === "note" && (
+        <div className={`grid items-start gap-6 ${attachments ? "4xl:grid-cols-2" : ""}`}>
         <Card>
           <Field label="Richieste libere" hint="Tutto quello che non rientra nei servizi: idee, vincoli, riferimenti.">
             <textarea
@@ -419,8 +423,9 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
             />
           </Field>
         </Card>
+        {attachments}
+        </div>
       )}
-      {step === "note" && attachments}
 
       {step === "agenzie" && (
         <Card title="A chi inviare la richiesta">
@@ -486,8 +491,11 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
             {pending ? "Salvataggio…" : "Bozza salvata"}
           </span>
         )}
-        <span className="ml-auto text-sm text-muted">Completezza del brief: {completeness}%</span>
+        <span className="ml-auto text-sm text-muted 2xl:hidden">Completezza del brief: {completeness}%</span>
       </div>
+      </div>
+
+      <Summary draft={draft} completeness={completeness} agencies={agencies.filter((a) => selectedAgencies.includes(a.id))} />
     </div>
   );
 }
@@ -536,5 +544,63 @@ function Review({ draft, completeness, agencies }: { draft: RequestDraft; comple
         </div>
       )}
     </Card>
+  );
+}
+
+const dayFmt = new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+const day = (d: string) => dayFmt.format(new Date(`${d}T00:00:00Z`));
+
+/** From 1536 px, beside the steps: what has been chosen so far. The services read newest first, as in the step. */
+function Summary({ draft, completeness, agencies }: { draft: RequestDraft; completeness: number; agencies: ReachableAgency[] }) {
+  const b = draft.basics;
+  const services = [...new Set([...draft.items].reverse().map((i) => SERVICE_CATALOG.find((c) => c.key === i.category)?.name.it ?? i.category))];
+  const cities = draft.kind === "campaign" ? [...new Set(draft.campaign?.stages.map((s) => s.city).filter(Boolean))] : [];
+  const where = cities.length ? cities.join(", ") : b.city;
+  const budget =
+    b.budgetMin !== undefined || b.budgetMax !== undefined
+      ? [b.budgetMin, b.budgetMax].filter((v) => v !== undefined).map((v) => formatEuro(v)).join(" – ")
+      : undefined;
+  const empty = <span className="text-muted">–</span>;
+  const rows: { label: string; value: ReactNode }[] = [
+    { label: "Che evento è", value: draft.eventType ? <TypeChip type={draft.eventType} /> : empty },
+    { label: "Formato", value: draft.kind === "campaign" ? `Campagna di ${draft.campaign?.eventsCount ?? 2} eventi` : "Evento singolo" },
+    { label: "Nome", value: b.title || empty },
+    {
+      label: "Quando",
+      value: b.startDate ? <span className="font-mono tabular-nums">{[b.startDate, b.endDate].filter(Boolean).map((d) => day(d!)).join(" → ")}</span> : empty,
+    },
+    { label: "Dove", value: where || empty },
+    { label: draft.kind === "campaign" ? "Ospiti per evento" : "Ospiti", value: b.guests ? <span className="font-mono tabular-nums">{b.guests}</span> : empty },
+    { label: "Budget", value: budget ? <span className="font-mono tabular-nums">{budget}</span> : empty },
+    {
+      label: "Servizi",
+      value: services.length ? (
+        <ul className="flex flex-col gap-1">
+          {services.map((s) => (
+            <li key={s}>{s}</li>
+          ))}
+        </ul>
+      ) : (
+        empty
+      ),
+    },
+    { label: "Agenzie", value: agencies.length ? agencies.map((a) => a.name).join(", ") : empty },
+  ];
+  return (
+    <aside aria-label="Riepilogo richiesta" className="hidden 2xl:sticky 2xl:top-20 2xl:col-start-2 2xl:row-span-2 2xl:row-start-1 2xl:block 3xl:col-start-3 3xl:row-span-1">
+      <Card title="Riepilogo richiesta">
+        <dl className="flex flex-col gap-3 text-sm">
+          {rows.map((r) => (
+            <div key={r.label} className="grid grid-cols-[7rem_minmax(0,1fr)] gap-3">
+              <dt className="text-muted">{r.label}</dt>
+              <dd className="min-w-0 break-words">{r.value}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="mt-4 border-t border-border pt-4 text-sm">
+          Completezza del brief: <span className="font-mono tabular-nums">{completeness}%</span>
+        </p>
+      </Card>
+    </aside>
   );
 }

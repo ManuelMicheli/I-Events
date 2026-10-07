@@ -30,46 +30,49 @@ export default async function ConnectionsPage() {
   return (
     <>
       <h1 className="text-2xl font-semibold">{isAgency ? "Aziende collegate" : "Agenzie collegate"}</h1>
-      <Card title={`Le tue ${other}`}>
-        {active.length === 0 ? (
-          <Empty>Nessun collegamento attivo.</Empty>
-        ) : (
-          <ul className="divide-y divide-border text-sm">
-            {active.map((c) => (
-              <li key={c.id} className="flex items-center justify-between py-2">
-                <span>{(isAgency ? c.client?.name : c.agency?.name) ?? "–"}</span>
-                {canManage && (
-                  <form action={revokeConnection}>
-                    <input type="hidden" name="id" value={c.id} />
-                    <button className="text-muted underline">Scollega</button>
-                  </form>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
-      {canManage && (
-        <Card title={`Invita ${isAgency ? "un'azienda" : "un'agenzia"} con cui lavori già`}>
-          <InviteForm action={inviteConnection} withMessage submitLabel="Crea invito" />
-          {pending.length > 0 && (
-            <>
-              <h3 className="mt-6 mb-2 text-sm font-medium">Inviti in attesa</h3>
-              <ul className="divide-y divide-border text-sm">
-                {pending.map((c) => (
-                  <li key={c.id} className="flex items-center justify-between py-2">
-                    <span>{c.invite_email}</span>
+      {/* From 1920 px the connections and the invitation sit side by side (A11 in globals.css). */}
+      <div className={`flex flex-col gap-6 ${canManage ? "3xl:grid 3xl:grid-cols-2 3xl:items-start" : ""}`}>
+        <Card title={`Le tue ${other}`}>
+          {active.length === 0 ? (
+            <Empty>Nessun collegamento attivo.</Empty>
+          ) : (
+            <ul className="divide-y divide-border text-sm">
+              {active.map((c) => (
+                <li key={c.id} className="flex items-center justify-between py-2">
+                  <span>{(isAgency ? c.client?.name : c.agency?.name) ?? "–"}</span>
+                  {canManage && (
                     <form action={revokeConnection}>
                       <input type="hidden" name="id" value={c.id} />
-                      <button className="text-muted underline">Annulla</button>
+                      <button className="text-muted underline">Scollega</button>
                     </form>
-                  </li>
-                ))}
-              </ul>
-            </>
+                  )}
+                </li>
+              ))}
+            </ul>
           )}
         </Card>
-      )}
+        {canManage && (
+          <Card title={`Invita ${isAgency ? "un'azienda" : "un'agenzia"} con cui lavori già`}>
+            <InviteForm action={inviteConnection} withMessage submitLabel="Crea invito" />
+            {pending.length > 0 && (
+              <>
+                <h3 className="mt-6 mb-2 text-sm font-medium">Inviti in attesa</h3>
+                <ul className="divide-y divide-border text-sm">
+                  {pending.map((c) => (
+                    <li key={c.id} className="flex items-center justify-between py-2">
+                      <span>{c.invite_email}</span>
+                      <form action={revokeConnection}>
+                        <input type="hidden" name="id" value={c.id} />
+                        <button className="text-muted underline">Annulla</button>
+                      </form>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </Card>
+        )}
+      </div>
     </>
   );
 }

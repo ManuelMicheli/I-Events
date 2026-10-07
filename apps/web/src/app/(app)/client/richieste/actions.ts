@@ -2,7 +2,7 @@
 
 import { dbErrorMessage } from "@/lib/labels";
 import { draftToPayload } from "@/lib/requests";
-import { requireOrg } from "@/lib/session";
+import { getUser, requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { ATTACHMENTS_BUCKET, normalizeDraft, requestDraftSchema, submissionIssues } from "@i-events/core";
 import { flash } from "@/lib/flash";
@@ -92,12 +92,15 @@ export async function acceptProposal(_: DecisionState, form: FormData): Promise<
   const id = z.uuid().parse(form.get("proposalId"));
   const requestId = z.uuid().parse(form.get("requestId"));
   const supabase = await createClient();
-  const { error } = await supabase.rpc("accept_proposal", { p_proposal: id });
+  const { data: events, error } = await supabase.rpc("accept_proposal", { p_proposal: id });
   if (error) return { error: dbErrorMessage(error) };
   revalidatePath(`/client/richieste/${requestId}`);
   revalidatePath("/client/richieste");
   revalidatePath("/client");
-  redirect(`/client/richieste/${requestId}?momento=confermato`);
+  // "Evento confermato": a single event opens on its page; a campaign's stages are listed on the request.
+  const write = form.get("avvisa") === "on" ? "&avvisa=1" : "";
+  const only = events?.length === 1 ? events[0] : null;
+  redirect(only ? `/client/eventi/${only}?momento=confermato${write}` : `/client/richieste/${requestId}?momento=confermato${write}`);
 }
 
 export async function requestRevision(_: DecisionState, form: FormData): Promise<DecisionState> {
@@ -114,4 +117,28 @@ export async function requestRevision(_: DecisionState, form: FormData): Promise
   revalidatePath("/client/richieste");
   revalidatePath("/client");
   return {};
+}
+
+export type ThanksState = { error?: string };
+
+/** After accepting: the client's own message to the agencies it did not choose, in each conversation. */
+export async function writeToOthers(_: ThanksState, form: FormData): Promise<ThanksState> {
+  const [org, user] = await Promise.all([requireOrg("client"), getUser()]);
+  if (!user) return { error: "Accedi per continuare." };
+  const requestId = z.uuid().parse(form.get("requestId"));
+  const back = z.string().regex(/^\/client\/(richieste|eventi)\/[0-9a-f-]{36}$/).parse(form.get("back"));
+  const body = z.string().trim().min(1, "Scrivi un messaggio").max(10000).safeParse(form.get("body"));
+  if (!body.success) return { error: body.error.issues[0]?.message };
+  const supabase = await createClient();
+  const { data: others, error } = await supabase.from("proposals").select("id").eq("request_id", requestId).eq("status", "rejected");
+  if (error) return { error: dbErrorMessage(error) };
+  if (others.length > 0) {
+    const { error: e2 } = await supabase
+      .from("messages")
+      .insert(others.map((p) => ({ proposal_id: p.id, author_id: user.id, author_org_id: org.id, body: body.data, internal: false })));
+    if (e2) return { error: dbErrorMessage(e2) };
+  }
+  await flash(others.length === 1 ? "Messaggio inviato all'altra agenzia" : `Messaggio inviato alle altre ${others.length} agenzie`);
+  revalidatePath(`/client/richieste/${requestId}`);
+  redirect(back);
 }

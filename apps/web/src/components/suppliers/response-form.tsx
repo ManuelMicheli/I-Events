@@ -1,6 +1,7 @@
 "use client";
 
 import { respondToBooking, type ResponseState } from "@/app/(app)/supplier/actions";
+import { Segmented } from "@/components/controls";
 import { SendIcon } from "@/components/icons";
 import { Button, Field, Input } from "@/components/ui";
 import { useActionState, useState } from "react";
@@ -18,23 +19,16 @@ export function ResponseForm({
   return (
     <form action={action} className="flex flex-col gap-4">
       <input type="hidden" name="id" value={bookingId} />
-      <fieldset className="flex flex-wrap gap-3">
-        <legend className="mb-2 text-sm font-medium">Sei disponibile?</legend>
-        {(
-          [
-            ["1", "Sì, sono disponibile"],
-            ["0", "No, non sono disponibile"],
-          ] as const
-        ).map(([value, label]) => (
-          <label
-            key={value}
-            className="flex cursor-pointer items-center gap-2 rounded-ui border border-border px-4 py-2 text-sm has-[:checked]:border-accent has-[:checked]:bg-accent-subtle"
-          >
-            <input type="radio" name="available" value={value} checked={available === value} onChange={() => setAvailable(value)} />
-            {label}
-          </label>
-        ))}
-      </fieldset>
+      <Segmented
+        legend="Sei disponibile?"
+        name="available"
+        options={[
+          { value: "1", label: "Sì, disponibile" },
+          { value: "0", label: "Non disponibile" },
+        ]}
+        value={available}
+        onChange={setAvailable}
+      />
       {available === "1" && (
         <Field label="Il tuo prezzo €" hint="Facoltativo. L'agenzia lo vede insieme alla tua risposta." error={state.fields?.price}>
           <Input name="price" type="number" min={0} step="0.01" inputMode="decimal" defaultValue={initial.price ?? ""} className="max-w-48" />

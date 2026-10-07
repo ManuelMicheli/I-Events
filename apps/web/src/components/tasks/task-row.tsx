@@ -1,5 +1,6 @@
 "use client";
 
+import { ConfirmButton } from "@/components/modal";
 import { deleteTask, toggleTask, updateTask, type TaskState } from "@/app/(app)/pro/attivita/actions";
 import { TrashIcon } from "@/components/icons";
 import { Button, Field, Input, Select } from "@/components/ui";
@@ -137,19 +138,17 @@ export function TaskRow({
             <Button type="submit" variant="secondary" disabled={pending}>
               Salva
             </Button>
-            <Button
+            <ConfirmButton
               type="submit"
               variant="danger"
               className="ic-host"
               formAction={deleteTask}
               disabled={pending}
-              onClick={(e) => {
-                if (!confirm("Eliminare questa attività?")) e.preventDefault();
-              }}
+              confirm={{ title: "Eliminare questa attività?", confirmLabel: "Elimina", danger: true }}
             >
               <TrashIcon />
               Elimina
-            </Button>
+            </ConfirmButton>
           </div>
           {state.error && <p className="text-danger sm:col-span-2">{state.error}</p>}
         </form>

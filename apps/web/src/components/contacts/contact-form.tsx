@@ -1,5 +1,7 @@
 "use client";
 
+import { ChipInput } from "@/components/controls";
+import { ConfirmButton } from "@/components/modal";
 import { deleteContact, saveContact, type ContactState } from "@/app/(app)/pro/rubrica/actions";
 import { PlusIcon, TrashIcon } from "@/components/icons";
 import { Button, Card, Field, Input, Notice, Select } from "@/components/ui";
@@ -14,7 +16,7 @@ export function ContactForm({ contact, canDelete }: { contact?: Tables<"contacts
     <Card>
       <form action={action} className="flex flex-col gap-4">
         <input type="hidden" name="id" value={contact?.id ?? ""} />
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 3xl:grid-cols-4">
           <Field label="Nome *" error={f.name}>
             <Input name="name" required maxLength={200} defaultValue={contact?.name} />
           </Field>
@@ -48,13 +50,10 @@ export function ContactForm({ contact, canDelete }: { contact?: Tables<"contacts
           </Field>
         </div>
         <fieldset>
-          <legend className="mb-2 text-sm font-medium">Servizi</legend>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <legend className="mb-2 text-label font-medium">Servizi</legend>
+          <div className="flex flex-wrap gap-2">
             {SERVICE_CATALOG.map((s) => (
-              <label key={s.key} className="flex items-center gap-2 text-sm">
-                <input type="checkbox" name="services" value={s.key} defaultChecked={contact?.services.includes(s.key)} />
-                {s.name.it}
-              </label>
+              <ChipInput key={s.key} name="services" value={s.key} label={s.name.it} defaultChecked={contact?.services.includes(s.key)} />
             ))}
           </div>
         </fieldset>
@@ -68,19 +67,17 @@ export function ContactForm({ contact, canDelete }: { contact?: Tables<"contacts
             {contact ? "Salva" : "Aggiungi contatto"}
           </Button>
           {contact && canDelete && (
-            <Button
+            <ConfirmButton
               type="submit"
               variant="danger"
               className="ic-host"
               formAction={deleteContact}
               formNoValidate
-              onClick={(e) => {
-                if (!confirm(`Eliminare ${contact.name} dalla rubrica?`)) e.preventDefault();
-              }}
+              confirm={{ title: `Eliminare ${contact.name} dalla rubrica?`, confirmLabel: "Elimina", danger: true }}
             >
               <TrashIcon />
               Elimina
-            </Button>
+            </ConfirmButton>
           )}
         </div>
       </form>

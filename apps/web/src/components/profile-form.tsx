@@ -1,5 +1,6 @@
 "use client";
 
+import { ChipInput, Toggle } from "@/components/controls";
 import { Button, Card, Field, Input, Notice } from "@/components/ui";
 import { saveMarketplaceProfile, type ProfileState } from "@/lib/settings-actions";
 import type { Tables } from "@i-events/db";
@@ -19,13 +20,10 @@ export function ProfileForm({ profile, canEdit }: { profile: Tables<"marketplace
             <textarea name="description" defaultValue={profile.description} rows={5} maxLength={4000} className="rounded-ui border border-border bg-bg p-3" />
           </Field>
           <fieldset>
-            <legend className="mb-2 text-sm font-medium">Servizi offerti</legend>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <legend className="mb-2 text-label font-medium">Servizi offerti</legend>
+            <div className="flex flex-wrap gap-2">
               {SERVICE_CATALOG.map((s) => (
-                <label key={s.key} className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" name="services" value={s.key} defaultChecked={profile.services.includes(s.key)} />
-                  {s.name.it}
-                </label>
+                <ChipInput key={s.key} name="services" value={s.key} label={s.name.it} defaultChecked={profile.services.includes(s.key)} />
               ))}
             </div>
           </fieldset>
@@ -43,10 +41,7 @@ export function ProfileForm({ profile, canEdit }: { profile: Tables<"marketplace
               <Input name="phone" type="tel" defaultValue={profile.phone ?? ""} maxLength={40} />
             </Field>
           </div>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="isListed" defaultChecked={profile.is_listed} />
-            Mostra il profilo nel marketplace
-          </label>
+          <Toggle name="isListed" label="Mostra il profilo nel marketplace" hint="Chi cerca nel marketplace trova il tuo profilo." defaultChecked={profile.is_listed} />
         </fieldset>
         {state.error && <Notice tone="error">{state.error}</Notice>}
         {state.saved && <Notice tone="success">Profilo salvato.</Notice>}
