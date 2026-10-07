@@ -10,7 +10,7 @@ export type NavItem = { href: string; label: string };
 /** The area home (e.g. /pro) is active only on itself; other items also on their sub-pages. */
 function isActive(pathname: string, href: string, items: NavItem[]) {
   if (pathname === href) return true;
-  if (!pathname.startsWith(`${href}/`)) return false;
+  if (!pathname.startsWith(`${href}/`) || href.lastIndexOf("/") === 0) return false;
   return !items.some((i) => i.href !== href && i.href.startsWith(`${href}/`) && (pathname === i.href || pathname.startsWith(`${i.href}/`)));
 }
 

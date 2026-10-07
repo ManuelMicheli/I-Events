@@ -28,6 +28,7 @@ test("agency invites a client and a colleague", async ({ browser }) => {
   await expect(agency).toHaveURL(/\/onboarding/);
   await createOrg(agency, /Agenzia di eventi/, `NSS Test ${run}`);
   await expect(agency).toHaveURL(/\/pro$/);
+  await expect(agency.getByRole("heading", { level: 1, name: /, Anna$/ })).toBeVisible();
   await expect(agency.getByRole("heading", { name: "Richieste ricevute" })).toBeVisible();
 
   // Agency creates a connection invite for a client it already knows.

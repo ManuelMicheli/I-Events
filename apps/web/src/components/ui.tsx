@@ -44,7 +44,7 @@ export function Card({ title, action, children, className }: { title?: string; a
   return (
     <section className={cx("rounded-card border border-border bg-bg p-4 sm:p-6", className)}>
       {(title || action) && (
-        <header className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <header className="mb-4 flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2">
           {title && <h2 className="text-xl font-medium">{title}</h2>}
           {action}
         </header>
@@ -69,6 +69,26 @@ export function Notice({ tone = "info", children }: { tone?: "info" | "error" | 
       {tone === "success" && <CheckIcon className="mt-1" />}
       <span>{children}</span>
     </p>
+  );
+}
+
+export type BadgeTone = "neutral" | "accent" | "warning" | "success" | "outline";
+
+/** A state as a small pill. Accent only for what needs the user now ("Nuova", "2 preventivi nuovi"). */
+export function Badge({ tone = "neutral", children }: { tone?: BadgeTone; children: ReactNode }) {
+  return (
+    <span
+      className={cx(
+        "inline-flex min-h-6 shrink-0 items-center gap-1 rounded-full px-2 text-xs font-medium whitespace-nowrap",
+        tone === "neutral" && "bg-surface text-text",
+        tone === "accent" && "bg-accent-subtle text-accent-ink",
+        tone === "warning" && "bg-warning-bg text-warning",
+        tone === "success" && "bg-success-bg text-success",
+        tone === "outline" && "border border-border-strong text-muted",
+      )}
+    >
+      {children}
+    </span>
   );
 }
 
