@@ -157,7 +157,7 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
               disabled={pending || (i > index && !requestId)}
               onClick={() => go(s)}
               aria-current={s === step ? "step" : undefined}
-              className={`min-h-10 rounded-full px-3 transition-colors 3xl:w-full 3xl:text-left duration-[120ms] disabled:text-disabled ${
+              className={`min-h-11 rounded-full px-3 transition-colors lg:min-h-10 3xl:w-full 3xl:text-left duration-[120ms] disabled:text-disabled ${
                 s === step ? "bg-surface font-medium text-text" : "text-muted hover:bg-surface hover:text-text"
               }`}
             >
