@@ -57,7 +57,7 @@ function resizeStages(draft: RequestDraft, count: number): RequestDraft {
 
 /** The company's request, step by step as on the website: what, where and when, services, agencies. */
 export default function NewRequestScreen() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id, agenzia } = useLocalSearchParams<{ id?: string; agenzia?: string }>();
   const org = useActiveOrg();
   const loaded = useQuery(id ? `draft:${id}` : null, () => fetchRequest(id!));
   const agencies = useQuery(`reachable-agencies:${org.id}`, () => fetchReachableAgencies(org.id));
@@ -69,7 +69,7 @@ export default function NewRequestScreen() {
       </Screen>
     );
   }
-  if (id && loaded.loading) {
+  if ((id && loaded.loading) || (agenzia && agencies.loading)) {
     return (
       <Screen>
         <CardSkeletons count={2} />
@@ -90,7 +90,17 @@ export default function NewRequestScreen() {
       </Screen>
     );
   }
-  return <Wizard orgId={org.id} requestId={id ?? null} initial={loaded.data?.draft ?? EMPTY_DRAFT} agencies={agencies.data ?? []} />;
+  // From an agency's profile ("Chiedi un preventivo"): that agency is already chosen.
+  const chosen = agencies.data?.find((a) => a.id === agenzia);
+  return (
+    <Wizard
+      orgId={org.id}
+      requestId={id ?? null}
+      initial={loaded.data?.draft ?? EMPTY_DRAFT}
+      agencies={agencies.data ?? []}
+      initialAgencies={chosen ? [chosen.id] : []}
+    />
+  );
 }
 
 function Wizard({
@@ -98,18 +108,20 @@ function Wizard({
   requestId: initialId,
   initial,
   agencies,
+  initialAgencies,
 }: {
   orgId: string;
   requestId: string | null;
   initial: RequestDraft;
   agencies: ReachableAgency[];
+  initialAgencies: string[];
 }) {
   const { c } = useTheme();
   const [draft, setDraft] = useState<RequestDraft>(initial);
   const [requestId, setRequestId] = useState(initialId);
   const [step, setStep] = useState<Step>(initialId ? "basi" : "evento");
   const [result, setResult] = useState<SaveResult>({});
-  const [selectedAgencies, setSelectedAgencies] = useState<string[]>([]);
+  const [selectedAgencies, setSelectedAgencies] = useState<string[]>(initialAgencies);
   const [stageTab, setStageTab] = useState(0);
   const [agencyQuery, setAgencyQuery] = useState("");
   const [pending, setPending] = useState(false);

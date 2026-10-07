@@ -121,6 +121,8 @@ function RootStack({ ready }: { ready: boolean }) {
         <Stack.Screen name="rubrica/index" options={{ title: "Rubrica" }} />
         <Stack.Screen name="rubrica/[id]" options={{ title: "Contatto" }} />
         <Stack.Screen name="rubrica/nuovo" options={{ title: "Nuovo contatto" }} />
+        <Stack.Screen name="trova/index" options={{ title: "Trova" }} />
+        <Stack.Screen name="trova/[slug]" options={{ title: "Profilo" }} />
       </Stack.Protected>
       {/* The public area is open to everyone, signed in or not. */}
       <Stack.Screen name="pubblico" options={{ headerShown: false }} />

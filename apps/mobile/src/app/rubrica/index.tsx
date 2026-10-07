@@ -75,7 +75,12 @@ export default function AddressBookScreen() {
               </View>
             ))}
           </Card>
-          {!filtered && <Button variant="secondary" icon="phone-portrait-outline" label="Importa dal telefono" onPress={importFromPhone} />}
+          {!filtered && (
+            <View style={styles.more}>
+              <Button variant="secondary" icon="phone-portrait-outline" label="Importa dal telefono" onPress={importFromPhone} />
+              <Button variant="secondary" icon="storefront-outline" label="Trova fornitori su I-Events" onPress={() => router.push("/trova")} />
+            </View>
+          )}
         </View>
       ) : filtered ? (
         <EmptyState icon="search-outline" title="Nessun contatto trovato" body="Prova con un'altra parola o togli il filtro del servizio." />
@@ -123,6 +128,7 @@ function ContactRow({ contact: c }: { contact: ContactItem }) {
 const styles = StyleSheet.create({
   header: { gap: space[2] },
   results: { gap: space[3] },
+  more: { gap: space[2] },
   list: { paddingVertical: space[1], gap: 0 },
   row: {
     flexDirection: "row",
