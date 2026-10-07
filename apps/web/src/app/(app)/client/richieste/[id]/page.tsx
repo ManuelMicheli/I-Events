@@ -1,16 +1,19 @@
+import { Avatar } from "@/components/avatar";
 import { ClearMoment } from "@/components/moment";
-import { Seal, stampDay, Ticket, TicketStub } from "@/components/ticket";
+import { LiveDot, Seal, stampDay, Ticket, TicketStub } from "@/components/ticket";
 import { TypeChip } from "@/components/event-type";
 import { Attachments } from "@/components/attachments/attachments";
 import { BriefView } from "@/components/brief/brief-view";
 import { MessageThread } from "@/components/messages";
 import { ProposalLines } from "@/components/proposal-lines";
-import { Button, Card, Empty, Notice } from "@/components/ui";
+import { WriteToOthers } from "@/components/write-to-others";
+import { Badge, Button, ButtonLink, Card, Empty, Notice } from "@/components/ui";
 import { PROPOSAL_STATUS_LABEL, REQUEST_STATUS_LABEL } from "@/lib/labels";
+import { compareProposals, PRICED, proposalBadge } from "@/lib/proposal-compare";
 import { loadRequest } from "@/lib/requests";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
-import { formatEuro, formatTicketNumber, getServiceCategory, proposalTotal, type ProposalLine, type ProposalStatus } from "@i-events/core";
+import { formatEuro, formatTicketNumber, type ProposalLine } from "@i-events/core";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -19,14 +22,11 @@ import { DecisionForms } from "./decision-forms";
 
 export const metadata: Metadata = { title: "Richiesta" };
 
-/** Proposals whose figures the client can compare. */
-const PRICED: ProposalStatus[] = ["submitted", "revision_requested", "accepted", "rejected"];
-
 const dateFmt = new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short", year: "numeric" });
 
-export default async function ClientRequestPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ momento?: string }> }) {
+export default async function ClientRequestPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ momento?: string; scrivi?: string; avvisa?: string }> }) {
   const { id } = await params;
-  const { momento } = await searchParams;
+  const { momento, scrivi, avvisa } = await searchParams;
   const org = await requireOrg("client");
   const request = await loadRequest(id);
   if (!request || request.clientOrgId !== org.id) notFound();
@@ -47,12 +47,7 @@ export default async function ClientRequestPage({ params, searchParams }: { para
   const priced = proposals
     .filter((p) => PRICED.includes(p.status) && p.version > 0)
     .map((p) => ({ ...p, lines: (p.lines ?? []) as ProposalLine[], total: p.total_amount === null ? null : Number(p.total_amount) }));
-  const lowest = Math.min(...priced.filter((p) => p.status !== "rejected" && p.total !== null).map((p) => p.total as number));
-  const categories = [...new Set(priced.flatMap((p) => p.lines.map((l) => l.category)))];
-  const sumFor = (lines: ProposalLine[], category: string) => {
-    const matching = lines.filter((l) => l.category === category);
-    return matching.length === 0 ? null : proposalTotal(matching);
-  };
+  const { cheapestId } = compareProposals(priced);
   const path = `/client/richieste/${id}`;
   const open = request.status === "sent";
   const decidable = open ? priced.filter((p) => p.status === "submitted").length : 0;
@@ -108,6 +103,10 @@ export default async function ClientRequestPage({ params, searchParams }: { para
         <div className="contents 3xl:col-start-1 3xl:row-start-1 3xl:flex 3xl:flex-col 3xl:gap-6">
           {request.status === "cancelled" && <Notice>Hai annullato questa richiesta.</Notice>}
 
+          {avvisa && request.status === "awarded" && proposals.some((p) => p.status === "rejected") && (
+            <WriteToOthers requestId={id} back={path} title={request.draft.basics.title} others={proposals.filter((p) => p.status === "rejected").length} />
+          )}
+
           {events.length > 0 && (
             <Card title={events.length > 1 ? "Eventi creati" : "Evento creato"}>
               <ul className="divide-y divide-border text-sm">
@@ -125,74 +124,41 @@ export default async function ClientRequestPage({ params, searchParams }: { para
             </Card>
           )}
 
-          <Card title="Agenzie">
-            <table className="w-full text-left text-sm">
-              <thead className="text-muted">
-                <tr>
-                  <th className="py-2 font-medium">Agenzia</th>
-                  <th className="py-2 font-medium">Stato</th>
-                  <th className="py-2 text-right font-medium">Totale</th>
-                </tr>
-              </thead>
-              <tbody>
-                {proposals.map((p) => {
-                  const total = PRICED.includes(p.status) && p.total_amount !== null ? Number(p.total_amount) : null;
-                  return (
-                    <tr key={p.id} className="border-t border-border">
-                      <td className="py-2">{p.agency?.name}</td>
-                      <td className="py-2">{PROPOSAL_STATUS_LABEL[p.status]}</td>
-                      <td className="py-2 text-right">
-                        {formatEuro(total)}
-                        {total !== null && total === lowest && priced.length > 1 && <span className="ml-2 text-xs text-success">più bassa</span>}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <Card
+            title="Agenzie"
+            action={
+              priced.length > 1 && (
+                <ButtonLink href={`${path}/confronta`} variant="secondary">
+                  Confronta le proposte
+                </ButtonLink>
+              )
+            }
+          >
+            <ul className="divide-y divide-border">
+              {proposals.map((p) => {
+                const total = PRICED.includes(p.status) && p.total_amount !== null ? Number(p.total_amount) : null;
+                const badge = proposalBadge(p.status, p.submitted_at);
+                return (
+                  <li key={p.id} className="flex items-center gap-3 py-3">
+                    <Avatar name={p.agency?.name ?? "?"} size={32} />
+                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+                      <span className="font-medium">{p.agency?.name}</span>
+                      <Badge tone={badge.tone}>
+                        {badge.live && <LiveDot />}
+                        {badge.label}
+                      </Badge>
+                    </div>
+                    {total !== null && (
+                      <span className="flex shrink-0 flex-col items-end">
+                        <span className="font-mono text-sm tabular-nums">{formatEuro(total)}</span>
+                        {p.id === cheapestId && <span className="text-xs text-muted">la più bassa</span>}
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           </Card>
-
-          {priced.length > 1 && (
-            <Card title="Confronto voce per voce">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="text-left text-muted">
-                    <tr>
-                      <th className="py-2 font-medium">Servizio</th>
-                      {priced.map((p) => (
-                        <th key={p.id} className="py-2 text-right font-medium">
-                          {p.agency?.name}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {categories.map((c) => (
-                      <tr key={c} className="border-t border-border">
-                        <td className="py-2">{getServiceCategory(c)?.name.it ?? "Altro"}</td>
-                        {priced.map((p) => {
-                          const amount = sumFor(p.lines, c);
-                          return (
-                            <td key={p.id} className="py-2 text-right">
-                              {amount === null ? <span className="text-muted">non inclusa</span> : formatEuro(amount)}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                    <tr className="border-t border-border font-semibold">
-                      <td className="py-2">Totale</td>
-                      {priced.map((p) => (
-                        <td key={p.id} className="py-2 text-right">
-                          {formatEuro(p.total)}
-                        </td>
-                      ))}
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
 
           {priced.length === 0 && open && <Empty>Le agenzie stanno preparando le proposte. Le trovi qui appena arrivano.</Empty>}
 
@@ -212,10 +178,10 @@ export default async function ClientRequestPage({ params, searchParams }: { para
           ))}
         </div>
 
-        <section className="flex flex-col gap-3 3xl:col-start-2 3xl:row-span-2 3xl:row-start-1">
+        <section id="conversazioni" className="flex scroll-mt-20 flex-col gap-3 3xl:col-start-2 3xl:row-span-2 3xl:row-start-1">
           <h2 className="text-lg font-semibold">Conversazioni</h2>
           {proposals.map((p) => (
-            <details key={p.id} className="rounded-ui border border-border p-4" open={proposals.length === 1}>
+            <details key={p.id} className="rounded-ui border border-border p-4" open={proposals.length === 1 || p.id === scrivi}>
               <summary className="cursor-pointer text-sm font-medium">{p.agency?.name}</summary>
               <div className="mt-4">
                 <MessageThread proposalId={p.id} viewerOrgId={org.id} isAgency={false} path={path} title={`Messaggi con ${p.agency?.name}`} />

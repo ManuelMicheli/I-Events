@@ -114,8 +114,11 @@ test("client sends a request to two agencies, compares proposals and accepts one
 
   // The client compares, asks Alfa for changes and sees the question.
   await client.goto(requestUrl);
-  await expect(client.getByRole("heading", { name: "Confronto voce per voce" })).toBeVisible();
-  await expect(client.getByRole("row", { name: new RegExp(`Beta ${run}.*più bassa`) })).toBeVisible();
+  await expect(client.getByRole("listitem").filter({ hasText: `Beta ${run}` }).getByText("la più bassa")).toBeVisible();
+  await client.getByRole("link", { name: "Confronta le proposte" }).click();
+  await expect(client.getByRole("heading", { name: "Confronta le proposte" })).toBeVisible();
+  await expect(client.locator("#voce-per-voce").getByText("Prezzo più basso")).toBeVisible();
+  await client.goto(requestUrl);
   await expect(client.getByRole("link", { name: "Preventivo Alfa.pdf" })).toBeVisible();
   await client.goto("/notifiche");
   await expect(client.getByText(`Nuova proposta da Alfa ${run}`)).toBeVisible();
@@ -140,12 +143,16 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await client.reload();
   await expect(client.getByRole("heading", { name: new RegExp(`Proposta di Alfa ${run} · versione 2`) })).toBeVisible();
   await client.getByRole("button", { name: `Accetta la proposta di Beta ${run}` }).click();
+  await client.getByRole("dialog").getByLabel("Le scrivo anche un messaggio mio").check();
   await client.getByRole("dialog").getByRole("button", { name: /^Accetta / }).click();
-  await expect(client.getByRole("heading", { name: "Evento creato" })).toBeVisible();
-  await expect(client.getByText("Assegnata", { exact: false }).first()).toBeVisible();
+  await expect(client.getByRole("heading", { name: `Il tuo evento è in mano a Beta ${run}` })).toBeVisible();
+  await expect(client.getByText("Confermato", { exact: true })).toBeVisible();
+  await client.getByRole("button", { name: "Invia", exact: true }).click();
+  await expect(client.getByText("Messaggio inviato all'altra agenzia")).toBeVisible();
 
   await alfa.page.reload();
   await expect(alfa.page.getByText("L'azienda ha scelto un'altra proposta.")).toBeVisible();
+  await expect(alfa.page.getByText("Grazie per la proposta", { exact: false })).toBeVisible();
   await beta.page.reload();
   await expect(beta.page.getByText("L'azienda ha scelto la tua proposta.", { exact: false })).toBeVisible();
   const proposalUrl = new URL(beta.page.url()).pathname;
