@@ -25,7 +25,7 @@ export type MarketplaceResult = {
 /** Search box for the marketplace: words, service, area and (for suppliers) a date they are free, as a plain GET form. */
 export function MarketplaceSearchForm({ filters, placeholder, withDate = false }: { filters: MarketplaceFilters; placeholder: string; withDate?: boolean }) {
   return (
-    <form className="flex flex-col gap-2 sm:flex-row sm:flex-wrap" role="search">
+    <form className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end" role="search">
       <label htmlFor="q" className="sr-only">
         Cerca
       </label>
@@ -49,14 +49,12 @@ export function MarketplaceSearchForm({ filters, placeholder, withDate = false }
       </label>
       <Input id="zona" name="zona" defaultValue={filters.zona} placeholder="Città o regione" className="sm:w-48" />
       {withDate && (
-        <>
-          <label htmlFor="data" className="sr-only">
-            Libero il
-          </label>
-          <Input id="data" name="data" type="date" defaultValue={filters.data} title="Solo chi è libero in questa data" className="sm:w-44" />
-        </>
+        <label htmlFor="data" className="flex flex-col gap-1 sm:w-44">
+          <span className="text-label font-medium">Libero il</span>
+          <Input id="data" name="data" type="date" defaultValue={filters.data} title="Solo chi è libero in questa data" />
+        </label>
       )}
-      <Button type="submit" variant="secondary" className="self-start">
+      <Button type="submit" variant="secondary" className="self-start sm:self-auto">
         Cerca
       </Button>
     </form>
