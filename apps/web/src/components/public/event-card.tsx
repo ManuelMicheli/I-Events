@@ -1,7 +1,7 @@
 import { EventCover, TypeChip } from "@/components/event-type";
 import { LiveDot } from "@/components/ticket";
-import { eventLine, type PublicEvent } from "@/lib/public-events";
-import { placesLabel, placesLeft, type EventType } from "@i-events/core";
+import { eventLine, priceLabel, type PublicEvent } from "@/lib/public-events";
+import { placesLabel, todayInItaly, type EventType } from "@i-events/core";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -16,7 +16,9 @@ export function PublicCover({ type, className }: { type: EventType | null; class
 /** A badge over the cover: "In corso" with the live dot, or "Esaurito". */
 function CoverBadge({ children }: { children: ReactNode }) {
   return (
-    <span className="absolute top-3 left-3 inline-flex min-h-7 items-center gap-2 rounded-full bg-bg px-3 text-label font-medium">{children}</span>
+    <span className="absolute top-3 left-3 inline-flex min-h-7 items-center gap-2 rounded-full bg-bg px-3 text-label font-medium">
+      {children}
+    </span>
   );
 }
 
@@ -24,9 +26,16 @@ function CoverBadge({ children }: { children: ReactNode }) {
  * Public event card (Carta item 17): cover 16:10, title, when and where, then a dashed rule with a
  * notch on each side and the price row with the type chip. The whole card opens the event.
  */
-export function PublicEventCard({ event, headingLevel = 3 }: { event: PublicEvent; headingLevel?: 2 | 3 }) {
-  const soldOut = placesLeft(event.capacity, event.registered) === 0;
-  const few = placesLabel(event.capacity, event.registered);
+export function PublicEventCard({
+  event,
+  headingLevel = 3,
+}: {
+  event: PublicEvent;
+  headingLevel?: 2 | 3;
+}) {
+  const price = priceLabel(event, todayInItaly());
+  const soldOut = price === "Posti esauriti";
+  const few = price === "Gratis" && placesLabel(event.capacity, event.registered);
   const live = event.status === "live";
   const Heading = headingLevel === 2 ? "h2" : "h3";
   return (
@@ -57,7 +66,14 @@ export function PublicEventCard({ event, headingLevel = 3 }: { event: PublicEven
       </div>
       <div aria-hidden className="perf-rule mx-4" />
       <div className="flex h-[51px] items-center justify-between gap-3 px-3">
-        <span className={cx("font-mono text-label whitespace-nowrap", soldOut && "text-muted")}>{soldOut ? "Posti esauriti" : "Gratis"}</span>
+        <span
+          className={cx(
+            "font-mono text-label whitespace-nowrap",
+            (soldOut || price === "Andato in scena") && "text-muted",
+          )}
+        >
+          {price}
+        </span>
         <span className="min-w-0 whitespace-nowrap">
           <TypeChip type={event.event_type} />
         </span>
@@ -92,7 +108,10 @@ export function PublicEventRow({
       <PublicCover type={type} className="size-14 rounded-[8px]" />
       <div className="flex min-w-0 flex-col">
         <h3 className="font-medium">
-          <Link href={href} className="after:absolute after:inset-0 after:rounded-card after:content-[''] focus-visible:outline-none">
+          <Link
+            href={href}
+            className="after:absolute after:inset-0 after:rounded-card after:content-[''] focus-visible:outline-none"
+          >
             {title}
           </Link>
         </h3>
