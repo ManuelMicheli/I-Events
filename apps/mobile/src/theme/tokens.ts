@@ -35,6 +35,9 @@ export type Palette = {
   scrim: string;
   /** The text action on a toast: Fiamma 400 on Grafite, inverted in dark mode. */
   toastAction: string;
+  /** The page's glow at the top right (Wharf reference): Fiamma, then a warmer orange. */
+  glowA: string;
+  glowB: string;
 };
 
 export const light: Palette = {
@@ -66,6 +69,8 @@ export const light: Palette = {
   focus: "#1C1B19",
   scrim: "rgba(28,27,25,0.32)",
   toastAction: "#FF6A47",
+  glowA: "rgba(255,106,71,0.16)",
+  glowB: "rgba(255,176,120,0.18)",
 };
 
 export const dark: Palette = {
@@ -97,12 +102,21 @@ export const dark: Palette = {
   focus: "#F1ECE4",
   scrim: "rgba(0,0,0,0.6)",
   toastAction: "#C8300F",
+  glowA: "rgba(255,90,60,0.1)",
+  glowB: "rgba(224,120,60,0.07)",
 };
+
+/** Shadow of floating cards (Wharf reference); none in dark mode, where the hairline carries the edge. */
+export const cardShadow = {
+  light: { shadowColor: "#1C1B19", shadowOpacity: 0.1, elevation: 2 },
+  dark: { shadowColor: "#000000", shadowOpacity: 0, elevation: 0 },
+} as const;
 
 /** Spacing scale, base 4: no other values are allowed. */
 export const space = { 0: 0, 1: 4, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 8: 32, 10: 40, 12: 48, 16: 64 } as const;
 
-export const radius = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, full: 999 } as const;
+/** `card` is the floating card of the Wharf reference, as on the website (--radius-card). */
+export const radius = { xs: 4, sm: 8, md: 12, lg: 16, card: 18, xl: 24, full: 999 } as const;
 
 /** Control heights: L is the mobile default, and 44 is the smallest touch target. */
 export const control = { s: 32, m: 40, l: 48, touch: 44 } as const;
