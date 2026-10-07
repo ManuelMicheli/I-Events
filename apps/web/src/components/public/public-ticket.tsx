@@ -1,16 +1,19 @@
-import { Stamp, stampDay } from "@/components/ticket";
+import { EventCover } from "@/components/event-type";
+import { stampDay } from "@/components/ticket";
 import { Logo } from "@/components/ui";
 import { shortDate, type RegistrationTicket } from "@/lib/public-events";
-import { formatTicketNumber, hhmm, passCode, peopleLabel } from "@i-events/core";
+import { EVENT_TYPE_INFO, formatTicketNumber, hhmm, passCode, peopleLabel, type EventType } from "@i-events/core";
 import type { CSSProperties, ReactNode } from "react";
 
 /** Height of the part below the perforation: the QR (160), the code under it and the padding. */
 const STUB = 238;
 
 /**
- * The public ticket (Carta item 18, M3): vertical like a Wallet pass, the event and the person on
- * top, the ISCRITTO stamp in the event's ink, then the perforation with its notches and the QR with
- * the number and the short code. Cancelled: no QR. Over: the QR is covered.
+ * The public ticket (Carta item 18, M3): vertical like a Wallet pass. On top the event's cover as a
+ * band with the brand, then the title with the confirmation (a sealed tick in the event's ink and the
+ * date), the facts and the name; below the perforation the QR with the number and the short code.
+ * Right after registering the band catches the light once and the tick draws itself.
+ * Cancelled: no QR. Over: the QR is covered.
  */
 export function PublicTicket({
   ticket,
@@ -32,15 +35,29 @@ export function PublicTicket({
       style={{ "--notch-y": `${STUB}px` } as CSSProperties}
       className="notched flex flex-col rounded-card border border-border bg-bg shadow-1"
     >
-      <div className="flex flex-col gap-5 p-6">
-        <div className="flex items-center justify-between gap-3 font-mono text-xs tracking-[0.08em] text-muted uppercase">
-          <span className="inline-flex items-center gap-2 text-text">
+      <div className={`relative h-24 overflow-hidden rounded-t-card ${fresh ? "sheen" : ""}`}>
+        {ticket.event_type ? (
+          <div aria-hidden className="absolute inset-0">
+            <EventCover type={ticket.event_type} className="size-full" />
+          </div>
+        ) : (
+          <div aria-hidden className="absolute inset-0 bg-surface" />
+        )}
+        <div
+          className={`relative flex items-center justify-between gap-3 px-6 pt-5 font-mono text-xs tracking-[0.08em] uppercase ${ticket.event_type ? "text-white" : "text-text"}`}
+        >
+          <span className="inline-flex items-center gap-2">
             <Logo className="[&>span:last-child]:hidden" />
             I-Events
           </span>
           <span>Biglietto</span>
         </div>
-        <h1 className="text-title2 font-semibold">{ticket.title}</h1>
+      </div>
+      <div className="flex flex-col gap-5 p-6">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-title2 font-semibold">{ticket.title}</h1>
+          {!cancelled && <Confirmed type={ticket.event_type} date={stampDay(ticket.registered_at)} fresh={fresh} />}
+        </div>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-4">
           <Item label="Data">{shortDate(ticket.start_date, ticket.end_date)}</Item>
           <Item label="Ora" mono>
@@ -48,13 +65,10 @@ export function PublicTicket({
           </Item>
           <Item label="Luogo">{ticket.venue || ticket.city || "Da definire"}</Item>
           <Item label="Ingresso">{peopleLabel(ticket.guests)}</Item>
-        </dl>
-        <div className="flex items-center justify-between gap-3">
-          <dl className="min-w-0">
+          <div className="col-span-2">
             <Item label="Nome">{ticket.name}</Item>
-          </dl>
-          <Stamp label="Iscritto" date={stampDay(ticket.registered_at)} type={ticket.event_type} fresh={fresh} />
-        </div>
+          </div>
+        </dl>
       </div>
       <div aria-hidden className="perf-rule mx-4" />
       <div style={{ height: STUB - 1 }} className="flex flex-col items-center justify-center gap-3 px-6">
@@ -88,6 +102,32 @@ function Item({ label, mono = false, children }: { label: string; mono?: boolean
     <div className="flex min-w-0 flex-col gap-0.5">
       <dt className="font-mono text-xs tracking-[0.08em] text-muted uppercase">{label}</dt>
       <dd className={`break-words ${mono ? "font-mono" : ""}`}>{children}</dd>
+    </div>
+  );
+}
+
+/**
+ * The confirmation, in place of a stamp: a round seal in the event's deep ink with a white tick,
+ * "Iscrizione confermata" and, under it, the day. Fresh, the seal grows in and the tick draws (A7).
+ */
+function Confirmed({ type, date, fresh }: { type: EventType | null; date: string; fresh: boolean }) {
+  const ink = type ? EVENT_TYPE_INFO[type].ink : null;
+  const style = { "--seal": ink?.deep ?? "var(--color-text)", "--seal-dark": ink?.darkFill ?? "var(--color-text)" } as CSSProperties;
+  return (
+    <div className="flex items-center gap-3">
+      <span
+        aria-hidden
+        style={style}
+        className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[var(--seal)] text-white dark:bg-[var(--seal-dark)] dark:text-[#121110] ${fresh ? "seal-in" : ""}`}
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={fresh ? "check-draw" : undefined}>
+          <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </span>
+      <p className="flex min-w-0 flex-col">
+        <span className="font-medium">Iscrizione confermata</span>
+        {date && <span className="font-mono text-xs tracking-[0.08em] text-muted uppercase">{date}</span>}
+      </p>
     </div>
   );
 }

@@ -325,7 +325,7 @@ test("client sends a request to two agencies, compares proposals and accepts one
   const publicTicket = visitor.getByRole("article", { name: `Biglietto per ${title}, a nome di Giulia Rossi` });
   await expect(publicTicket).toContainText("2 persone");
   await expect(publicTicket).toContainText("19:00");
-  await expect(publicTicket.getByRole("img", { name: /^iscritto il/ })).toBeVisible();
+  await expect(publicTicket.getByText("Iscrizione confermata")).toBeVisible();
   await expect(publicTicket.getByRole("img", { name: "Codice QR del biglietto" }).locator("svg")).toBeVisible();
   await visitor.getByRole("link", { name: "Biglietti" }).first().click();
   await expect(visitor.getByRole("link", { name: title })).toBeVisible();

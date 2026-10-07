@@ -538,3 +538,45 @@ samp {
     flex-shrink: 0;
   }
 }
+
+/*
+ * Public ticket, just registered (A7): the cover band catches the light once, the seal grows in
+ * and its tick draws. With Riduci movimento the sheen never shows and the tick is simply there.
+ */
+.sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, #0000 35%, rgba(255, 255, 255, 0.28) 50%, #0000 65%);
+  opacity: 0;
+  pointer-events: none;
+  animation: sheen 320ms var(--ease-in-out) 200ms;
+}
+@keyframes sheen {
+  from {
+    opacity: 1;
+    translate: -100% 0;
+  }
+  to {
+    opacity: 1;
+    translate: 100% 0;
+  }
+}
+.seal-in {
+  animation: seal 180ms var(--ease-out) 320ms both;
+}
+@keyframes seal {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+.check-draw path {
+  stroke-dasharray: 16;
+  animation: draw 240ms var(--ease-out) 440ms both;
+}
+@keyframes draw {
+  from {
+    stroke-dashoffset: 16;
+  }
+}
