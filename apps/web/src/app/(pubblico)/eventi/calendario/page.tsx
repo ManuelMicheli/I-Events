@@ -79,7 +79,7 @@ export default async function PublicCalendar({
         <p className="text-lg text-muted">Gli eventi aperti al pubblico, giorno per giorno.</p>
       </header>
 
-      <div className="grid items-start gap-8 lg:grid-cols-[400px_minmax(0,1fr)] lg:gap-10">
+      <div className="grid items-start gap-8 lg:grid-cols-[400px_minmax(0,1fr)] lg:gap-10 3xl:grid-cols-[28rem_minmax(0,1fr)] 3xl:gap-12">
         <section
           aria-labelledby="mese"
           className="-mx-4 flex flex-col gap-4 border-y border-border bg-bg px-1 py-4 sm:mx-0 sm:rounded-card sm:border sm:p-6"

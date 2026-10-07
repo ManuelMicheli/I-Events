@@ -78,7 +78,7 @@ export async function Shell({ org, children }: { org: MyOrg; children: ReactNode
   );
 
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
+    <div className="min-h-dvh lg:grid lg:grid-cols-[15rem_minmax(0,1fr)]">
       <aside className="sticky top-0 hidden h-dvh flex-col gap-6 overflow-y-auto border-r border-border px-3 pb-4 lg:flex">
         <Link href={AREA_BY_TYPE[org.type]} className="flex h-14 shrink-0 items-center rounded-ui px-3" aria-label="I-Events, home">
           <Logo />
@@ -87,7 +87,7 @@ export async function Shell({ org, children }: { org: MyOrg; children: ReactNode
         <div className="mt-auto border-t border-border pt-4">{account("side")}</div>
       </aside>
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b border-border bg-app/90 px-4 backdrop-blur sm:px-6 lg:px-8">
+        <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b border-border bg-app/90 px-4 backdrop-blur sm:px-6 lg:px-8 3xl:px-12 4xl:px-16">
           <Link href={AREA_BY_TYPE[org.type]} className="flex min-h-11 items-center lg:hidden" aria-label="I-Events, home">
             <Logo />
           </Link>
@@ -109,7 +109,7 @@ export async function Shell({ org, children }: { org: MyOrg; children: ReactNode
           </Link>
           <MobileMenu items={nav}>{account("menu")}</MobileMenu>
         </header>
-        <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">{children}</main>
+        <main className="flex w-full flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8 3xl:px-12 3xl:py-10 4xl:px-16">{children}</main>
       </div>
     </div>
   );

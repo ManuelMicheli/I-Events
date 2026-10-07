@@ -19,8 +19,9 @@ export default async function SupplierHome() {
   if (error) throw error;
   if (e2) throw e2;
   const extras = await loadProfileExtras(supabase, org.id, false);
+  // A form reads top to bottom: on wide screens it sits in a centred column (A11 in globals.css).
   return (
-    <>
+    <div className="flex flex-col gap-6 2xl:mx-auto 2xl:w-full 2xl:max-w-form">
       <div>
         <h1 className="text-2xl font-semibold">Il tuo profilo</h1>
         <p className="text-muted">Le agenzie ti trovano da qui.</p>
@@ -43,6 +44,6 @@ export default async function SupplierHome() {
       )}
       <ProfileForm profile={profile} canEdit={org.role === "owner" || org.role === "admin"} />
       <OwnProfileExtras extras={extras} canEdit={org.role === "owner" || org.role === "admin"} />
-    </>
+    </div>
   );
 }

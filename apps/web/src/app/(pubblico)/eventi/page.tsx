@@ -107,7 +107,7 @@ export default async function Explore({
             <h2 id={`g-${g.title}`} className="text-xl font-medium">
               {g.title}
             </h2>
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6 3xl:grid-cols-4">
               {g.events.map((e) => (
                 <li key={e.id} className="flex flex-col [&>article]:flex-1">
                   <PublicEventCard event={e} />

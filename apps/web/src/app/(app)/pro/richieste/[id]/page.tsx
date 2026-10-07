@@ -83,49 +83,54 @@ export default async function AgencyRequestPage({ params }: { params: Promise<{ 
         )}
       </div>
 
-      {request.status === "cancelled" && <Notice>L&apos;azienda ha annullato questa richiesta.</Notice>}
-      {proposal.status === "accepted" && (
-        <Notice tone="success">
-          L&apos;azienda ha scelto la tua proposta.{" "}
-          {events.map((e, i) => (
-            <span key={e.id}>
-              {i > 0 && " · "}
-              <Link href={`/pro/eventi/${e.id}`} className="font-medium underline">
-                {events.length === 1 ? "Apri lo spazio evento" : e.title}
-              </Link>
-            </span>
-          ))}
-        </Notice>
-      )}
-      {proposal.status === "rejected" && <Notice>L&apos;azienda ha scelto un&apos;altra proposta.</Notice>}
-      {proposal.status === "revision_requested" && <Notice>L&apos;azienda ha chiesto modifiche: leggi i messaggi e invia una proposta aggiornata.</Notice>}
+      {/* From 1920 px the conversation sits beside the brief and the proposal. */}
+      <div className="contents 3xl:grid 3xl:grid-cols-[minmax(0,1fr)_28rem] 3xl:items-start 3xl:gap-6">
+        <div className="contents 3xl:flex 3xl:flex-col 3xl:gap-6">
+          {request.status === "cancelled" && <Notice>L&apos;azienda ha annullato questa richiesta.</Notice>}
+          {proposal.status === "accepted" && (
+            <Notice tone="success">
+              L&apos;azienda ha scelto la tua proposta.{" "}
+              {events.map((e, i) => (
+                <span key={e.id}>
+                  {i > 0 && " · "}
+                  <Link href={`/pro/eventi/${e.id}`} className="font-medium underline">
+                    {events.length === 1 ? "Apri lo spazio evento" : e.title}
+                  </Link>
+                </span>
+              ))}
+            </Notice>
+          )}
+          {proposal.status === "rejected" && <Notice>L&apos;azienda ha scelto un&apos;altra proposta.</Notice>}
+          {proposal.status === "revision_requested" && <Notice>L&apos;azienda ha chiesto modifiche: leggi i messaggi e invia una proposta aggiornata.</Notice>}
 
-      {open && <StatusActions proposalId={proposal.id} moves={MOVES[proposal.status] ?? []} />}
+          {open && <StatusActions proposalId={proposal.id} moves={MOVES[proposal.status] ?? []} />}
 
-      <BriefView request={request} />
-      <Attachments requestId={request.id} canWrite={false} path={path} title="Allegati dell'azienda" />
+          <BriefView request={request} />
+          <Attachments requestId={request.id} canWrite={false} path={path} title="Allegati dell'azienda" />
 
-      {open && EDITABLE.includes(proposal.status) ? (
-        <ProposalEditor proposalId={proposal.id} initialLines={initialLines} initialSummary={proposal.summary ?? ""} resubmit={proposal.version > 0} />
-      ) : (
-        proposal.version > 0 && (
-          <Card title={`La tua proposta · versione ${proposal.version}`}>
-            {proposal.summary && <p className="mb-4 whitespace-pre-wrap text-sm">{proposal.summary}</p>}
-            <ProposalLines lines={savedLines} total={proposal.total_amount} />
-          </Card>
-        )
-      )}
+          {open && EDITABLE.includes(proposal.status) ? (
+            <ProposalEditor proposalId={proposal.id} initialLines={initialLines} initialSummary={proposal.summary ?? ""} resubmit={proposal.version > 0} />
+          ) : (
+            proposal.version > 0 && (
+              <Card title={`La tua proposta · versione ${proposal.version}`}>
+                {proposal.summary && <p className="mb-4 whitespace-pre-wrap text-sm">{proposal.summary}</p>}
+                <ProposalLines lines={savedLines} total={proposal.total_amount} />
+              </Card>
+            )
+          )}
 
-      <Attachments
-        requestId={request.id}
-        proposalId={proposal.id}
-        canWrite={open && EDITABLE.includes(proposal.status)}
-        path={path}
-        title="Allegati della proposta"
-        emptyText="Allega preventivi dettagliati, render o presentazioni: l'azienda li vede quando invii la proposta."
-      />
+          <Attachments
+            requestId={request.id}
+            proposalId={proposal.id}
+            canWrite={open && EDITABLE.includes(proposal.status)}
+            path={path}
+            title="Allegati della proposta"
+            emptyText="Allega preventivi dettagliati, render o presentazioni: l'azienda li vede quando invii la proposta."
+          />
+        </div>
 
-      <MessageThread proposalId={proposal.id} viewerOrgId={org.id} isAgency path={path} title="Messaggi con l'azienda" />
+          <MessageThread proposalId={proposal.id} viewerOrgId={org.id} isAgency path={path} title="Messaggi con l'azienda" />
+      </div>
     </>
   );
 }

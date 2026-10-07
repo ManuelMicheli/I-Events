@@ -26,8 +26,9 @@ export default async function SupplierRequestPage({ params }: { params: Promise<
   const service = getServiceCategory(request.service_key)?.name.it ?? request.service_key;
   const days = [...new Set(schedule.map((s) => s.day))];
 
+  // A form reads top to bottom: on wide screens it sits in a centred column (A11 in globals.css).
   return (
-    <>
+    <div className="flex flex-col gap-6 2xl:mx-auto 2xl:w-full 2xl:max-w-form">
       <div>
         <Link href="/supplier/richieste" className="text-sm text-muted underline">
           Richieste
@@ -117,6 +118,6 @@ export default async function SupplierRequestPage({ params }: { params: Promise<
           )}
         </Card>
       )}
-    </>
+    </div>
   );
 }

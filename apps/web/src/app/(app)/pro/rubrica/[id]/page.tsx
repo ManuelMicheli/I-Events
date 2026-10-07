@@ -38,8 +38,9 @@ export default async function ContactPage({
   if (supplierRes.error) throw supplierRes.error;
   if (inviteRes.error) throw inviteRes.error;
   const invite = inviteRes.data && inviteRes.data.expires_at > nowIso() ? inviteRes.data : null;
+  // A form reads top to bottom: on wide screens it sits in a centred column (A11 in globals.css).
   return (
-    <>
+    <div className="flex flex-col gap-6 2xl:mx-auto 2xl:w-full 2xl:max-w-form">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <Link href="/pro/rubrica" className="text-sm text-muted underline">
@@ -61,6 +62,6 @@ export default async function ContactPage({
         agencyName={org.name}
       />
       <ContactForm key={contact.updated_at} contact={contact} canDelete={can(org.type, org.role, "contacts.delete")} />
-    </>
+    </div>
   );
 }

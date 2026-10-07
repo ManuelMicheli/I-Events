@@ -39,7 +39,7 @@ export default async function ClientEventsPage() {
         {upcoming.length === 0 ? (
           <Empty>Quando accetti la proposta di un&apos;agenzia, l&apos;evento compare qui.</Empty>
         ) : (
-          <ul className="flex flex-col gap-3">
+          <ul className="grid gap-3 3xl:grid-cols-2">
             {upcoming.map((e) => (
               <li key={e.id}>
                 <EventTicket
