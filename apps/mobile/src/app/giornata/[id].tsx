@@ -2,13 +2,15 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { crewState, hhmm, liveDay, scheduleTimeline, type CrewMember, type ScheduleState } from "@i-events/core";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useState, type ComponentProps } from "react";
-import { ActivityIndicator, Linking, Pressable, StyleSheet, View } from "react-native";
+import { Linking, Pressable, StyleSheet, View } from "react-native";
 import { Badge, LiveDot } from "@/components/badge";
 import { Button } from "@/components/button";
 import { Card, TicketDivider } from "@/components/card";
+import { Perforation } from "@/components/perforation";
 import { Divider } from "@/components/rows";
 import { Screen } from "@/components/screen";
 import { Segmented } from "@/components/segmented";
+import { TearRow } from "@/components/tear-row";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T, type Tone } from "@/components/text";
 import { TextField } from "@/components/text-field";
@@ -260,12 +262,19 @@ function Banner({
   const look = { warning: [c.warningBg, c.warning], info: [c.infoBg, c.info], danger: [c.dangerBg, c.danger] }[tone];
   return (
     <View style={[styles.banner, { backgroundColor: look[0] }]} accessibilityRole="alert" accessibilityLiveRegion="polite">
-      <View style={styles.bannerIcon}>{busy ? <ActivityIndicator color={look[1]} /> : <Ionicons name={icon} size={20} color={look[1]} />}</View>
+      <View style={styles.bannerIcon}>
+        <Ionicons name={icon} size={20} color={look[1]} />
+      </View>
       <View style={styles.flex}>
         <T variant="calloutStrong" tone={tone}>
           {title}
         </T>
         <T variant="callout">{body}</T>
+        {busy && (
+          <View style={styles.bannerBusy}>
+            <Perforation size="s" color={look[1] ?? c.textPrimary} />
+          </View>
+        )}
       </View>
       {onDismiss && (
         <Pressable onPress={onDismiss} accessibilityRole="button" accessibilityLabel="Chiudi" hitSlop={4} style={styles.bannerClose}>
@@ -446,12 +455,14 @@ function Arrivals({
           {visible.map((m, i) => (
             <View key={m.id}>
               {i > 0 && <Divider />}
-              <CrewRow
-                member={m}
-                refused={refused[m.id]}
-                now={now}
-                onToggle={() => recordCheckin(eventId, { id: m.id, at: m.checked_in_at ? null : new Date().toISOString() })}
-              />
+              <TearRow enabled={!m.checked_in_at} onTear={() => recordCheckin(eventId, { id: m.id, at: new Date().toISOString() })}>
+                <CrewRow
+                  member={m}
+                  refused={refused[m.id]}
+                  now={now}
+                  onToggle={() => recordCheckin(eventId, { id: m.id, at: m.checked_in_at ? null : new Date().toISOString() })}
+                />
+              </TearRow>
             </View>
           ))}
         </Card>
@@ -545,6 +556,7 @@ const styles = StyleSheet.create({
   head: { gap: space[1] },
   body: { gap: space[4] },
   banner: { flexDirection: "row", alignItems: "flex-start", gap: space[3], padding: space[4], borderRadius: radius.md },
+  bannerBusy: { paddingTop: space[2] },
   bannerIcon: { width: 20, height: 22, alignItems: "center", justifyContent: "center" },
   bannerClose: { width: control.touch, height: control.touch, alignItems: "center", justifyContent: "center", margin: -space[3] },
   nowHead: { flexDirection: "row", alignItems: "center", gap: space[2] },

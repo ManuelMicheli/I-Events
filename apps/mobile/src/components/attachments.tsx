@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { formatBytes } from "@i-events/core";
 import * as WebBrowser from "expo-web-browser";
 import { useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { attachmentUrl, fetchAttachments } from "@/lib/requests";
 import { useQuery } from "@/lib/use-query";
 import { control, radius, space, useTheme } from "@/theme";
@@ -10,6 +10,7 @@ import { Card } from "./card";
 import { Divider } from "./rows";
 import { Section } from "./screen";
 import { InlineError } from "./text-field";
+import { Perforation } from "./perforation";
 import { T } from "./text";
 
 /** The files of a request or of a proposal; a tap opens one. Hidden when there are none. */
@@ -59,7 +60,7 @@ export function Attachments({ title, requestId, proposalId }: { title: string; r
                 {f.file_name}
               </T>
               {opening === f.storage_path ? (
-                <ActivityIndicator color={c.textSecondary} />
+                <Perforation size="s" color={c.textSecondary} label="Apertura del file" />
               ) : (
                 <T variant="mono" tone="secondary">
                   {f.size_bytes ? formatBytes(f.size_bytes) : ""}

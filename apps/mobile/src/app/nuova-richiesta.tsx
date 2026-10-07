@@ -166,7 +166,7 @@ function Wizard({
     setPending(false);
     setResult(res);
     if (res.id) setRequestId(res.id);
-    if (res.id && !res.error && !res.issues) router.replace({ pathname: "/richiesta-azienda/[id]", params: { id: res.id } });
+    if (res.id && !res.error && !res.issues) router.replace({ pathname: "/richiesta-azienda/[id]", params: { id: res.id, momento: "inviata" } });
   }
 
   // ----- services -----

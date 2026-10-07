@@ -17,7 +17,7 @@ import { Segmented } from "@/components/segmented";
 import { Sheet } from "@/components/sheet";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
-import { Stamp, StatusRow, TicketTag } from "@/components/ticket";
+import { PrintedTicket, Stamp, StatusRow, TicketTag } from "@/components/ticket";
 import { InlineError, TextField } from "@/components/text-field";
 import { errorMessage } from "@/lib/errors";
 import { ago, euro, plural, requestMeta, stampDay } from "@/lib/format";
@@ -32,7 +32,9 @@ type Tab = "overview" | "quotes" | "brief";
 
 /** One of the company's requests: where each agency stands, the quotes side by side, and the brief. */
 export default function ClientRequestScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, momento } = useLocalSearchParams<{ id: string; momento?: "inviata" | "confermato" }>();
+  // A signature moment plays on the screen opened by the action that caused it, when it first shows.
+  const [moment] = useState(momento);
   const org = useActiveOrg();
   const q = useQuery(`client-request:${org.id}:${id}`, () => fetchClientRequest(id, org.id));
   const [tab, setTab] = useState<Tab>("overview");
@@ -100,7 +102,9 @@ export default function ClientRequestScreen() {
       <View style={styles.head}>
         <StatusRow>
           <Badge {...badge} />
-          {accepted && <Stamp label="Confermato" date={stampDay(accepted.decided_at)} type={request.draft.eventType} />}
+          {accepted && (
+            <Stamp label="Confermato" date={stampDay(accepted.decided_at)} type={request.draft.eventType} fresh={moment === "confermato"} />
+          )}
         </StatusRow>
         <T variant="title2" accessibilityRole="header">
           {r.title}
@@ -114,6 +118,13 @@ export default function ClientRequestScreen() {
         </T>
       </View>
 
+      {moment === "inviata" && open && (
+        <PrintedTicket
+          number={formatTicketNumber(request.number)}
+          title="Richiesta inviata"
+          body={`${proposals.length === 1 ? "È arrivata all'agenzia" : `È arrivata alle ${proposals.length} agenzie`}. Ti avvisiamo quando arrivano le proposte.`}
+        />
+      )}
       {request.status === "cancelled" && <Notice>Hai annullato questa richiesta.</Notice>}
       {events.length > 0 && (
         <Notice
@@ -240,8 +251,9 @@ function Quotes({ quotes, open, onChange }: { quotes: ClientProposal[]; open: bo
           const { data, error: e } = await supabase.rpc("accept_proposal", { p_proposal: p.id });
           setBusy(null);
           if (e) return setError(errorMessage(e));
-          onChange();
-          if (data?.[0]) router.push({ pathname: "/evento/[id]", params: { id: data[0] } });
+          // Back to the top of the request, where the CONFERMATO stamp lands and the event can be opened.
+          if (data?.[0]) router.replace({ pathname: "/richiesta-azienda/[id]", params: { id: p.request_id, momento: "confermato" } });
+          else onChange();
         },
       },
     ]);
