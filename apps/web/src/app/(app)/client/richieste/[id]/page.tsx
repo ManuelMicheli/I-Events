@@ -62,7 +62,7 @@ export default async function ClientRequestPage({ params, searchParams }: { para
     <>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <Link href="/client" className="text-sm text-muted underline">
+          <Link href="/client/richieste" className="text-sm text-muted underline">
             Le tue richieste
           </Link>
           <h1 className="text-2xl font-semibold">{request.draft.basics.title}</h1>

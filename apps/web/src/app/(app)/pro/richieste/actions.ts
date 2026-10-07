@@ -19,6 +19,7 @@ export async function moveProposal(_: ActionState, form: FormData): Promise<Acti
   const { error } = await supabase.rpc("set_proposal_status", { p_proposal: id, p_status: status });
   if (error) return { error: dbErrorMessage(error) };
   revalidatePath(`/pro/richieste/${id}`);
+  revalidatePath("/pro/richieste");
   revalidatePath("/pro");
   return { ok: true };
 }
@@ -37,6 +38,7 @@ export async function submitProposal(proposalId: string, input: unknown): Promis
   });
   if (error) return { error: error.code === "22023" ? "La richiesta non accetta più proposte." : dbErrorMessage(error) };
   revalidatePath(`/pro/richieste/${id}`);
+  revalidatePath("/pro/richieste");
   revalidatePath("/pro");
   return { ok: true };
 }

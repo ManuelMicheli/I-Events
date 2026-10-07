@@ -103,3 +103,23 @@ select tests.ok((select status = 'cancelled' from public.public_event(:'event'))
 select tests.ok(tests.error_of(format($$select public.register_for_event(%L, 'Anna', 'anna@example.com')$$, :'event')) = '22023', 'registrations are closed');
 select tests.ok((select status = 'cancelled' from public.registration_ticket(:'token')), 'the ticket says it was cancelled');
 reset role;
+
+-- An event of the city sells its tickets on its own website: the page links to it, no registration here.
+update public.events set is_public = true, public_url = 'https://example.com/cena', public_organizer = 'Comune di Milano'
+ where id = :'private_event';
+set role anon;
+select tests.ok((select website = 'https://example.com/cena' from public.public_event(:'private_event')), 'the page shows the website');
+select tests.ok((select organizer = 'Comune di Milano' from public.public_event(:'private_event')), 'and names the real organiser');
+select tests.ok(tests.error_of(format($$select public.register_for_event(%L, 'Anna', 'anna@example.com')$$, :'private_event')) = '22023', 'it takes no registrations');
+reset role;
+select tests.ok(tests.error_of(format($$update public.events set public_url = 'http://example.com' where id = %L$$, :'private_event')) = '23514', 'the website needs https');
+
+-- The days gone by: an event already on stage leaves the calendar of today, and shows when looking back
+-- (the cancelled one stays out of both).
+update public.events set status = 'preparing' where id = :'private_event';
+update public.events set status = 'live' where id = :'private_event';
+update public.events set status = 'completed', start_date = current_date - 10 where id = :'private_event';
+set role anon;
+select tests.ok((select count(*) from public.public_events()) = 0, 'a past event is not in the calendar of today');
+select tests.ok((select count(*) from public.public_events(current_date - 30, null)) = 1, 'it shows when looking back');
+reset role;

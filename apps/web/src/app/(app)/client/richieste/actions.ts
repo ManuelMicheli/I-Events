@@ -52,6 +52,7 @@ export async function submitDraft(requestId: string | null, input: unknown, agen
       : dbErrorMessage(error);
     return { id: saved.id, error: message };
   }
+  revalidatePath("/client/richieste");
   revalidatePath("/client");
   redirect(`/client/richieste/${saved.id}?momento=inviata`);
 }
@@ -65,8 +66,9 @@ export async function deleteDraft(form: FormData) {
   if (files?.length) await supabase.storage.from(ATTACHMENTS_BUCKET).remove(files.map((f) => f.storage_path));
   const { error } = await supabase.from("requests").delete().eq("id", id).eq("status", "draft");
   if (error) throw error;
+  revalidatePath("/client/richieste");
   revalidatePath("/client");
-  redirect("/client");
+  redirect("/client/richieste");
 }
 
 export async function cancelRequest(form: FormData) {
@@ -76,6 +78,8 @@ export async function cancelRequest(form: FormData) {
   const { error } = await supabase.rpc("cancel_request", { p_request: id });
   if (error) throw new Error(dbErrorMessage(error));
   revalidatePath(`/client/richieste/${id}`);
+  revalidatePath("/client/richieste");
+  revalidatePath("/client");
 }
 
 export type DecisionState = { error?: string };
@@ -88,6 +92,8 @@ export async function acceptProposal(_: DecisionState, form: FormData): Promise<
   const { error } = await supabase.rpc("accept_proposal", { p_proposal: id });
   if (error) return { error: dbErrorMessage(error) };
   revalidatePath(`/client/richieste/${requestId}`);
+  revalidatePath("/client/richieste");
+  revalidatePath("/client");
   redirect(`/client/richieste/${requestId}?momento=confermato`);
 }
 
@@ -101,5 +107,7 @@ export async function requestRevision(_: DecisionState, form: FormData): Promise
   const { error } = await supabase.rpc("request_revision", { p_proposal: id, p_note: note.data });
   if (error) return { error: dbErrorMessage(error) };
   revalidatePath(`/client/richieste/${requestId}`);
+  revalidatePath("/client/richieste");
+  revalidatePath("/client");
   return {};
 }

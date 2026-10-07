@@ -12,14 +12,23 @@ import { PublicCover } from "@/components/public";
 import { Screen, Section } from "@/components/screen";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
-import { dayLabel, getPublicEvent, isOver, longDay, mapsUrl, myTickets, timeRange } from "@/lib/public-events";
+import {
+  dayLabel,
+  getPublicEvent,
+  isOver,
+  longDay,
+  mapsUrl,
+  myTickets,
+  timeRange,
+} from "@/lib/public-events";
 import { useQuery } from "@/lib/use-query";
 import { radius, space, useTheme } from "@/theme";
 
 /**
  * The page of a public event (design pubblico-02), as on the website: cover, title, when and where,
  * what happens and who organises it. At the bottom the price and the one main action: register, or
- * open the ticket already taken on this phone.
+ * open the ticket already taken on this phone. An event of the city sells its tickets on its own
+ * website: the action opens it instead.
  */
 export default function PublicEventScreen() {
   const { c } = useTheme();
@@ -64,27 +73,58 @@ export default function PublicEventScreen() {
   const place = [event.venue, event.city].filter(Boolean);
   const maps = mapsUrl(event);
   const open = !cancelled && !over;
+  const website = event.website;
 
   const footer = (
     <View style={styles.footer}>
       <View style={styles.flex}>
-        <T variant="bodyStrong">{cancelled ? "Evento annullato" : over ? "Evento concluso" : left === 0 && !mine ? "Posti esauriti" : "Gratis"}</T>
+        <T variant="bodyStrong">
+          {cancelled
+            ? "Evento annullato"
+            : over
+              ? "Evento concluso"
+              : website
+                ? "Biglietti sul sito"
+                : left === 0 && !mine
+                  ? "Posti esauriti"
+                  : "Gratis"}
+        </T>
         <T variant="caption" tone="secondary">
           {cancelled
             ? "Le iscrizioni sono chiuse."
             : over
               ? "Trovi i prossimi in Esplora."
-              : mine
-                ? "Hai già il biglietto."
-                : left === 0
-                  ? "Se qualcuno rinuncia il posto torna libero."
-                  : "Iscrizione obbligatoria"}
+              : website
+                ? "Prezzi e acquisto sul sito ufficiale."
+                : mine
+                  ? "Hai già il biglietto."
+                  : left === 0
+                    ? "Se qualcuno rinuncia il posto torna libero."
+                    : "Iscrizione obbligatoria"}
         </T>
       </View>
-      {open && mine ? (
-        <Button label="Apri il biglietto" onPress={() => router.push({ pathname: "/pubblico/biglietto/[token]", params: { token: mine } })} />
+      {website && !cancelled ? (
+        <Button
+          variant={over ? "secondary" : "primary"}
+          icon="open-outline"
+          label="Sito ufficiale"
+          accessibilityLabel="Apri il sito ufficiale dell'evento"
+          onPress={() => Linking.openURL(website)}
+        />
+      ) : open && mine ? (
+        <Button
+          label="Apri il biglietto"
+          onPress={() =>
+            router.push({ pathname: "/pubblico/biglietto/[token]", params: { token: mine } })
+          }
+        />
       ) : open && left !== 0 ? (
-        <Button label="Iscriviti" onPress={() => router.push({ pathname: "/pubblico/iscrizione/[id]", params: { id: event.id } })} />
+        <Button
+          label="Iscriviti"
+          onPress={() =>
+            router.push({ pathname: "/pubblico/iscrizione/[id]", params: { id: event.id } })
+          }
+        />
       ) : null}
     </View>
   );
@@ -92,7 +132,9 @@ export default function PublicEventScreen() {
   return (
     <Screen footer={footer} footerBar refreshing={q.refreshing} onRefresh={q.refresh}>
       <Stack.Screen options={{ title: event.title }} />
-      {moment === "annullata" && <Notice tone="success">Iscrizione annullata. Il posto è di nuovo libero.</Notice>}
+      {moment === "annullata" && (
+        <Notice tone="success">Iscrizione annullata. Il posto è di nuovo libero.</Notice>
+      )}
       <View style={styles.head}>
         <View>
           <PublicCover type={event.event_type} style={styles.cover} />
@@ -108,13 +150,18 @@ export default function PublicEventScreen() {
             {event.title}
           </T>
           <T variant="monoCaps" tone="secondary">
-            {[formatTicketNumber(event.number), dayLabel(event.start_date, event.end_date), time].filter(Boolean).join(" · ").toUpperCase()}
+            {[formatTicketNumber(event.number), dayLabel(event.start_date, event.end_date), time]
+              .filter(Boolean)
+              .join(" · ")
+              .toUpperCase()}
           </T>
         </View>
         <View style={styles.chips}>
           <TypeChip type={event.event_type} />
-          {open && <Badge tone="success" icon="checkmark" label="Gratis con iscrizione" />}
-          {open && few && (
+          {open && !website && (
+            <Badge tone="success" icon="checkmark" label="Gratis con iscrizione" />
+          )}
+          {open && !website && few && (
             <T variant="label" tone="secondary">
               {few}
             </T>
@@ -123,11 +170,25 @@ export default function PublicEventScreen() {
       </View>
 
       <View style={[styles.facts, { borderColor: c.borderDefault }]}>
-        <Fact icon="calendar-outline" title={longDay(event.start_date, event.end_date)} detail={time} mono />
+        <Fact
+          icon="calendar-outline"
+          title={longDay(event.start_date, event.end_date)}
+          detail={time}
+          mono
+        />
         {place.length > 0 && (
           <View style={styles.placeRow}>
             <Fact icon="location-outline" title={place[0]!} detail={place[1] ?? null} />
-            {maps && <Button variant="tertiary" size="small" icon="map-outline" label="Mappe" accessibilityLabel="Apri nelle mappe" onPress={() => Linking.openURL(maps)} />}
+            {maps && (
+              <Button
+                variant="tertiary"
+                size="small"
+                icon="map-outline"
+                label="Mappe"
+                accessibilityLabel="Apri nelle mappe"
+                onPress={() => Linking.openURL(maps)}
+              />
+            )}
           </View>
         )}
       </View>
@@ -146,7 +207,7 @@ export default function PublicEventScreen() {
           <View style={styles.flex}>
             <T variant="bodyStrong">{event.organizer}</T>
             <T variant="callout" tone="secondary">
-              Prodotto da {event.produced_by}
+              {website ? "Segnalato da" : "Prodotto da"} {event.produced_by}
             </T>
           </View>
         </Card>
@@ -198,12 +259,23 @@ const styles = StyleSheet.create({
   },
   titles: { gap: space[2] },
   chips: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: space[2] },
-  facts: { gap: space[4], paddingVertical: space[4], borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth },
+  facts: {
+    gap: space[4],
+    paddingVertical: space[4],
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   fact: { flex: 1, flexDirection: "row", gap: space[3], alignItems: "flex-start" },
   factIcon: { marginTop: 3 },
   placeRow: { flexDirection: "row", alignItems: "center", gap: space[2] },
   organizer: { flexDirection: "row", alignItems: "center" },
-  initial: { width: 40, height: 40, borderRadius: radius.full, alignItems: "center", justifyContent: "center" },
+  initial: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   footer: { flexDirection: "row", alignItems: "center", gap: space[4] },
   flex: { flex: 1 },
 });

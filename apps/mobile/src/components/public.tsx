@@ -1,11 +1,33 @@
-import { EVENT_TYPE_INFO, formatTicketNumber, hhmm, passCode, peopleLabel, placesLabel, placesLeft, type EventType } from "@i-events/core";
+import {
+  EVENT_TYPE_INFO,
+  formatTicketNumber,
+  hhmm,
+  passCode,
+  peopleLabel,
+  placesLabel,
+  todayInItaly,
+  type EventType,
+} from "@i-events/core";
 import { router } from "expo-router";
 import QRCode from "qrcode";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Animated, StyleSheet, useWindowDimensions, View, type StyleProp, type ViewStyle } from "react-native";
+import {
+  Animated,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { easeOut, useReduceMotion } from "@/lib/motion";
-import { dayLabel, eventLine, type PublicEvent, type RegistrationTicket } from "@/lib/public-events";
+import {
+  dayLabel,
+  eventLine,
+  priceLabel,
+  type PublicEvent,
+  type RegistrationTicket,
+} from "@/lib/public-events";
 import { stampDay } from "@/lib/format";
 import { useSession } from "@/lib/session";
 import { motion, radius, space, useTheme } from "@/theme";
@@ -23,10 +45,22 @@ import { Confirmation } from "./ticket";
  */
 
 /** The event's cover, or a quiet paper one while the agency has not said what kind of event it is. */
-export function PublicCover({ type, style }: { type: EventType | null; style?: StyleProp<ViewStyle> }) {
+export function PublicCover({
+  type,
+  style,
+}: {
+  type: EventType | null;
+  style?: StyleProp<ViewStyle>;
+}) {
   const { c } = useTheme();
   if (type) return <EventCover type={type} style={style} />;
-  return <View style={[{ backgroundColor: c.bgSubtle }, style]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />;
+  return (
+    <View
+      style={[{ backgroundColor: c.bgSubtle }, style]}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    />
+  );
 }
 
 /** A pill over the cover: "In corso" with the live dot, "Esaurito", "Ultimi 12 posti". */
@@ -36,10 +70,10 @@ function CoverBadge({ children }: { children: ReactNode }) {
 }
 
 /** What the cover says about places and time: on now, sold out, few left. */
-function coverNote(e: PublicEvent): { live: boolean; label: string } | null {
+function coverNote(e: PublicEvent, price: string): { live: boolean; label: string } | null {
   if (e.status === "live") return { live: true, label: "In corso" };
-  if (placesLeft(e.capacity, e.registered) === 0) return { live: false, label: "Esaurito" };
-  const few = placesLabel(e.capacity, e.registered);
+  if (price === "Posti esauriti") return { live: false, label: "Esaurito" };
+  const few = price === "Gratis" && placesLabel(e.capacity, e.registered);
   return few ? { live: false, label: few } : null;
 }
 
@@ -48,13 +82,16 @@ function coverNote(e: PublicEvent): { live: boolean; label: string } | null {
  * the notches and the price row with the type chip. The whole card opens the event.
  */
 export function PublicEventCard({ event }: { event: PublicEvent }) {
-  const note = coverNote(event);
-  const soldOut = placesLeft(event.capacity, event.registered) === 0;
+  const price = priceLabel(event, todayInItaly());
+  const note = coverNote(event, price);
+  const muted = price === "Posti esauriti" || price === "Andato in scena";
   const line = eventLine(event);
   return (
     <Card
       onPress={() => router.push({ pathname: "/pubblico/evento/[id]", params: { id: event.id } })}
-      accessibilityLabel={[event.title, note?.label, line, soldOut ? "posti esauriti" : "gratis"].filter(Boolean).join(", ")}
+      accessibilityLabel={[event.title, note?.label, line, price.toLowerCase()]
+        .filter(Boolean)
+        .join(", ")}
       style={styles.eventCard}
     >
       <View style={styles.coverWrap}>
@@ -76,8 +113,8 @@ export function PublicEventCard({ event }: { event: PublicEvent }) {
         <TicketDivider />
       </View>
       <View style={styles.priceRow}>
-        <T variant="mono" tone={soldOut ? "secondary" : "primary"}>
-          {soldOut ? "Posti esauriti" : "Gratis"}
+        <T variant="mono" tone={muted ? "secondary" : "primary"}>
+          {price}
         </T>
         <TypeChip type={event.event_type} />
       </View>
@@ -102,7 +139,11 @@ export function PublicEventRow({
   onPress: () => void;
 }) {
   return (
-    <Card onPress={onPress} accessibilityLabel={[title, live && "in corso", line, extra].filter(Boolean).join(", ")} style={styles.row}>
+    <Card
+      onPress={onPress}
+      accessibilityLabel={[title, live && "in corso", line, extra].filter(Boolean).join(", ")}
+      style={styles.row}
+    >
       <PublicCover type={type} style={styles.rowCover} />
       <View style={styles.rowTexts}>
         <T variant="bodyStrong">{title}</T>
@@ -196,21 +237,44 @@ export function PublicTicket({
 
   useEffect(() => {
     if (!fresh) return;
-    const run = Animated.timing(enter, { toValue: 1, duration: reduce ? motion.fast : motion.slow, easing: easeOut, useNativeDriver: true });
+    const run = Animated.timing(enter, {
+      toValue: 1,
+      duration: reduce ? motion.fast : motion.slow,
+      easing: easeOut,
+      useNativeDriver: true,
+    });
     run.start();
     return () => run.stop();
   }, [fresh, reduce, enter]);
 
   const motionStyle = reduce
     ? { opacity: enter }
-    : { opacity: enter, transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [-24, 0] }) }] };
+    : {
+        opacity: enter,
+        transform: [
+          { translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [-24, 0] }) },
+        ],
+      };
   return (
     <Animated.View
       accessible={false}
       accessibilityLabel={`Biglietto per ${ticket.title}, a nome di ${ticket.name}`}
-      style={[styles.ticket, { backgroundColor: c.bgSurface, borderColor: c.borderDefault }, motionStyle]}
+      style={[
+        styles.ticket,
+        { backgroundColor: c.bgSurface, borderColor: c.borderDefault },
+        motionStyle,
+      ]}
     >
-      <View style={[styles.band, { backgroundColor: ticket.event_type ? EVENT_TYPE_INFO[ticket.event_type].ink.deep : c.bgSubtle }]}>
+      <View
+        style={[
+          styles.band,
+          {
+            backgroundColor: ticket.event_type
+              ? EVENT_TYPE_INFO[ticket.event_type].ink.deep
+              : c.bgSubtle,
+          },
+        ]}
+      >
         <PublicCover type={ticket.event_type} style={StyleSheet.absoluteFill} />
         <View style={styles.brand}>
           <View style={styles.brandName}>
@@ -229,11 +293,22 @@ export function PublicTicket({
           <T variant="title2" accessibilityRole="header">
             {ticket.title}
           </T>
-          {!cancelled && <Confirmation label="Iscrizione confermata" date={stampDay(ticket.registered_at)} type={ticket.event_type} fresh={fresh} />}
+          {!cancelled && (
+            <Confirmation
+              label="Iscrizione confermata"
+              date={stampDay(ticket.registered_at)}
+              type={ticket.event_type}
+              fresh={fresh}
+            />
+          )}
         </View>
         <View style={styles.facts}>
           <Fact label="Data" value={dayLabel(ticket.start_date, ticket.end_date)} />
-          <Fact label="Ora" value={ticket.starts_at ? hhmm(ticket.starts_at) : "Da definire"} mono={!!ticket.starts_at} />
+          <Fact
+            label="Ora"
+            value={ticket.starts_at ? hhmm(ticket.starts_at) : "Da definire"}
+            mono={!!ticket.starts_at}
+          />
           <Fact label="Luogo" value={ticket.venue || ticket.city || "Da definire"} wide={narrow} />
           <Fact label="Ingresso" value={peopleLabel(ticket.guests)} />
           <Fact label="Nome" value={ticket.name} wide />
@@ -249,7 +324,12 @@ export function PublicTicket({
           </View>
         ) : (
           <View>
-            <View style={[styles.qr, { borderColor: c.borderDefault }]} accessible accessibilityRole="image" accessibilityLabel="Codice QR del biglietto">
+            <View
+              style={[styles.qr, { borderColor: c.borderDefault }]}
+              accessible
+              accessibilityRole="image"
+              accessibilityLabel="Codice QR del biglietto"
+            >
               <QrCode value={link} size={136} />
             </View>
             {over && (
@@ -261,7 +341,11 @@ export function PublicTicket({
             )}
           </View>
         )}
-        <T variant="mono" tone="secondary" accessibilityLabel={`biglietto ${formatTicketNumber(ticket.number)}, codice ${code.split("").join(" ")}`}>
+        <T
+          variant="mono"
+          tone="secondary"
+          accessibilityLabel={`biglietto ${formatTicketNumber(ticket.number)}, codice ${code.split("").join(" ")}`}
+        >
           {formatTicketNumber(ticket.number)} · {code}
         </T>
       </View>
@@ -269,9 +353,23 @@ export function PublicTicket({
   );
 }
 
-function Fact({ label, value, mono = false, wide = false }: { label: string; value: string; mono?: boolean; wide?: boolean }) {
+function Fact({
+  label,
+  value,
+  mono = false,
+  wide = false,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+  wide?: boolean;
+}) {
   return (
-    <View style={[styles.fact, wide && styles.factWide]} accessible accessibilityLabel={`${label}: ${value}`}>
+    <View
+      style={[styles.fact, wide && styles.factWide]}
+      accessible
+      accessibilityLabel={`${label}: ${value}`}
+    >
       <T variant="monoCaps" tone="secondary">
         {label.toUpperCase()}
       </T>
@@ -295,7 +393,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: space[3],
     borderRadius: radius.full,
   },
-  cardBody: { paddingHorizontal: space[4], paddingTop: space[3], paddingBottom: space[4], gap: space[1] },
+  cardBody: {
+    paddingHorizontal: space[4],
+    paddingTop: space[3],
+    paddingBottom: space[4],
+    gap: space[1],
+  },
   cardCut: { paddingHorizontal: space[4] },
   priceRow: {
     minHeight: 52,
@@ -313,7 +416,14 @@ const styles = StyleSheet.create({
   live: { flexDirection: "row", alignItems: "center", gap: space[2] },
   ticket: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth, overflow: "hidden" },
   band: { height: 96, overflow: "hidden" },
-  brand: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space[3], paddingHorizontal: space[6], paddingTop: space[5] },
+  brand: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: space[3],
+    paddingHorizontal: space[6],
+    paddingTop: space[5],
+  },
   brandName: { flexDirection: "row", alignItems: "center", gap: space[2] },
   onCover: { color: "#FFFFFF" },
   ticketBody: { padding: space[6], gap: space[5] },
@@ -322,9 +432,26 @@ const styles = StyleSheet.create({
   fact: { width: "50%", paddingRight: space[3], gap: 2 },
   factWide: { width: "100%" },
   cut: { paddingHorizontal: space[4] },
-  stub: { alignItems: "center", gap: space[3], paddingHorizontal: space[6], paddingTop: space[6], paddingBottom: space[6] },
+  stub: {
+    alignItems: "center",
+    gap: space[3],
+    paddingHorizontal: space[6],
+    paddingTop: space[6],
+    paddingBottom: space[6],
+  },
   qr: { padding: space[3], borderRadius: radius.md, borderWidth: 1, backgroundColor: "#FFFFFF" },
-  qrCover: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center", borderRadius: radius.md, padding: space[3] },
-  cancelled: { borderWidth: 1, borderRadius: radius.md, paddingHorizontal: space[4], paddingVertical: space[2] },
+  qrCover: {
+    ...StyleSheet.absoluteFill,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: radius.md,
+    padding: space[3],
+  },
+  cancelled: {
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingHorizontal: space[4],
+    paddingVertical: space[2],
+  },
   center: { textAlign: "center" },
 });

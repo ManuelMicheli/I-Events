@@ -22,5 +22,6 @@ export async function decideQuote(_: QuoteDecisionState, form: FormData): Promis
   }
   revalidatePath(`/client/eventi/${eventId}`);
   revalidatePath("/client/eventi");
+  revalidatePath("/client");
   return {};
 }

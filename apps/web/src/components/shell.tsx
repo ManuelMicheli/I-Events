@@ -10,7 +10,8 @@ import { buttonClass, Logo } from "./ui";
 
 const NAV: Record<MyOrg["type"], NavItem[]> = {
   agency: [
-    { href: "/pro", label: "Richieste" },
+    { href: "/pro", label: "Home" },
+    { href: "/pro/richieste", label: "Richieste" },
     { href: "/pro/eventi", label: "Eventi" },
     { href: "/pro/attivita", label: "Attività" },
     { href: "/pro/rubrica", label: "Rubrica" },
@@ -20,7 +21,8 @@ const NAV: Record<MyOrg["type"], NavItem[]> = {
     { href: "/impostazioni/team", label: "Team" },
   ],
   client: [
-    { href: "/client", label: "Richieste" },
+    { href: "/client", label: "Home" },
+    { href: "/client/richieste", label: "Richieste" },
     { href: "/client/eventi", label: "Eventi" },
     { href: "/client/agenzie", label: "Trova agenzie" },
     { href: "/impostazioni/collegamenti", label: "Agenzie collegate" },

@@ -706,7 +706,9 @@ export type Database = {
           public_capacity: number | null;
           public_description: string | null;
           public_ends_at: string | null;
+          public_organizer: string | null;
           public_starts_at: string | null;
+          public_url: string | null;
           request_id: string;
           stage_id: string | null;
           start_date: string | null;
@@ -728,7 +730,9 @@ export type Database = {
           public_capacity?: number | null;
           public_description?: string | null;
           public_ends_at?: string | null;
+          public_organizer?: string | null;
           public_starts_at?: string | null;
+          public_url?: string | null;
           request_id: string;
           stage_id?: string | null;
           start_date?: string | null;
@@ -750,7 +754,9 @@ export type Database = {
           public_capacity?: number | null;
           public_description?: string | null;
           public_ends_at?: string | null;
+          public_organizer?: string | null;
           public_starts_at?: string | null;
+          public_url?: string | null;
           request_id?: string;
           stage_id?: string | null;
           start_date?: string | null;
@@ -1877,6 +1883,7 @@ export type Database = {
           email: string;
           events_done: number;
           headline: string;
+          logo_url: string;
           member_since: string;
           name: string;
           org_id: string;
@@ -1953,6 +1960,7 @@ export type Database = {
           status: Database["public"]["Enums"]["event_status"];
           title: string;
           venue: string;
+          website: string;
         }[];
       };
       public_event_rows: {
@@ -1974,6 +1982,7 @@ export type Database = {
           status: Database["public"]["Enums"]["event_status"];
           title: string;
           venue: string;
+          website: string;
         }[];
       };
       public_events: {
@@ -1995,6 +2004,7 @@ export type Database = {
           status: Database["public"]["Enums"]["event_status"];
           title: string;
           venue: string;
+          website: string;
         }[];
       };
       register_for_event: {
@@ -2055,6 +2065,7 @@ export type Database = {
           connected: boolean;
           contact_id: string;
           headline: string;
+          logo_url: string;
           name: string;
           org_id: string;
           rating_avg: number;
