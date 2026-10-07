@@ -33,6 +33,8 @@ export function DecisionForms({
   const [acceptState, accept, accepting] = useActionState<DecisionState, FormData>(acceptProposal, {});
   const [revisionState, revise, revising] = useActionState<DecisionState, FormData>(requestRevision, {});
   const [askChanges, setAskChanges] = useState(false);
+  // The modal keeps the options it opened with, so its checkbox reports here and the form sends it.
+  const [write, setWrite] = useState(false);
 
   return (
     <div className="flex flex-col gap-2">
@@ -47,6 +49,12 @@ export function DecisionForms({
                 {others > 0
                   ? `Nasce l'evento con ${agencyName}. ${others === 1 ? "L'altra agenzia riceve" : `Le altre ${others} agenzie ricevono`} l'esito con una notifica.`
                   : `Nasce l'evento con ${agencyName}.`}
+                {others > 0 && (
+                  <label className="mt-4 flex min-h-11 cursor-pointer items-center gap-3 text-text">
+                    <input type="checkbox" defaultChecked={write} onChange={(e) => setWrite(e.target.checked)} />
+                    {others === 1 ? "Le scrivo anche un messaggio mio" : "Scrivo anche un messaggio mio alle altre agenzie"}
+                  </label>
+                )}
               </>
             ),
             confirmLabel: `Accetta ${formatEuro(total)}`,
@@ -54,6 +62,7 @@ export function DecisionForms({
         >
           <input type="hidden" name="proposalId" value={proposalId} />
           <input type="hidden" name="requestId" value={requestId} />
+          {write && <input type="hidden" name="avvisa" value="on" />}
           <Button
             type="submit"
             variant={lead ? "primary" : "secondary"}

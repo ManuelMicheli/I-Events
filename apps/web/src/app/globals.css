@@ -2209,3 +2209,29 @@ a.chip:focus-visible > span {
     background: var(--color-pressed);
   }
 }
+
+/* A perforation across a card (the proposal card on phones): dashes and a notch at each edge. */
+.perforation {
+  position: relative;
+  height: 1px;
+  background: repeating-linear-gradient(90deg, var(--color-border-strong) 0 4px, #0000 4px 8px) center / calc(100% - 32px) 1px no-repeat;
+}
+.perforation::before,
+.perforation::after {
+  content: "";
+  position: absolute;
+  top: -8px;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  background: var(--color-app);
+}
+.perforation::before {
+  left: -9px;
+  clip-path: inset(0 0 0 50%);
+}
+.perforation::after {
+  right: -9px;
+  clip-path: inset(0 50% 0 0);
+}
