@@ -1,9 +1,10 @@
 "use client";
 
 import { moveEvent, saveEventDetails, type EventState } from "@/app/(app)/pro/eventi/actions";
+import { ConfirmForm } from "@/components/modal";
 import { Button, Field, Input, Notice, Select } from "@/components/ui";
 import { EVENT_TYPE_INFO, EVENT_TYPES, type EventStatus, type EventType } from "@i-events/core";
-import { useActionState } from "react";
+import { useActionState, type ComponentProps } from "react";
 
 const MOVE_LABEL: Record<EventStatus, string> = {
   planning: "Torna in pianificazione",
@@ -21,19 +22,17 @@ export function EventStatusActions({ eventId, moves, quiet = false }: { eventId:
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
         {moves.map((m) => (
-          <form
+          <MoveForm
             key={m}
             action={action}
-            onSubmit={(e) => {
-              if (m === "cancelled" && !confirm("Annullare l'evento? Non si potrà riaprire.")) e.preventDefault();
-            }}
+            confirm={m === "cancelled" ? { title: "Annullare l'evento?", body: "Non si potrà riaprire.", confirmLabel: "Annulla l'evento", danger: true } : undefined}
           >
             <input type="hidden" name="eventId" value={eventId} />
             <input type="hidden" name="status" value={m} />
             <Button type="submit" variant={m === "cancelled" ? "danger" : quiet ? "secondary" : "primary"} disabled={pending}>
               {MOVE_LABEL[m]}
             </Button>
-          </form>
+          </MoveForm>
         ))}
       </div>
       {state.error && <Notice tone="error">{state.error}</Notice>}
@@ -85,4 +84,9 @@ export function EventDetailsForm({ eventId, details }: { eventId: string; detail
       </div>
     </form>
   );
+}
+
+/** A status move; cancelling asks first. */
+function MoveForm({ confirm, ...props }: ComponentProps<"form"> & { confirm?: ComponentProps<typeof ConfirmForm>["confirm"] }) {
+  return confirm ? <ConfirmForm confirm={confirm} {...props} /> : <form {...props} />;
 }

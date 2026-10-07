@@ -1,5 +1,6 @@
 "use client";
 
+import { Chips, Stepper, Toggle } from "@/components/controls";
 import { Field, Input, Select } from "@/components/ui";
 import type { Question } from "@i-events/core";
 
@@ -29,6 +30,9 @@ export function QuestionField({ question: q, value, onChange, error, idPrefix }:
     case "number":
       return (
         <Field label={q.unit ? `${label} (${q.unit})` : label} error={error}>
+          {q.max !== undefined && q.max <= 100 ? (
+            <Stepper id={id} label={q.label.it} min={q.min} max={q.max} value={value as number | undefined} onChange={(n) => onChange(n)} />
+          ) : (
           <Input
             id={id}
             type="number"
@@ -38,16 +42,24 @@ export function QuestionField({ question: q, value, onChange, error, idPrefix }:
             value={value === undefined ? "" : String(value)}
             onChange={(e) => onChange(e.target.value === "" ? undefined : Number(e.target.value))}
           />
+          )}
         </Field>
       );
     case "boolean":
       return (
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={value === true} onChange={(e) => onChange(e.target.checked ? true : undefined)} />
-          {q.label.it}
-        </label>
+        <Toggle label={q.label.it} checked={value === true} onChange={(on) => onChange(on ? true : undefined)} />
       );
     case "select":
+      if (q.options.length <= 8)
+        return (
+          <Chips
+            legend={label}
+            options={q.options.map((o) => ({ value: o.value, label: o.label.it }))}
+            value={value as string | undefined}
+            onChange={(v) => onChange(v)}
+            error={error}
+          />
+        );
       return (
         <Field label={label} error={error}>
           <Select id={id} value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value || undefined)}>
@@ -60,29 +72,16 @@ export function QuestionField({ question: q, value, onChange, error, idPrefix }:
           </Select>
         </Field>
       );
-    case "multiselect": {
-      const selected = (value as string[] | undefined) ?? [];
+    case "multiselect":
       return (
-        <fieldset className="flex flex-col gap-1.5 text-sm">
-          <legend className="mb-1 font-medium">{label}</legend>
-          <div className="flex flex-wrap gap-x-4 gap-y-2">
-            {q.options.map((o) => (
-              <label key={o.value} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={selected.includes(o.value)}
-                  onChange={(e) => {
-                    const next = e.target.checked ? [...selected, o.value] : selected.filter((v) => v !== o.value);
-                    onChange(next.length ? next : undefined);
-                  }}
-                />
-                {o.label.it}
-              </label>
-            ))}
-          </div>
-          {error && <span className="text-danger">{error}</span>}
-        </fieldset>
+        <Chips
+          multiple
+          legend={label}
+          options={q.options.map((o) => ({ value: o.value, label: o.label.it }))}
+          value={(value as string[] | undefined) ?? []}
+          onChange={(next) => onChange(next.length ? next : undefined)}
+          error={error}
+        />
       );
-    }
   }
 }

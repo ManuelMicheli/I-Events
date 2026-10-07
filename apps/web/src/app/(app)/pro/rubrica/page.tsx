@@ -1,6 +1,7 @@
 import { ContactActions } from "@/components/contacts/contact-actions";
 import { FilterIcon, ImportIcon, PlusIcon } from "@/components/icons";
-import { ButtonLink, Card, Empty, Input, Select } from "@/components/ui";
+import { ChipRow, ChipTick } from "@/components/controls";
+import { ButtonLink, Card, Empty, Input } from "@/components/ui";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceCategory, SERVICE_CATALOG } from "@i-events/core";
@@ -29,7 +30,7 @@ export default async function AddressBookPage({ searchParams }: { searchParams: 
     <>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Rubrica</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <ButtonLink href="/pro/rubrica/importa" className="ic-host">
             <ImportIcon />
             Importa contatti
@@ -45,22 +46,28 @@ export default async function AddressBookPage({ searchParams }: { searchParams: 
           Cerca
         </label>
         <Input id="q" name="q" defaultValue={q} placeholder="Cerca per nome, azienda, email o città" className="min-w-64 flex-1" />
-        <label htmlFor="servizio" className="sr-only">
-          Servizio
-        </label>
-        <Select id="servizio" name="servizio" defaultValue={servizio}>
-          <option value="">Tutti i servizi</option>
-          {SERVICE_CATALOG.map((s) => (
-            <option key={s.key} value={s.key}>
-              {s.name.it}
-            </option>
-          ))}
-        </Select>
+        {servizio && <input type="hidden" name="servizio" value={servizio} />}
         <button type="submit" className="ic-host inline-flex h-10 items-center gap-2 rounded-ui border border-border px-4 text-sm">
           <FilterIcon />
           Filtra
         </button>
       </form>
+      <ChipRow label="Servizio">
+        {[{ key: "", name: "Tutti i servizi" }, ...SERVICE_CATALOG.map((c) => ({ key: c.key, name: c.name.it }))].map((c) => {
+          const params = new URLSearchParams();
+          if (q) params.set("q", q);
+          if (c.key) params.set("servizio", c.key);
+          const on = (servizio ?? "") === c.key;
+          return (
+            <Link key={c.key || "tutti"} href={`/pro/rubrica${params.size ? `?${params}` : ""}`} aria-current={on ? "true" : undefined} className="chip shrink-0">
+              <span>
+                {on && <ChipTick />}
+                {c.name}
+              </span>
+            </Link>
+          );
+        })}
+      </ChipRow>
       <Card>
         {contacts.length === 0 ? (
           <Empty>

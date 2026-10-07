@@ -1,6 +1,7 @@
 "use client";
 
 import { decideQuote, type QuoteDecisionState } from "@/app/(app)/client/eventi/actions";
+import { ConfirmForm } from "@/components/modal";
 import { Button, Notice } from "@/components/ui";
 import { formatEuro } from "@i-events/core";
 import { useActionState, useState } from "react";
@@ -12,10 +13,17 @@ export function QuoteDecision({ quoteId, eventId, total, version }: { quoteId: s
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
-        <form
+        <ConfirmForm
           action={action}
-          onSubmit={(e) => {
-            if (!confirm(`Approvi la versione ${version} del preventivo per ${formatEuro(total)}?`)) e.preventDefault();
+          confirm={{
+            title: `Approvi la versione ${version} del preventivo?`,
+            body: (
+              <>
+                <span className="mb-1 block font-mono text-2xl text-text tabular-nums">{formatEuro(total)}</span>
+                L&apos;agenzia riceve l&apos;approvazione e diventa il prezzo dell&apos;evento.
+              </>
+            ),
+            confirmLabel: `Approva ${formatEuro(total)}`,
           }}
         >
           <input type="hidden" name="quoteId" value={quoteId} />
@@ -24,7 +32,7 @@ export function QuoteDecision({ quoteId, eventId, total, version }: { quoteId: s
           <Button type="submit" disabled={pending}>
             Approva il preventivo
           </Button>
-        </form>
+        </ConfirmForm>
         <Button type="button" variant="secondary" onClick={() => setAskChanges((v) => !v)}>
           Chiedi modifiche
         </Button>
