@@ -1,5 +1,6 @@
 "use client";
 
+import { SendIcon } from "@/components/icons";
 import { Button, Card, Field, Input, Notice, Select } from "@/components/ui";
 import { formatEuro, proposalTotal, SERVICE_CATALOG, type ProposalLine } from "@i-events/core";
 import { useState, useTransition } from "react";
@@ -74,7 +75,7 @@ export function ProposalEditor({ proposalId, initialLines, initialSummary, resub
         {error && <Notice tone="error">{error}</Notice>}
         <Button
           type="button"
-          className="self-start"
+          className="ic-host self-start"
           disabled={pending}
           onClick={() =>
             start(async () => {
@@ -83,6 +84,7 @@ export function ProposalEditor({ proposalId, initialLines, initialSummary, resub
             })
           }
         >
+          <SendIcon />
           {resubmit ? "Invia proposta aggiornata" : "Invia proposta all'azienda"}
         </Button>
       </div>

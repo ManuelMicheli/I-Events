@@ -1,6 +1,7 @@
 "use client";
 
 import { deleteQuoteDraft, saveQuoteDraft } from "@/app/(app)/pro/eventi/quote-actions";
+import { TrashIcon } from "@/components/icons";
 import { Button, Field, Input, Notice, Select } from "@/components/ui";
 import { formatEuro, proposalTotal, SERVICE_CATALOG, type ProposalLine } from "@i-events/core";
 import { useState, useTransition } from "react";
@@ -108,7 +109,8 @@ export function QuoteEditor({
         >
           <input type="hidden" name="quoteId" value={quoteId} />
           <input type="hidden" name="eventId" value={eventId} />
-          <Button type="submit" variant="danger" disabled={pending}>
+          <Button type="submit" variant="danger" disabled={pending} className="ic-host">
+            <TrashIcon />
             Elimina bozza
           </Button>
         </form>

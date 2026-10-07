@@ -1,6 +1,7 @@
 "use client";
 
 import { deleteContact, saveContact, type ContactState } from "@/app/(app)/pro/rubrica/actions";
+import { TrashIcon } from "@/components/icons";
 import { Button, Card, Field, Input, Notice, Select } from "@/components/ui";
 import { SERVICE_CATALOG } from "@i-events/core";
 import type { Tables } from "@i-events/db";
@@ -69,12 +70,14 @@ export function ContactForm({ contact, canDelete }: { contact?: Tables<"contacts
             <Button
               type="submit"
               variant="danger"
+              className="ic-host"
               formAction={deleteContact}
               formNoValidate
               onClick={(e) => {
                 if (!confirm(`Eliminare ${contact.name} dalla rubrica?`)) e.preventDefault();
               }}
             >
+              <TrashIcon />
               Elimina
             </Button>
           )}

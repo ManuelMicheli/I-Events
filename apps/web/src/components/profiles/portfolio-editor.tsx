@@ -1,5 +1,6 @@
 "use client";
 
+import { TrashIcon } from "@/components/icons";
 import { Button, Field, Input, Notice } from "@/components/ui";
 import {
   createPortfolioPhoto,
@@ -144,11 +145,13 @@ function EditableItem({ item }: { item: PortfolioItem }) {
             <Button
               type="submit"
               variant="danger"
+              className="ic-host"
               aria-label={`Elimina ${item.title}`}
               onClick={(e) => {
                 if (!confirm(`Eliminare "${item.title}" e le sue foto dal portfolio?`)) e.preventDefault();
               }}
             >
+              <TrashIcon />
               Elimina
             </Button>
           </form>

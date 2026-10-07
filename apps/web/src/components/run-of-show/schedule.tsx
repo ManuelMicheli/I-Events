@@ -7,6 +7,7 @@ import {
   updateScheduleItem,
   type RosState,
 } from "@/app/(app)/pro/eventi/run-of-show-actions";
+import { TrashIcon } from "@/components/icons";
 import { Button, Field, Input, Select } from "@/components/ui";
 import { hhmm } from "@i-events/core";
 import { useActionState, useEffect, useRef } from "react";
@@ -157,6 +158,7 @@ export function ScheduleItemRow({
             <Button
               type="submit"
               variant="danger"
+              className="ic-host"
               formAction={deleteScheduleItem}
               formNoValidate
               disabled={pending}
@@ -164,6 +166,7 @@ export function ScheduleItemRow({
                 if (!confirm("Togliere questo momento dalla scaletta?")) e.preventDefault();
               }}
             >
+              <TrashIcon />
               Elimina
             </Button>
           </div>

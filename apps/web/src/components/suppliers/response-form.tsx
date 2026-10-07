@@ -1,6 +1,7 @@
 "use client";
 
 import { respondToBooking, type ResponseState } from "@/app/(app)/supplier/actions";
+import { SendIcon } from "@/components/icons";
 import { Button, Field, Input } from "@/components/ui";
 import { useActionState, useState } from "react";
 
@@ -49,7 +50,8 @@ export function ResponseForm({
         </p>
       )}
       <div>
-        <Button type="submit" disabled={pending || available === null}>
+        <Button type="submit" disabled={pending || available === null} className="ic-host">
+          <SendIcon />
           {initial.available === null ? "Invia risposta" : "Aggiorna risposta"}
         </Button>
       </div>

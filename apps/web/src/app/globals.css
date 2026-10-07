@@ -537,7 +537,14 @@ samp {
 .ic-calendar *,
 .ic-lens *,
 .ic-menu *,
-.ic-copy * {
+.ic-copy *,
+.ic-send *,
+.ic-message *,
+.ic-trash *,
+.ic-import *,
+.ic-save *,
+.ic-place *,
+.ic-gear * {
   transform-box: view-box;
 }
 
@@ -1109,3 +1116,320 @@ samp {
   }
 }
 
+
+/* Invia: pointing lifts the plane; a sent message flies it off top right, a new one glides in. */
+.snd-plane {
+  transform-origin: 10px 10px;
+}
+.snd-trail {
+  opacity: 0;
+}
+@media (hover: hover) {
+  .snd-plane {
+    transition: transform 180ms var(--ease-out);
+  }
+  .ic-host:hover .snd-plane {
+    transform: translate(1px, -1px);
+  }
+}
+.ic-send.is-sent .snd-plane {
+  animation: snd-fly 760ms linear;
+}
+.ic-send.is-sent .snd-trail {
+  animation: snd-trail 760ms linear;
+}
+@keyframes snd-fly {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.5, 1);
+  }
+  16% {
+    opacity: 1;
+    transform: translate(-1px, 1px) scale(1);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.9, 0.45);
+  }
+  46% {
+    opacity: 0;
+    transform: translate(9px, -9px) scale(0.7);
+  }
+  47% {
+    opacity: 0;
+    transform: translate(-6px, 6px) scale(0.7);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+}
+@keyframes snd-trail {
+  0%,
+  18% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  28% {
+    opacity: 0.8;
+  }
+  44%,
+  100% {
+    opacity: 0;
+    transform: translate(3px, -3px);
+  }
+}
+
+/* Messaggio: focusing the reply field pops the bubble once; its dots type for as long as you write. */
+.bb-body {
+  transform-origin: 5.5px 17.25px;
+}
+.bb-dot {
+  transform-origin: 10px 9px;
+}
+.msg-host:focus-within .bb-body {
+  animation: bb-pop 420ms linear;
+}
+.msg-host:focus-within .bb-dot {
+  animation: bb-type 1200ms var(--ease-in-out) 420ms infinite;
+}
+.msg-host:focus-within .bb-dot:nth-of-type(2) {
+  animation-delay: 580ms;
+}
+.msg-host:focus-within .bb-dot:nth-of-type(3) {
+  animation-delay: 740ms;
+}
+@keyframes bb-pop {
+  0% {
+    transform: scale(1);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.8, 0.4);
+  }
+  25% {
+    transform: scale(0.92);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  65% {
+    transform: scale(1.05);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes bb-type {
+  0%,
+  50%,
+  100% {
+    opacity: 0.45;
+    transform: translateY(0);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(-1.5px);
+  }
+}
+
+/* Elimina: pointing at the button lifts the lid on its left hinge; it overshoots a little, like a real lid. */
+.tr-lid {
+  transform-origin: 3.25px 5.5px;
+  transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@media (hover: hover) {
+  .ic-host:hover .tr-lid {
+    transform: translateY(-1.25px) rotate(-16deg);
+  }
+}
+.ic-host:focus-visible .tr-lid {
+  transform: translateY(-1.25px) rotate(-16deg);
+}
+
+/* Importa: pointing drops the arrow into the tray, the tray gives, a new arrow comes down from above. */
+.im-tray {
+  transform-origin: 10px 16.75px;
+}
+@media (hover: hover) {
+  .ic-host:hover .im-arrow {
+    animation: im-drop 680ms linear;
+  }
+  .ic-host:hover .im-tray {
+    animation: im-catch 680ms linear;
+  }
+}
+@keyframes im-drop {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.9, 0.45);
+  }
+  34% {
+    opacity: 0;
+    transform: translateY(4.5px);
+  }
+  35% {
+    opacity: 0;
+    transform: translateY(-5px);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(0.5px);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes im-catch {
+  0%,
+  24% {
+    transform: translateY(0) scaleX(1);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.5, 1);
+  }
+  36% {
+    transform: translateY(1px) scaleX(1.04);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  52% {
+    transform: translateY(-0.25px) scaleX(0.99);
+  }
+  68%,
+  100% {
+    transform: translateY(0) scaleX(1);
+  }
+}
+
+/* Salva: while the draft saves its lines write themselves; when it is saved they give way to a tick. */
+.sv-line {
+  transform-origin: 7.25px 12px;
+}
+.sv-tick {
+  opacity: 0;
+  stroke-dasharray: 10;
+}
+.ic-save.is-saving .sv-line {
+  animation: sv-write 900ms var(--ease-in-out) infinite backwards;
+}
+.ic-save.is-saving .sv-line-2 {
+  animation-delay: 150ms;
+}
+.ic-save.is-saved .sv-line {
+  opacity: 0;
+}
+.ic-save.is-saved .sv-tick {
+  opacity: 1;
+}
+.ic-save.is-fresh .sv-tick {
+  animation: draw-10 320ms var(--ease-out) 60ms both;
+}
+.ic-save.is-fresh .sv-line {
+  animation: sv-clear 160ms var(--ease-out);
+}
+@keyframes sv-write {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.1);
+  }
+  12% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+@keyframes sv-clear {
+  from {
+    opacity: 1;
+  }
+}
+@keyframes draw-10 {
+  from {
+    stroke-dashoffset: 10;
+  }
+}
+
+/* Luogo: pointing at the place the pin crouches, hops and lands; the ground answers with a ring. */
+.pl-pin {
+  transform-origin: 10px 17.5px;
+}
+.pl-ground {
+  opacity: 0;
+  transform-origin: 10px 18.25px;
+}
+@media (hover: hover) {
+  .ic-host:hover .pl-pin {
+    animation: pl-hop 680ms linear;
+  }
+  .ic-host:hover .pl-ground {
+    animation: pl-ground 680ms linear;
+  }
+}
+@keyframes pl-hop {
+  0% {
+    transform: translateY(0) scale(1, 1);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.5, 1);
+  }
+  14% {
+    transform: translateY(0) scale(1.06, 0.92);
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.35, 1);
+  }
+  40% {
+    transform: translateY(-3.5px) scale(0.97, 1.04);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.9, 0.45);
+  }
+  60% {
+    transform: translateY(0) scale(1.07, 0.9);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  78% {
+    transform: translateY(0) scale(0.98, 1.02);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+@keyframes pl-ground {
+  0%,
+  58% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  62% {
+    opacity: 0.7;
+    transform: scale(0.8);
+    animation-timing-function: var(--ease-out);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* Impostazioni: pointing turns the gear by one tooth; it runs past and settles back onto it. */
+.gr-wheel {
+  transform-origin: 10px 10px;
+}
+@media (hover: hover) {
+  .ic-host:hover .gr-wheel {
+    animation: gr-turn 720ms linear;
+  }
+}
+@keyframes gr-turn {
+  0% {
+    transform: rotate(0);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.3, 1);
+  }
+  60% {
+    transform: rotate(53deg);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  82% {
+    transform: rotate(43deg);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  100% {
+    transform: rotate(45deg);
+  }
+}
