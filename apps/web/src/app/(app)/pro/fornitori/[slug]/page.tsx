@@ -1,3 +1,4 @@
+import { PlusIcon } from "@/components/icons";
 import { MarketplaceProfile } from "@/components/marketplace/profile";
 import { Button, ButtonLink } from "@/components/ui";
 import { requireOrg } from "@/lib/session";
@@ -40,7 +41,10 @@ export default async function SupplierProfilePage({ params }: { params: Promise<
         ) : (
           <form action={addMarketplaceSupplier}>
             <input type="hidden" name="supplierId" value={profile.org_id} />
-            <Button type="submit">Aggiungi alla rubrica</Button>
+            <Button type="submit" className="ic-host">
+              <PlusIcon />
+              Aggiungi alla rubrica
+            </Button>
           </form>
         )
       }

@@ -1,5 +1,6 @@
 import { CopyButton } from "@/components/copy-button";
 import { PublicPageForm } from "@/components/events/public-page";
+import { PlusIcon } from "@/components/icons";
 import { ClearMoment } from "@/components/moment";
 import { Seal, stampDay } from "@/components/ticket";
 import { EventHeader } from "@/components/event-type";
@@ -297,7 +298,8 @@ export default async function EventPage({ params, searchParams }: { params: Prom
                     Parti dalla checklist tipica per i servizi di questo evento
                     {event.start_date ? ", con le scadenze già calcolate sulla data." : ". Aggiungi la data dell'evento per avere anche le scadenze."}
                   </span>
-                  <Button type="submit" variant="secondary">
+                  <Button type="submit" variant="secondary" className="ic-host">
+                    <PlusIcon />
                     Aggiungi {suggestionCount} attività suggerite
                   </Button>
                 </form>
@@ -372,7 +374,8 @@ export default async function EventPage({ params, searchParams }: { params: Prom
                   </option>
                 ))}
               </Select>
-              <Button type="submit" variant="secondary">
+              <Button type="submit" variant="secondary" className="ic-host">
+                <PlusIcon />
                 Aggiungi
               </Button>
             </form>

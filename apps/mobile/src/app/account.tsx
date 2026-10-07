@@ -45,6 +45,16 @@ export default function AccountScreen() {
               onPress={() => router.push("/importa-contatti")}
               trailing={chevron}
             />
+            <Divider />
+            <ListRow title="Trova fornitori" subtitle="I fornitori con un profilo pubblico su I-Events" onPress={() => router.push("/trova")} trailing={chevron} />
+          </Card>
+        </Section>
+      )}
+
+      {activeOrg?.type === "client" && (
+        <Section title="Strumenti">
+          <Card style={styles.list}>
+            <ListRow title="Trova agenzie" subtitle="Le agenzie con un profilo pubblico su I-Events" onPress={() => router.push("/trova")} trailing={chevron} />
           </Card>
         </Section>
       )}
