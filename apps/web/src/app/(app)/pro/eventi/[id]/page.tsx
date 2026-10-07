@@ -1,3 +1,4 @@
+import { Stamp, stampDay } from "@/components/ticket";
 import { EventHeader } from "@/components/event-type";
 import { BookingRow, type Booking } from "@/components/events/booking-row";
 import { ReviewForm } from "@/components/profiles/review-forms";
@@ -14,6 +15,7 @@ import {
   canMoveEvent,
   EVENT_STATUSES,
   EVENT_TYPE_INFO,
+  formatTicketNumber,
   eventBudget,
   formatEuro,
   getServiceCategory,
@@ -45,7 +47,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
   const { data: event, error } = await supabase
     .from("events")
-    .select("id, title, event_type, status, start_date, end_date, city, venue, proposal_id, client:organizations!events_client_org_id_fkey(name)")
+    .select("id, number, title, event_type, status, start_date, end_date, city, venue, proposal_id, stage:campaign_stages(position), client:organizations!events_client_org_id_fkey(name)")
     .eq("id", id)
     .eq("agency_org_id", org.id)
     .maybeSingle();
@@ -134,10 +136,19 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
             Eventi
           </Link>
         }
-        aside={<span className="rounded-ui border border-border px-3 py-1 text-sm">{EVENT_STATUS_LABEL[event.status]}</span>}
+        aside={
+          <div className="flex items-center gap-4">
+            {event.status === "completed" && (
+              <Stamp label="Andato in scena" date={stampDay(event.end_date ?? event.start_date)} type={event.event_type} />
+            )}
+            <span className="rounded-ui border border-border px-3 py-1 text-sm">{EVENT_STATUS_LABEL[event.status]}</span>
+          </div>
+        }
       >
         <h1 className="text-2xl font-semibold">{event.title}</h1>
         <p className="text-sm text-muted">
+          <span className="font-mono">{formatTicketNumber(event.number, event.stage?.position)}</span>
+          {" · "}
           {[event.event_type && EVENT_TYPE_INFO[event.event_type].label, event.client.name, dates || "Data da definire", event.city, event.venue]
             .filter(Boolean)
             .join(" · ")}

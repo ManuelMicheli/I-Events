@@ -20,3 +20,4 @@ export * from "./agenda";
 export * from "./push";
 export * from "./event-day";
 export * from "./event-types";
+export * from "./ticket";
