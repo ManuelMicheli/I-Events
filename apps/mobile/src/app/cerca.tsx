@@ -15,7 +15,7 @@ import { fonts, radius, space, type as typeScale, useTheme } from "@/theme";
 type Row = { key: string; href: SearchHit["href"]; title: string; meta?: string; group: string; icon: NavIconName };
 
 const GROUP_ICON: Record<SearchHit["group"], NavIconName> = { Richieste: "requests", Eventi: "events", Rubrica: "contacts" };
-const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 /**
  * Search (Carta item 22, A3), as the website's ⌘K palette: the lens in the top bar opens it. Without
@@ -23,9 +23,12 @@ const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCa
  * by name, asking 150 ms after the last letter. Results cascade in.
  */
 export default function SearchScreen() {
-  const { c } = useTheme();
+  const { c, scheme } = useTheme();
   const insets = useSafeAreaInsets();
   const org = useActiveOrg();
+  const [focused, setFocused] = useState(true);
+  // The same focus as the other fields: Grafite border and a 4 halo.
+  const ring = scheme === "dark" ? "rgba(241,236,228,0.16)" : "rgba(28,27,25,0.08)";
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [searching, setSearching] = useState(false);
@@ -80,41 +83,45 @@ export default function SearchScreen() {
   return (
     <View style={[styles.fill, { backgroundColor: c.bgApp }]}>
       <View style={styles.top}>
-        <Pressable
-          onPress={() => input.current?.focus()}
-          style={[styles.field, { backgroundColor: c.bgSurface, borderColor: c.borderControl }]}
-          accessible={false}
-        >
-          <LensIcon color={c.textSecondary} look={searching} />
-          <TextInput
-            ref={input}
-            value={query}
-            onChangeText={type}
-            autoFocus
-            autoCorrect={false}
-            autoCapitalize="none"
-            returnKeyType="search"
-            maxLength={60}
-            accessibilityLabel="Cerca sezioni, richieste, eventi e contatti"
-            placeholder={org.type === "agency" ? "Cerca richieste, eventi, contatti…" : "Cerca richieste, eventi…"}
-            placeholderTextColor={c.textSecondary}
-            selectionColor={c.accentFill}
-            style={[styles.input, { color: c.textPrimary }]}
-          />
-          {query.length > 0 && (
-            <Pressable
-              onPress={() => {
-                type("");
-                input.current?.focus();
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Cancella la ricerca"
-              style={({ pressed }) => [styles.clear, pressed && { backgroundColor: c.bgSubtle }]}
-            >
-              <Ionicons name="close-circle" size={20} color={c.textSecondary} />
-            </Pressable>
-          )}
-        </Pressable>
+        <View style={[styles.ring, { borderColor: focused ? ring : "transparent" }]}>
+          <Pressable
+            onPress={() => input.current?.focus()}
+            style={[styles.field, { backgroundColor: c.bgSurface, borderColor: focused ? c.focus : c.borderControl }]}
+            accessible={false}
+          >
+            <LensIcon color={c.textSecondary} look={searching} />
+            <TextInput
+              ref={input}
+              value={query}
+              onChangeText={type}
+              autoFocus
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              autoCorrect={false}
+              autoCapitalize="none"
+              returnKeyType="search"
+              maxLength={60}
+              accessibilityLabel="Cerca sezioni, richieste, eventi e contatti"
+              placeholder={org.type === "agency" ? "Cerca richieste, eventi, contatti…" : "Cerca richieste, eventi…"}
+              placeholderTextColor={c.textSecondary}
+              selectionColor={c.accentFill}
+              style={[styles.input, { color: c.textPrimary }]}
+            />
+            {query.length > 0 && (
+              <Pressable
+                onPress={() => {
+                  type("");
+                  input.current?.focus();
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Cancella la ricerca"
+                style={({ pressed }) => [styles.clear, pressed && { backgroundColor: c.bgSubtle }]}
+              >
+                <Ionicons name="close-circle" size={20} color={c.textSecondary} />
+              </Pressable>
+            )}
+          </Pressable>
+        </View>
       </View>
       <ScrollView
         keyboardShouldPersistTaps="handled"
@@ -190,19 +197,21 @@ function Result({ row, order }: { row: Row; order: number }) {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  top: { paddingHorizontal: space[4], paddingTop: space[2], paddingBottom: space[3] },
+  top: { paddingHorizontal: space[4] - 4, paddingTop: space[2] - 4, paddingBottom: space[3] - 4 },
+  ring: { borderWidth: 4, borderRadius: radius.md + 4 },
   field: {
     minHeight: 48,
     flexDirection: "row",
     alignItems: "center",
     gap: space[2],
     paddingLeft: space[3],
-    paddingRight: space[1],
+    paddingRight: 2,
     borderRadius: radius.md,
     borderWidth: 1,
   },
-  input: { flex: 1, minHeight: 46, fontFamily: fonts.sans["400"], fontSize: typeScale.body.fontSize, paddingVertical: 0 },
-  clear: { width: 40, height: 40, borderRadius: radius.full, alignItems: "center", justifyContent: "center" },
+  // The field draws its own focus; the browser's outline would sit inside it (web build).
+  input: { flex: 1, minHeight: 44, fontFamily: fonts.sans["400"], fontSize: typeScale.body.fontSize, paddingVertical: 0, outlineWidth: 0 },
+  clear: { width: 44, height: 44, borderRadius: radius.full, alignItems: "center", justifyContent: "center" },
   list: { paddingHorizontal: space[4], gap: space[4] },
   group: { gap: 0 },
   groupName: { paddingBottom: space[1] },

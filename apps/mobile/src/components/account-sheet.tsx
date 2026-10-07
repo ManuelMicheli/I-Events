@@ -57,8 +57,8 @@ export function AccountSheet({ visible, onClose }: { visible: boolean; onClose: 
                       setActiveOrg(o.id);
                       onClose();
                     }}
-                    accessibilityRole="radio"
-                    accessibilityState={{ checked: on }}
+                    role="radio"
+                    aria-checked={on}
                     accessibilityLabel={`${o.name} · ${ORG_TYPE_LABEL[o.type]}`}
                     style={({ pressed }) => [styles.item, pressed && { backgroundColor: c.bgSubtle }]}
                   >

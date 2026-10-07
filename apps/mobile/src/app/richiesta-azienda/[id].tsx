@@ -17,6 +17,7 @@ import { Segmented } from "@/components/segmented";
 import { Sheet } from "@/components/sheet";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
+import { useToast } from "@/components/toast";
 import { Confirmation, PrintedTicket, StatusRow, TicketTag } from "@/components/ticket";
 import { InlineError, TextField } from "@/components/text-field";
 import { errorMessage } from "@/lib/errors";
@@ -40,6 +41,7 @@ export default function ClientRequestScreen() {
   const [tab, setTab] = useState<Tab>("overview");
   const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState<string>();
+  const toast = useToast();
 
   if (q.loading)
     return (
@@ -91,7 +93,10 @@ export default function ClientRequestScreen() {
           const { error: e } = await supabase.rpc("cancel_request", { p_request: request.id });
           setCancelling(false);
           if (e) setError(errorMessage(e));
-          else q.refresh();
+          else {
+            toast({ text: "Richiesta annullata. Le agenzie sono state avvisate.", tone: "neutral" });
+            q.refresh();
+          }
         },
       },
     ]);
@@ -228,6 +233,7 @@ function AgencyRow({ p }: { p: ClientProposal }) {
 
 /** The quotes one per card, side by side with a swipe, then the comparison line by line. */
 function Quotes({ quotes, open, onChange }: { quotes: ClientProposal[]; open: boolean; onChange: () => void }) {
+  const toast = useToast();
   const { c } = useTheme();
   const { width } = useWindowDimensions();
   const cardWidth = Math.min(width - space[4] * 2 - (quotes.length > 1 ? space[6] : 0), 480);
@@ -272,6 +278,7 @@ function Quotes({ quotes, open, onChange }: { quotes: ClientProposal[]; open: bo
     if (e) return setError(errorMessage(e));
     setRevising(null);
     setNote("");
+    toast({ text: "Richiesta di modifica inviata all'agenzia" });
     onChange();
   };
 
