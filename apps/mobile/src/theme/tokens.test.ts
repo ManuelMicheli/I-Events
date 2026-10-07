@@ -25,6 +25,9 @@ const pairs: [keyof Palette, keyof Palette, number][] = [
   ["success", "successBg", 4.5],
   ["warning", "warningBg", 4.5],
   ["info", "infoBg", 4.5],
+  // Toasts: Grafite with the page colour as text, the action in Fiamma 400.
+  ["bgApp", "textPrimary", 4.5],
+  ["toastAction", "textPrimary", 4.5],
   // Non-text: control borders and the focus ring need 3:1.
   ["borderControl", "bgSurface", 3],
   ["borderControl", "bgApp", 3],

@@ -1,5 +1,7 @@
+import { StyleSheet, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
-import { useTheme } from "@/theme";
+import { fonts, space, useTheme } from "@/theme";
+import { T } from "./text";
 
 /** The I-Events symbol ("Biglietto"): a ticket with the i cut out and the Fiamma dot. */
 /** `color` paints the ticket for dark grounds, such as an event cover. */
@@ -16,3 +18,20 @@ export function LogoSymbol({ width = 48, color }: { width?: number; color?: stri
     </Svg>
   );
 }
+
+/** Symbol and "I-Events" wordmark (Bricolage 600), as at the top left of the website on the phone. */
+export function Logo() {
+  return (
+    <View style={styles.logo} accessible accessibilityLabel="I-Events" accessibilityRole="image">
+      <LogoSymbol width={32} />
+      <T variant="title3" style={styles.word} maxFontSizeMultiplier={1.2}>
+        I‑Events
+      </T>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  logo: { flexDirection: "row", alignItems: "center", gap: space[2] },
+  word: { fontFamily: fonts.sans["600"], fontSize: 18, lineHeight: 24, letterSpacing: -0.18 },
+});

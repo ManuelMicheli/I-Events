@@ -5,6 +5,7 @@ import { MenuIcon } from "@/components/icons";
 import { MoreSheet, type MoreItem } from "@/components/more-sheet";
 import { NavIcon, type NavIconName } from "@/components/nav-icons";
 import { useCheckinAutoSync } from "@/lib/checkin-queue";
+import { NAV } from "@/lib/nav";
 import { useNavCounts } from "@/lib/nav-counts";
 import { usePushNotifications } from "@/lib/open-notification";
 import { useActiveOrg } from "@/lib/session";
@@ -30,18 +31,9 @@ export default function TabsLayout() {
   const [more, setMore] = useState(false);
   const supplier = org.type === "supplier";
 
-  const rest: MoreItem[] =
-    org.type === "agency"
-      ? [
-          { href: "/attivita", label: "Attività", icon: "tasks", count: counts.attivita },
-          { href: "/rubrica", label: "Rubrica", icon: "contacts" },
-          { href: "/trova", label: "Trova fornitori", icon: "search" },
-          { href: "/messaggi", label: "Messaggi", icon: "messages" },
-        ]
-      : [
-          { href: "/trova", label: "Trova agenzie", icon: "search" },
-          { href: "/messaggi", label: "Messaggi", icon: "messages" },
-        ];
+  const rest: MoreItem[] = NAV[org.type]
+    .filter((s) => !s.tab)
+    .map((s) => ({ href: s.href, label: s.label, icon: s.icon, count: s.count ? counts[s.count] : undefined }));
   const restCount = rest.reduce((n, i) => n + (i.count ?? 0), 0);
 
   const play = (tab: Tab) => (opened.tab === tab ? opened.n : 0);

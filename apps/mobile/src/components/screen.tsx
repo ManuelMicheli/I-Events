@@ -1,13 +1,18 @@
 import type { ReactNode } from "react";
-import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { router } from "expo-router";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { space, useTheme } from "@/theme";
+import { Logo } from "./logo";
 import { T } from "./text";
 
 type Props = {
   /** Large title for the main tabs; pushed screens get theirs from the navigation header. */
   title?: string;
-  /** Next to the title, top right: the main sections put notifications and the account here. */
+  /**
+   * The main sections' top bar, as on the website's phone layout: the logo on the left (back to Home)
+   * and these on the right (search, notifications, the account); the large title comes under it.
+   */
   actions?: ReactNode;
   header?: ReactNode;
   /** Pinned under the scrolling content, above the tab bar: a main action such as "Nuova richiesta". */
@@ -26,21 +31,29 @@ export function Screen({ title, actions, header, footer, footerBar = false, chil
   const page = (
     <ScrollView
       style={{ backgroundColor: c.bgApp }}
-      contentContainerStyle={[styles.content, { paddingTop: title ? insets.top + space[4] : space[4] }, footer ? (footerBar ? styles.roomForBar : styles.roomForFooter) : null]}
+      contentContainerStyle={[styles.content, { paddingTop: actions ? insets.top + space[2] : title ? insets.top + space[4] : space[4] }, footer ? (footerBar ? styles.roomForBar : styles.roomForFooter) : null]}
       contentInsetAdjustmentBehavior="automatic"
       refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.textSecondary} /> : undefined}
     >
-      {(title || header) && (
+      {(title || header || actions) && (
         <View style={styles.header}>
-          {(title || actions) && (
-            <View style={styles.titleRow}>
-              {title && (
-                <T variant="title1" accessibilityRole="header" style={styles.flex}>
-                  {title}
-                </T>
-              )}
+          {actions && (
+            <View style={styles.bar}>
+              <Pressable
+                onPress={() => router.navigate("/")}
+                accessibilityRole="link"
+                accessibilityLabel="I-Events, home"
+                style={({ pressed }) => [styles.home, pressed && { opacity: 0.6 }]}
+              >
+                <Logo />
+              </Pressable>
               {actions}
             </View>
+          )}
+          {title && (
+            <T variant="title1" accessibilityRole="header">
+              {title}
+            </T>
           )}
           {header}
         </View>
@@ -55,7 +68,7 @@ export function Screen({ title, actions, header, footer, footerBar = false, chil
       {footerBar ? (
         <View
           style={[
-            styles.bar,
+            styles.footerBarBox,
             { backgroundColor: c.bgApp, borderTopColor: c.borderDefault, paddingBottom: Math.max(space[4], insets.bottom) },
           ]}
         >
@@ -86,12 +99,13 @@ export function Section({ title, aside, children }: { title: string; aside?: Rea
 const styles = StyleSheet.create({
   content: { paddingHorizontal: space[4], paddingBottom: space[8], gap: space[8] },
   header: { gap: space[3] },
-  titleRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: space[3] },
+  bar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space[3], minHeight: 44 },
+  home: { minHeight: 44, justifyContent: "center", flexShrink: 1 },
   fill: { flex: 1 },
   roomForFooter: { paddingBottom: space[16] + space[8] },
   roomForBar: { paddingBottom: space[16] * 2 + space[8] },
   footer: { position: "absolute", right: space[4], bottom: space[4] },
-  bar: {
+  footerBarBox: {
     position: "absolute",
     left: 0,
     right: 0,
