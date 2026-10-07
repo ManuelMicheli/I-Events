@@ -11,7 +11,7 @@ import { Divider, InfoRow } from "@/components/rows";
 import { Screen, Section } from "@/components/screen";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
-import { Stamp, StatusRow, TicketTag } from "@/components/ticket";
+import { Confirmation, StatusRow, TicketTag } from "@/components/ticket";
 import { fetchEvent } from "@/lib/data";
 import { prefetchEventDay } from "@/lib/event-day";
 import { env, siteOnline } from "@/lib/env";
@@ -69,7 +69,7 @@ export default function EventScreen() {
         {e.event_type && <InkBand type={e.event_type} />}
         <StatusRow>
           <Badge {...(live ? eventStatusLook("live") : eventStatusLook(e.status))} />
-          {e.status === "completed" && <Stamp label="Andato in scena" date={stampDay(e.end_date ?? e.start_date)} type={e.event_type} />}
+          {e.status === "completed" && <Confirmation label="Andato in scena" date={stampDay(e.end_date ?? e.start_date)} type={e.event_type} />}
         </StatusRow>
         <View style={styles.head}>
           {e.event_type && <EventCover type={e.event_type} size={64} />}

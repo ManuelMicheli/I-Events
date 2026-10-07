@@ -131,10 +131,8 @@ export const type = {
   mono: { fontSize: 13, lineHeight: 18, fontWeight: "400", letterSpacing: 0, mono: true },
   /** The ticket number on the stub, "#0142". */
   ticket: { fontSize: 14, lineHeight: 20, fontWeight: "500", letterSpacing: 0, mono: true },
-  /** Countdown and stamp text in capitals, spaced by 0.08 em: "TRA 3 G". */
+  /** Countdown and date text in capitals, spaced by 0.08 em: "TRA 3 G". */
   monoCaps: { fontSize: 12, lineHeight: 16, fontWeight: "400", letterSpacing: 1, mono: true },
-  /** The word on a stamp, "CONFERMATO". */
-  stamp: { fontSize: 13, lineHeight: 18, fontWeight: "500", letterSpacing: 1, mono: true },
   monoMetric: { fontSize: 32, lineHeight: 36, fontWeight: "500", letterSpacing: track(32, -2), mono: true },
 } satisfies Record<string, TextStyle>;
 

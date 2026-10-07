@@ -26,7 +26,7 @@ export function dateRange(start: string | null, end: string | null): string | nu
 
 const romeDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" });
 
-/** The date under a stamp, "15 GIU 2027", from a day or a timestamp (read in Italian time). */
+/** The date under a confirmation, "15 GIU 2027", from a day or a timestamp (read in Italian time). */
 export function stampDay(value: string | null): string {
   if (!value) return "";
   const day = value.length === 10 ? value : romeDay.format(new Date(value));

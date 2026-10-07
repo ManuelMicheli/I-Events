@@ -1,8 +1,9 @@
 import { EVENT_TYPE_INFO, type Countdown, type EventType } from "@i-events/core";
 import { useEffect, useState, type ReactNode } from "react";
 import { Animated, StyleSheet, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import { easeOut, useReduceMotion } from "@/lib/motion";
-import { motion, radius, space, useTheme } from "@/theme";
+import { motion, space, useTheme } from "@/theme";
 import { LiveDot } from "./badge";
 import { Card, TicketDivider } from "./card";
 import { TypeChip } from "./event-type";
@@ -40,68 +41,66 @@ export function TicketTag({ number, type }: { number: string; type: EventType | 
   );
 }
 
-/** The status pill on the left and, once it is earned, the stamp on the right. */
+/** The status pill on the left and, once it is earned, the confirmation on the right. */
 export function StatusRow({ children }: { children: ReactNode }) {
   return <View style={styles.status}>{children}</View>;
 }
 
 /**
- * A stamp for the moments that matter: CONFERMATO, ANDATO IN SCENA. Double rule, mono capitals, the
- * date below, in the event's ink (Grafite without a type), turned by -6 degrees. `fresh` when it has
- * just happened (A7): it lands from 1.2 to 1 in 180 ms, then an ink halo spreads and fades (240).
+ * The moments that matter, Confermato and Andato in scena, as on the website's public ticket: a round
+ * seal in the event's deep ink (Grafite without a type) with a tick, the word and the date under it.
+ * No stamp. `fresh` when it has just happened: the seal grows in (180 ms), then the tick appears (240).
+ * With Reduce Motion it fades in (120).
  */
-export function Stamp({ label, date, type, fresh = false }: { label: string; date: string; type: EventType | null | undefined; fresh?: boolean }) {
+export function Confirmation({ label, date, type, fresh = false }: { label: string; date: string; type: EventType | null | undefined; fresh?: boolean }) {
   const { c, scheme } = useTheme();
   const reduce = useReduceMotion();
-  const [land] = useState(() => new Animated.Value(fresh ? 0 : 1));
-  const [halo] = useState(() => new Animated.Value(fresh ? 0 : 1));
+  const [seal] = useState(() => new Animated.Value(fresh ? 0 : 1));
+  const [tick] = useState(() => new Animated.Value(fresh ? 0 : 1));
   const ink = type ? EVENT_TYPE_INFO[type].ink : null;
-  const color = ink ? (scheme === "dark" ? ink.darkText : ink.text) : c.textPrimary;
+  const dark = scheme === "dark";
+  const fill = ink ? (dark ? ink.darkFill : ink.deep) : c.textPrimary;
+  const mark = dark ? "#121110" : "#FFFFFF";
 
   useEffect(() => {
     if (!fresh) return;
     const run = reduce
-      ? Animated.timing(land, { toValue: 1, duration: motion.fast, easing: easeOut, useNativeDriver: true })
+      ? Animated.parallel([
+          Animated.timing(seal, { toValue: 1, duration: motion.fast, easing: easeOut, useNativeDriver: true }),
+          Animated.timing(tick, { toValue: 1, duration: motion.fast, easing: easeOut, useNativeDriver: true }),
+        ])
       : Animated.sequence([
-          Animated.timing(land, { toValue: 1, duration: motion.base, easing: easeOut, useNativeDriver: true }),
-          Animated.timing(halo, { toValue: 1, duration: motion.moderate, easing: easeOut, useNativeDriver: true }),
+          Animated.timing(seal, { toValue: 1, duration: motion.base, easing: easeOut, useNativeDriver: true }),
+          Animated.timing(tick, { toValue: 1, duration: motion.moderate, easing: easeOut, useNativeDriver: true }),
         ]);
     run.start();
     return () => run.stop();
-  }, [fresh, reduce, land, halo]);
+  }, [fresh, reduce, seal, tick]);
 
-  const scale = reduce ? 1 : land.interpolate({ inputRange: [0, 1], outputRange: [1.2, 1] });
+  const grow = (v: Animated.Value, from: number) => (reduce ? [] : [{ scale: v.interpolate({ inputRange: [0, 1], outputRange: [from, 1] }) }]);
   return (
-    <Animated.View
+    <View
       accessible
-      accessibilityRole="image"
-      accessibilityLabel={date ? `${label.toLowerCase()} il ${date.toLowerCase()}` : label.toLowerCase()}
-      style={[styles.outline, { borderColor: color, opacity: land, transform: [{ rotate: "-6deg" }, { scale }] }]}
+      accessibilityRole="text"
+      accessibilityLabel={date ? `${label} il ${date.toLowerCase()}` : label}
+      style={styles.confirmation}
     >
-      <View style={[styles.stamp, { borderColor: color }]}>
-        <T variant="stamp" style={{ color }}>
-          {label.toUpperCase()}
-        </T>
+      <Animated.View style={[styles.seal, { backgroundColor: fill, opacity: seal, transform: grow(seal, 0.6) }]}>
+        <Animated.View style={{ opacity: tick, transform: grow(tick, 0.7) }}>
+          <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
+            <Path d="M3.5 8.5l3 3 6-7" stroke={mark} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+          </Svg>
+        </Animated.View>
+      </Animated.View>
+      <View style={styles.words}>
+        <T variant="calloutStrong">{label}</T>
         {date !== "" && (
-          <T variant="monoCaps" style={[styles.date, { color }]}>
+          <T variant="monoCaps" tone="secondary">
             {date}
           </T>
         )}
       </View>
-      {fresh && !reduce && (
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            styles.halo,
-            {
-              backgroundColor: color,
-              opacity: halo.interpolate({ inputRange: [0, 0.01, 1], outputRange: [0, 0.2, 0] }),
-              transform: [{ scale: halo.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1.2] }) }],
-            },
-          ]}
-        />
-      )}
-    </Animated.View>
+    </View>
   );
 }
 
@@ -157,13 +156,12 @@ export function PrintedTicket({ number, title, body }: { number: string; title: 
 const styles = StyleSheet.create({
   stub: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space[3], minHeight: 20 },
   tag: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: space[3] },
-  // On narrow phones the stamp goes under the pill instead of running off the card.
+  // On narrow phones the confirmation goes under the pill instead of running off the card.
   status: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: space[3], minHeight: 24 },
   countdown: { flexDirection: "row", alignItems: "center", gap: space[2] },
-  outline: { alignSelf: "flex-start", borderWidth: 1, borderRadius: radius.sm + 3, padding: 2, margin: space[1] },
-  stamp: { borderWidth: 2, borderRadius: radius.sm, paddingHorizontal: space[3], paddingVertical: space[1], alignItems: "center" },
-  date: { fontSize: 11, lineHeight: 14, letterSpacing: 0 },
-  halo: { position: "absolute", top: -6, right: -6, bottom: -6, left: -6, borderRadius: 12 },
+  confirmation: { flexDirection: "row", alignItems: "center", gap: space[3] },
+  seal: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
+  words: { gap: 2 },
   slot: { borderTopWidth: 2, borderRadius: 2, paddingTop: space[1], overflow: "hidden" },
   printed: { gap: space[1] },
 });

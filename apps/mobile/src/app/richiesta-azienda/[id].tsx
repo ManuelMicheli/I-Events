@@ -17,7 +17,7 @@ import { Segmented } from "@/components/segmented";
 import { Sheet } from "@/components/sheet";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
-import { PrintedTicket, Stamp, StatusRow, TicketTag } from "@/components/ticket";
+import { Confirmation, PrintedTicket, StatusRow, TicketTag } from "@/components/ticket";
 import { InlineError, TextField } from "@/components/text-field";
 import { errorMessage } from "@/lib/errors";
 import { ago, euro, plural, requestMeta, stampDay } from "@/lib/format";
@@ -103,7 +103,7 @@ export default function ClientRequestScreen() {
         <StatusRow>
           <Badge {...badge} />
           {accepted && (
-            <Stamp label="Confermato" date={stampDay(accepted.decided_at)} type={request.draft.eventType} fresh={moment === "confermato"} />
+            <Confirmation label="Confermato" date={stampDay(accepted.decided_at)} type={request.draft.eventType} fresh={moment === "confermato"} />
           )}
         </StatusRow>
         <T variant="title2" accessibilityRole="header">
@@ -251,7 +251,7 @@ function Quotes({ quotes, open, onChange }: { quotes: ClientProposal[]; open: bo
           const { data, error: e } = await supabase.rpc("accept_proposal", { p_proposal: p.id });
           setBusy(null);
           if (e) return setError(errorMessage(e));
-          // Back to the top of the request, where the CONFERMATO stamp lands and the event can be opened.
+          // Back to the top of the request, where the Confermato seal appears and the event can be opened.
           if (data?.[0]) router.replace({ pathname: "/richiesta-azienda/[id]", params: { id: p.request_id, momento: "confermato" } });
           else onChange();
         },
