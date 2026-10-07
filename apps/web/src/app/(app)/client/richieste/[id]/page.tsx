@@ -55,6 +55,7 @@ export default async function ClientRequestPage({ params, searchParams }: { para
   };
   const path = `/client/richieste/${id}`;
   const open = request.status === "sent";
+  const decidable = open ? priced.filter((p) => p.status === "submitted").length : 0;
   const accepted = request.status === "awarded" ? proposals.find((p) => p.status === "accepted") : undefined;
 
   return (
@@ -193,7 +194,7 @@ export default async function ClientRequestPage({ params, searchParams }: { para
       {priced.length === 0 && open && <Empty>Le agenzie stanno preparando le proposte. Le trovi qui appena arrivano.</Empty>}
 
       {priced.map((p) => (
-        <Card key={p.id} title={`Proposta di ${p.agency?.name} · versione ${p.version}`} action={<span className="text-sm text-muted">{PROPOSAL_STATUS_LABEL[p.status]}</span>}>
+        <Card key={p.id} className="group/proposta" title={`Proposta di ${p.agency?.name} · versione ${p.version}`} action={<span className="text-sm text-muted">{PROPOSAL_STATUS_LABEL[p.status]}</span>}>
           {p.summary && <p className="mb-4 whitespace-pre-wrap text-sm">{p.summary}</p>}
           <ProposalLines lines={p.lines} total={p.total} />
           <div className="mt-4">
@@ -201,7 +202,7 @@ export default async function ClientRequestPage({ params, searchParams }: { para
           </div>
           {open && p.status === "submitted" && (
             <div className="mt-4">
-              <DecisionForms proposalId={p.id} requestId={id} agencyName={p.agency?.name ?? "questa agenzia"} />
+              <DecisionForms proposalId={p.id} requestId={id} agencyName={p.agency?.name ?? "questa agenzia"} lead={decidable === 1} />
             </div>
           )}
         </Card>

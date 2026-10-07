@@ -12,12 +12,15 @@ export function QuoteEditor({
   initialLines,
   initialNote,
   nextVersion,
+  lead = true,
 }: {
   quoteId: string;
   eventId: string;
   initialLines: ProposalLine[];
   initialNote: string;
   nextVersion: number;
+  /** Whether sending is the page's main action (the one Fiamma button). */
+  lead?: boolean;
 }) {
   const [lines, setLines] = useState(initialLines);
   const [note, setNote] = useState(initialNote);
@@ -91,7 +94,7 @@ export function QuoteEditor({
       </Field>
       {message && <Notice tone={message.tone}>{message.text}</Notice>}
       <div className="flex flex-wrap gap-2">
-        <Button type="button" pending={pending} disabled={pending} onClick={() => save(true)}>
+        <Button type="button" pending={pending} variant={lead ? "primary" : "secondary"} disabled={pending} onClick={() => save(true)}>
           Invia al cliente per l&apos;approvazione
         </Button>
         <Button type="button" pending={pending} variant="secondary" disabled={pending} onClick={() => save(false)}>

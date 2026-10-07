@@ -19,6 +19,8 @@ export default async function RunOfShowPage({ params }: { params: Promise<{ id: 
   const planDays = days.length > 0 ? days : [defaultDay];
   const arrived = crew.filter((c) => c.checked_in_at).length;
   const suggestions = suggestedSchedule(services, defaultDay, "19:00").length;
+  // One Fiamma per page: the day-of view while the event is on, adding to the schedule before.
+  const live = event.status === "live";
 
   return (
     <>
@@ -30,7 +32,9 @@ export default async function RunOfShowPage({ params }: { params: Promise<{ id: 
           <h1 className="text-2xl font-semibold">Scaletta e arrivi</h1>
           <p className="text-sm text-muted">{[event.client.name, event.city, event.venue].filter(Boolean).join(" · ")}</p>
         </div>
-        <ButtonLink href={`/pro/eventi/${event.id}/live`}>Apri il giorno dell&apos;evento</ButtonLink>
+        <ButtonLink href={`/pro/eventi/${event.id}/live`} variant={live ? "primary" : "secondary"}>
+          Apri il giorno dell&apos;evento
+        </ButtonLink>
       </div>
 
       <Card title="Scaletta" action={<span className="text-sm text-muted">{items.length === 1 ? "1 momento" : `${items.length} momenti`}</span>}>
@@ -54,7 +58,7 @@ export default async function RunOfShowPage({ params }: { params: Promise<{ id: 
               ))
           )}
           <div className="border-t border-border pt-4">
-            <NewScheduleItemForm eventId={event.id} days={days} defaultDay={defaultDay} members={members} bookings={bookings} />
+            <NewScheduleItemForm eventId={event.id} days={days} defaultDay={defaultDay} members={members} bookings={bookings} lead={!live} />
           </div>
         </div>
       </Card>

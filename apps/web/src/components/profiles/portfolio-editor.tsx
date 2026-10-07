@@ -54,7 +54,7 @@ function ItemForm({ item, onSaved }: { item?: PortfolioItem; onSaved?: () => voi
       </Field>
       {state.error && !Object.keys(f).length && <Notice tone="error">{state.error}</Notice>}
       {state.ok && item && <Notice tone="success">Lavoro salvato.</Notice>}
-      <Button type="submit" disabled={pending} className="self-start">
+      <Button type="submit" variant="secondary" disabled={pending} className="self-start">
         {item ? "Salva" : "Aggiungi al portfolio"}
       </Button>
     </form>
