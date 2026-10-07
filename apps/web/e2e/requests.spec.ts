@@ -295,14 +295,17 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await guest.close();
 
   // Public area: Beta opens the event to the public with 3 places; anyone registers without an account.
-  await beta.page.goto(eventUrl);
-  const publicPage = beta.page.locator("section", { has: beta.page.getByRole("heading", { name: "Pagina pubblica" }) });
+  // In a second tab, so the run of show stays open for the event day below.
+  const agencyTab = await beta.page.context().newPage();
+  await agencyTab.goto(eventUrl);
+  const publicPage = agencyTab.locator("section", { has: agencyTab.getByRole("heading", { name: "Pagina pubblica" }) });
   await publicPage.getByLabel("Aperto al pubblico").check();
   await publicPage.getByLabel("Cosa succede").fill("Una serata di musica nel cortile.");
   await publicPage.getByLabel("Apertura").fill("19:00");
   await publicPage.getByRole("spinbutton", { name: /^Posti/ }).fill("3");
   await publicPage.getByRole("button", { name: "Salva pagina pubblica" }).click();
   await expect(publicPage.getByText("Pagina pubblica salvata.")).toBeVisible();
+  await agencyTab.close();
 
   const visitor = await browser.newPage();
   await visitor.goto("/eventi");
