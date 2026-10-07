@@ -190,7 +190,7 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
               );
             })}
           </div>
-          <div className="sticky bottom-0 -mx-4 bg-app/95 px-4 pt-3 pb-[max(16px,env(safe-area-inset-bottom))] backdrop-blur sm:static sm:mx-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+          <div className="sticky bottom-[calc(56px+env(safe-area-inset-bottom))] -mx-4 bg-app/95 px-4 pt-3 pb-4 backdrop-blur sm:static sm:mx-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
             <button
               type="button"
               disabled={!draft.eventType}

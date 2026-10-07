@@ -5,6 +5,7 @@ import { draftToPayload } from "@/lib/requests";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { ATTACHMENTS_BUCKET, normalizeDraft, requestDraftSchema, submissionIssues } from "@i-events/core";
+import { flash } from "@/lib/flash";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -66,6 +67,7 @@ export async function deleteDraft(form: FormData) {
   if (files?.length) await supabase.storage.from(ATTACHMENTS_BUCKET).remove(files.map((f) => f.storage_path));
   const { error } = await supabase.from("requests").delete().eq("id", id).eq("status", "draft");
   if (error) throw error;
+  await flash("Bozza eliminata", "neutral");
   revalidatePath("/client/richieste");
   revalidatePath("/client");
   redirect("/client/richieste");
@@ -77,6 +79,7 @@ export async function cancelRequest(form: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.rpc("cancel_request", { p_request: id });
   if (error) throw new Error(dbErrorMessage(error));
+  await flash("Richiesta annullata. Le agenzie sono state avvisate.", "neutral");
   revalidatePath(`/client/richieste/${id}`);
   revalidatePath("/client/richieste");
   revalidatePath("/client");
@@ -106,6 +109,7 @@ export async function requestRevision(_: DecisionState, form: FormData): Promise
   const supabase = await createClient();
   const { error } = await supabase.rpc("request_revision", { p_proposal: id, p_note: note.data });
   if (error) return { error: dbErrorMessage(error) };
+  await flash("Richiesta di modifica inviata all'agenzia");
   revalidatePath(`/client/richieste/${requestId}`);
   revalidatePath("/client/richieste");
   revalidatePath("/client");

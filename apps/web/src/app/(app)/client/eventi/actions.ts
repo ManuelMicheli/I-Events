@@ -3,6 +3,7 @@
 import { dbErrorMessage } from "@/lib/labels";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
+import { flash } from "@/lib/flash";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -20,6 +21,7 @@ export async function decideQuote(_: QuoteDecisionState, form: FormData): Promis
   if (error) {
     return { error: error.code === "22023" ? "Questo preventivo non è più in attesa di una decisione: ricarica la pagina." : dbErrorMessage(error) };
   }
+  if (!approve) await flash("Richiesta di modifica inviata all'agenzia");
   revalidatePath(`/client/eventi/${eventId}`);
   revalidatePath("/client/eventi");
   revalidatePath("/client");
