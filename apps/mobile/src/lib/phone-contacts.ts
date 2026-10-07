@@ -1,7 +1,7 @@
 import { keywordClassifier, phoneContactsToDrafts, type ContactDraft, type ServiceKey } from "@i-events/core";
 import { Contact, ContactField, getPermissionsAsync, requestPermissionsAsync } from "expo-contacts";
 import { Platform } from "react-native";
-import { env } from "./env";
+import { env, siteOnline } from "./env";
 import { supabase } from "./supabase";
 
 /** Where the person stands with access to the phone's address book. `blocked`: only the system settings can change it. */
@@ -47,7 +47,7 @@ export async function readPhoneContacts(): Promise<ContactDraft[]> {
 export async function suggestServices(orgId: string, contacts: ContactDraft[]): Promise<ServiceKey[][]> {
   const fallback = () => keywordClassifier.classify(contacts);
   const { data } = await supabase.auth.getSession();
-  if (!data.session || contacts.length === 0) return fallback();
+  if (!siteOnline || !data.session || contacts.length === 0) return fallback();
   try {
     const res = await fetch(`${env.siteUrl}/api/app/classify-contacts`, {
       method: "POST",

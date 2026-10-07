@@ -3,7 +3,7 @@ import { router } from "expo-router";
 import * as Notifications from "expo-notifications";
 import * as WebBrowser from "expo-web-browser";
 import { useCallback, useEffect, useRef } from "react";
-import { env } from "./env";
+import { env, siteOnline } from "./env";
 import { getPushPermission, pushSupported, registerPushToken } from "./push";
 import { useSession } from "./session";
 import { supabase } from "./supabase";
@@ -23,7 +23,7 @@ export function useOpenNotification() {
       if (n.org_id !== activeOrg?.id && orgs.some((o) => o.id === n.org_id)) setActiveOrg(n.org_id);
       const route = appRouteForLink(n.link);
       if (route) router.push(route as never);
-      else if (n.link?.startsWith("/")) WebBrowser.openBrowserAsync(`${env.siteUrl}${n.link}`);
+      else if (siteOnline && n.link?.startsWith("/")) WebBrowser.openBrowserAsync(`${env.siteUrl}${n.link}`);
       else router.push("/notifiche");
     },
     [orgs, activeOrg, setActiveOrg],

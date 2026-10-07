@@ -1,16 +1,16 @@
 import type { ReactNode } from "react";
-import { Modal, Pressable, StyleSheet, View } from "react-native";
+import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { radius, space, useTheme } from "@/theme";
 import { T } from "./text";
 
-/** Bottom sheet: radius 24 on top, a handle, closes on the scrim or the back gesture. */
+/** Bottom sheet: radius 24 on top, a handle, closes on the scrim or the back gesture; rises above the keyboard. */
 export function Sheet({ visible, title, onClose, children }: { visible: boolean; title: string; onClose: () => void; children: ReactNode }) {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
-      <View style={styles.fill}>
+      <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <Pressable
           style={[StyleSheet.absoluteFill, { backgroundColor: c.scrim }]}
           onPress={onClose}
@@ -27,7 +27,7 @@ export function Sheet({ visible, title, onClose, children }: { visible: boolean;
           </T>
           {children}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

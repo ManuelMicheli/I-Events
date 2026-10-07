@@ -1,56 +1,62 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "expo-router";
+import type { ComponentProps } from "react";
+import type { ColorValue } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCheckinAutoSync } from "@/lib/checkin-queue";
 import { usePushNotifications } from "@/lib/open-notification";
 import { useActiveOrg } from "@/lib/session";
-import { useUnreadCount } from "@/lib/unread";
 import { fonts, useTheme } from "@/theme";
 
+type Icon = ComponentProps<typeof Ionicons>["name"];
+const icon = (on: Icon, off: Icon) =>
+  function TabIcon({ focused, color }: { focused: boolean; color: ColorValue }) {
+    return <Ionicons name={focused ? on : off} size={24} color={color} />;
+  };
+
 /**
- * Three sections: the organization's work, notifications, the account. Outline icons, filled when
- * active; the bar is 56 high plus the safe area, as in the Carta tab bar.
+ * Home, Richieste, Eventi, Messaggi, as in the Carta designs; notifications and the account sit top right.
+ * Suppliers work on booking requests only, so they get Home and Richieste. Outline icons, filled when
+ * active; the bar is 56 high plus the safe area.
  */
 export default function TabsLayout() {
   const { c } = useTheme();
   const org = useActiveOrg();
-  const unread = useUnreadCount();
   usePushNotifications();
   useCheckinAutoSync();
   const insets = useSafeAreaInsets();
-  const home = org.type === "supplier" ? "Richieste" : "Eventi";
+  const supplier = org.type === "supplier";
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: c.textPrimary,
         tabBarInactiveTintColor: c.textSecondary,
-        tabBarStyle: { backgroundColor: c.bgApp, borderTopColor: c.borderDefault, height: 56 + insets.bottom, paddingBottom: insets.bottom },
+        tabBarStyle: {
+          backgroundColor: c.bgApp,
+          borderTopColor: c.borderDefault,
+          height: 56 + insets.bottom,
+          paddingBottom: insets.bottom,
+        },
         tabBarLabelStyle: { fontFamily: fonts.sans["500"], fontSize: 12, lineHeight: 16 },
-        tabBarBadgeStyle: { backgroundColor: c.accentFill, color: c.onAccent, fontSize: 12 },
       }}
     >
+      <Tabs.Screen name="index" options={{ title: "Home", tabBarIcon: icon("home", "home-outline") }} />
+      <Tabs.Screen name="richieste" options={{ title: "Richieste", tabBarIcon: icon("file-tray", "file-tray-outline") }} />
       <Tabs.Screen
-        name="index"
+        name="eventi"
         options={{
-          title: home,
-          tabBarIcon: ({ focused, color }) => <Ionicons name={focused ? "calendar" : "calendar-outline"} size={24} color={color} />,
+          title: "Eventi",
+          href: supplier ? null : undefined,
+          tabBarIcon: icon("calendar", "calendar-outline"),
         }}
       />
       <Tabs.Screen
-        name="notifiche"
+        name="messaggi"
         options={{
-          title: "Notifiche",
-          tabBarBadge: unread > 0 ? (unread > 99 ? "99+" : unread) : undefined,
-          tabBarAccessibilityLabel: unread > 0 ? `Notifiche, ${unread} da leggere` : "Notifiche",
-          tabBarIcon: ({ focused, color }) => <Ionicons name={focused ? "notifications" : "notifications-outline"} size={24} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="account"
-        options={{
-          title: "Account",
-          tabBarIcon: ({ focused, color }) => <Ionicons name={focused ? "person-circle" : "person-circle-outline"} size={24} color={color} />,
+          title: "Messaggi",
+          href: supplier ? null : undefined,
+          tabBarIcon: icon("chatbubble", "chatbubble-outline"),
         }}
       />
     </Tabs>

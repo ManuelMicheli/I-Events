@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { crewMembers, eventDays, getServiceCategory, withSentCheckins, type CrewMember } from "@i-events/core";
+import { useEffect } from "react";
+import { crewMembers, eventDays, getServiceCategory, keepDayOnPhone, todayInItaly, withSentCheckins, type CrewMember } from "@i-events/core";
 import { supabase } from "./supabase";
 
 export type DayItem = {
@@ -136,4 +137,15 @@ export async function forgetSavedDays(): Promise<void> {
   } catch {
     // Nothing to clear.
   }
+}
+
+/**
+ * Saves on the phone, while there is signal, the agency's events happening these days, ready for the venue.
+ * Used by the screens that load the agency's events: Home, which opens first, and Eventi.
+ */
+export function useKeepEventDays(orgId: string, events: readonly { id: string; status: string; start_date: string | null; end_date: string | null }[] | undefined) {
+  const key = events ? events.filter((e) => keepDayOnPhone(e, todayInItaly())).map((e) => e.id).join(",") : "";
+  useEffect(() => {
+    for (const id of key ? key.split(",") : []) void prefetchEventDay(id, orgId);
+  }, [key, orgId]);
 }

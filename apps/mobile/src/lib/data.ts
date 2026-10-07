@@ -1,16 +1,30 @@
 import { supplierRequestBucket } from "@i-events/core";
 import { supabase } from "./supabase";
 
-/** The agency's events, with how many supplier bookings are confirmed. */
+/**
+ * The agency's events, with how many supplier bookings are confirmed, what the event is sold for (the
+ * latest approved quote, else the accepted proposal) and its planned supplier costs.
+ */
 export async function fetchAgencyEvents(orgId: string) {
   const { data, error } = await supabase
     .from("events")
-    .select("id, title, status, start_date, end_date, city, venue, client:organizations!events_client_org_id_fkey(name), event_bookings(status)")
+    .select(
+      `id, title, status, start_date, end_date, city, venue, client:organizations!events_client_org_id_fkey(name),
+       event_bookings(status, planned_cost), proposal:proposals!events_proposal_id_fkey(total_amount), event_quotes(status, version, total_amount)`,
+    )
     .eq("agency_org_id", orgId);
   if (error) throw error;
   return data.map((e) => {
     const live = e.event_bookings.filter((b) => b.status !== "cancelled");
-    return { ...e, counterpart: e.client.name, bookings: { total: live.length, confirmed: live.filter((b) => b.status === "confirmed").length } };
+    const approved = e.event_quotes.filter((q) => q.status === "approved").sort((a, b) => (b.version ?? 0) - (a.version ?? 0))[0];
+    const sold = Number(approved?.total_amount ?? e.proposal?.total_amount ?? 0);
+    const planned = live.reduce((sum, b) => sum + Number(b.planned_cost ?? 0), 0);
+    return {
+      ...e,
+      counterpart: e.client.name,
+      bookings: { total: live.length, confirmed: live.filter((b) => b.status === "confirmed").length },
+      money: { sold, planned },
+    };
   });
 }
 

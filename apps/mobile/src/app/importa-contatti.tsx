@@ -11,7 +11,7 @@ import { Segmented } from "@/components/segmented";
 import { Sheet } from "@/components/sheet";
 import { T } from "@/components/text";
 import { InlineError, TextField } from "@/components/text-field";
-import { env } from "@/lib/env";
+import { env, siteOnline } from "@/lib/env";
 import { errorMessage } from "@/lib/errors";
 import {
   getContactsAccess,
@@ -113,13 +113,15 @@ export default function ImportContactsScreen() {
           .join(" ")}
       >
         <Button label="Fatto" align="center" onPress={() => router.back()} />
-        <Button
-          variant="secondary"
-          align="center"
-          icon="open-outline"
-          label="Apri la rubrica sul sito"
-          onPress={() => WebBrowser.openBrowserAsync(`${env.siteUrl}/pro/rubrica`)}
-        />
+        {siteOnline && (
+          <Button
+            variant="secondary"
+            align="center"
+            icon="open-outline"
+            label="Apri la rubrica sul sito"
+            onPress={() => WebBrowser.openBrowserAsync(`${env.siteUrl}/pro/rubrica`)}
+          />
+        )}
       </Message>
     );
   return (

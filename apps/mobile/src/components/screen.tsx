@@ -7,35 +7,51 @@ import { T } from "./text";
 type Props = {
   /** Large title for the main tabs; pushed screens get theirs from the navigation header. */
   title?: string;
+  /** Next to the title, top right: the main sections put notifications and the account here. */
+  actions?: ReactNode;
   header?: ReactNode;
+  /** Pinned under the scrolling content, above the tab bar: a main action such as "Nuova richiesta". */
+  footer?: ReactNode;
   children: ReactNode;
   refreshing?: boolean;
   onRefresh?: () => void;
 };
 
 /** Scrolling page on Carta with 16 side margins, safe areas and pull to refresh. */
-export function Screen({ title, header, children, refreshing = false, onRefresh }: Props) {
+export function Screen({ title, actions, header, footer, children, refreshing = false, onRefresh }: Props) {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
-  return (
+  const page = (
     <ScrollView
       style={{ backgroundColor: c.bgApp }}
-      contentContainerStyle={[styles.content, { paddingTop: title ? insets.top + space[4] : space[4] }]}
+      contentContainerStyle={[styles.content, { paddingTop: title ? insets.top + space[4] : space[4] }, footer ? styles.roomForFooter : null]}
       contentInsetAdjustmentBehavior="automatic"
       refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.textSecondary} /> : undefined}
     >
       {(title || header) && (
         <View style={styles.header}>
-          {title && (
-            <T variant="title1" accessibilityRole="header">
-              {title}
-            </T>
+          {(title || actions) && (
+            <View style={styles.titleRow}>
+              {title && (
+                <T variant="title1" accessibilityRole="header" style={styles.flex}>
+                  {title}
+                </T>
+              )}
+              {actions}
+            </View>
           )}
           {header}
         </View>
       )}
       {children}
     </ScrollView>
+  );
+  if (!footer) return page;
+  return (
+    <View style={[styles.fill, { backgroundColor: c.bgApp }]}>
+      {page}
+      <View style={styles.footer}>{footer}</View>
+    </View>
   );
 }
 
@@ -57,6 +73,10 @@ export function Section({ title, aside, children }: { title: string; aside?: Rea
 const styles = StyleSheet.create({
   content: { paddingHorizontal: space[4], paddingBottom: space[8], gap: space[8] },
   header: { gap: space[3] },
+  titleRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: space[3] },
+  fill: { flex: 1 },
+  roomForFooter: { paddingBottom: space[16] + space[8] },
+  footer: { position: "absolute", right: space[4], bottom: space[4] },
   section: { gap: space[3] },
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: space[2] },
   flex: { flexShrink: 1 },
