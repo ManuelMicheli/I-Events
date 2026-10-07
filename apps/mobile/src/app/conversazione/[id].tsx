@@ -3,6 +3,7 @@ import { router, Stack, useFocusEffect, useLocalSearchParams } from "expo-router
 import { useCallback, useState } from "react";
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Switch, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { MessageIcon, SendIcon } from "@/components/icons";
 import { Screen } from "@/components/screen";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
@@ -79,6 +80,8 @@ function Chat({
   const [internal, setInternal] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string>();
+  const [sent, setSent] = useState(0);
+  const [writing, setWriting] = useState(false);
   const messages = [...thread.messages].reverse();
 
   const send = async () => {
@@ -95,6 +98,7 @@ function Chat({
         internal: thread.isAgency && internal,
       });
       setBody("");
+      setSent((n) => n + 1);
       await onSent();
     } catch (e) {
       setError(errorMessage(e));
@@ -134,6 +138,7 @@ function Chat({
         contentContainerStyle={styles.messages}
         ListEmptyComponent={
           <View style={styles.empty}>
+            <MessageIcon color={c.textSecondary} writing={writing} size={28} />
             <T variant="callout" tone="secondary" style={styles.center}>
               {thread.isAgency
                 ? "Scrivi all'azienda per chiarire un dettaglio della richiesta."
@@ -201,6 +206,8 @@ function Chat({
             multiline
             maxLength={10000}
             accessibilityLabel="Messaggio"
+            onFocus={() => setWriting(true)}
+            onBlur={() => setWriting(false)}
             maxFontSizeMultiplier={2}
             style={[
               styles.input,
@@ -225,7 +232,7 @@ function Chat({
               },
             ]}
           >
-            <Ionicons name="arrow-up" size={24} color={body.trim().length === 0 ? c.textDisabled : c.onAccent} />
+            {({ pressed }) => <SendIcon color={body.trim().length === 0 ? c.textDisabled : c.onAccent} sent={sent} lean={pressed} size={24} />}
           </Pressable>
         </View>
       </View>
@@ -246,7 +253,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   messages: { padding: space[4], gap: space[3], flexGrow: 1 },
-  empty: { flex: 1, justifyContent: "center", padding: space[6], transform: [{ scaleY: -1 }] },
+  empty: { flex: 1, justifyContent: "center", alignItems: "center", gap: space[3], padding: space[6], transform: [{ scaleY: -1 }] },
   bubbleRow: { flexDirection: "row" },
   left: { justifyContent: "flex-start" },
   right: { justifyContent: "flex-end" },

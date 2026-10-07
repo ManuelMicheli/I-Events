@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Alert, Linking, StyleSheet, View } from "react-native";
 import { Badge } from "@/components/badge";
 import { Button } from "@/components/button";
+import { TrashIcon } from "@/components/icons";
 import { Card } from "@/components/card";
 import { ContactForm } from "@/components/contact-form";
 import { Notice } from "@/components/notice";
@@ -27,6 +28,8 @@ export default function ContactScreen() {
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  // The bin keeps its lid up while the question is open.
+  const [asking, setAsking] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
 
   if (q.loading) {
@@ -72,24 +75,31 @@ export default function ContactScreen() {
   }
 
   const remove = () => {
-    Alert.alert(`Eliminare ${contact.name}?`, "Il contatto sparisce dalla rubrica di tutta l'agenzia.", [
-      { text: "Annulla", style: "cancel" },
-      {
-        text: "Elimina",
-        style: "destructive",
-        onPress: async () => {
-          setDeleting(true);
-          setFailure(null);
-          try {
-            await deleteContact(contact.id, org.id);
-            router.back();
-          } catch (e) {
-            setFailure(errorMessage(e));
-            setDeleting(false);
-          }
+    setAsking(true);
+    Alert.alert(
+      `Eliminare ${contact.name}?`,
+      "Il contatto sparisce dalla rubrica di tutta l'agenzia.",
+      [
+        { text: "Annulla", style: "cancel", onPress: () => setAsking(false) },
+        {
+          text: "Elimina",
+          style: "destructive",
+          onPress: async () => {
+            setAsking(false);
+            setDeleting(true);
+            setFailure(null);
+            try {
+              await deleteContact(contact.id, org.id);
+              router.back();
+            } catch (e) {
+              setFailure(errorMessage(e));
+              setDeleting(false);
+            }
+          },
         },
-      },
-    ]);
+      ],
+      { cancelable: true, onDismiss: () => setAsking(false) },
+    );
   };
 
   return (
@@ -132,7 +142,14 @@ export default function ContactScreen() {
       <View style={styles.actions}>
         <Button variant="secondary" icon="create-outline" label="Modifica" block onPress={() => setEditing(true)} />
         {can(org.type, org.role, "contacts.delete") && (
-          <Button variant="tertiary" icon="trash-outline" label="Elimina dalla rubrica" align="center" loading={deleting} onPress={remove} />
+          <Button
+            variant="tertiary"
+            leading={(color, pressed) => <TrashIcon color={color} open={pressed || asking} />}
+            label="Elimina dalla rubrica"
+            align="center"
+            loading={deleting}
+            onPress={remove}
+          />
         )}
       </View>
     </Screen>
