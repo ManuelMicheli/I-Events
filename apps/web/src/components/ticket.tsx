@@ -71,29 +71,35 @@ export function EventTicket({
 }
 
 /**
- * A stamp for the three moments that matter: CONFERMATO, ISCRITTO, ANDATO IN SCENA. Double rule,
- * mono capitals, the date below, in the event's ink (Grafite without a type), turned by -6 degrees.
- * `fresh` when it has just happened (A7): it lands from 1.2 and an ink halo spreads.
+ * The seal for the three moments that matter: "Confermato", "Iscrizione confermata", "Andato in
+ * scena". A round seal in the event's deep ink (Grafite without a type) with a tick, the moment and,
+ * under it, the day. `fresh` when it has just happened (A7): the seal grows in and the tick draws.
  */
-export function Stamp({ label, date, type, fresh = false }: { label: string; date: string; type: EventType | null; fresh?: boolean }) {
+export function Seal({ label, date, type, fresh = false }: { label: string; date: string; type: EventType | null; fresh?: boolean }) {
   const ink = type ? EVENT_TYPE_INFO[type].ink : null;
-  const style = (ink ? { "--stamp": ink.text, "--stamp-dark": ink.darkText } : { "--stamp": "var(--color-text)", "--stamp-dark": "var(--color-text)" }) as CSSProperties;
+  const style = { "--seal": ink?.deep ?? "var(--color-text)", "--seal-dark": ink?.darkFill ?? "var(--color-text)" } as CSSProperties;
   return (
-    <span
-      role="img"
-      aria-label={date ? `${label.toLowerCase()} il ${date.toLowerCase()}` : label.toLowerCase()}
-      style={style}
-      className={`${fresh ? "stamp-in " : ""}relative m-1 inline-flex shrink-0 -rotate-6 flex-col items-center rounded-[8px] border-2 border-current px-3 py-1 font-mono text-[var(--stamp)] outline-1 outline-offset-2 outline-current outline-solid dark:text-[var(--stamp-dark)]`}
-    >
-      <span className="text-[13px] leading-[18px] font-medium tracking-[0.08em] uppercase">{label}</span>
-      {date && <span className="text-[11px] leading-[14px] uppercase">{date}</span>}
-    </span>
+    <div className="flex items-center gap-3">
+      <span
+        aria-hidden
+        style={style}
+        className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[var(--seal)] text-white dark:bg-[var(--seal-dark)] dark:text-[#121110] ${fresh ? "seal-in" : ""}`}
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={fresh ? "check-draw" : undefined}>
+          <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </span>
+      <p className="flex min-w-0 flex-col">
+        <span className="font-medium">{label}</span>
+        {date && <span className="font-mono text-xs tracking-[0.08em] text-muted uppercase">{date}</span>}
+      </p>
+    </div>
   );
 }
 
 const stampFmt = new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Rome" });
 
-/** The date under a stamp, "15 giu 2027" (shown in capitals), from a day or a timestamp. */
+/** The date under a seal, "15 giu 2027" (shown in capitals), from a day or a timestamp. */
 export function stampDay(value: string | null) {
   if (!value) return "";
   return stampFmt.format(new Date(value.length === 10 ? `${value}T12:00:00` : value)).replace(".", "");

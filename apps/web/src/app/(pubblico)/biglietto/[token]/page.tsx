@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: "Biglietto", robots: { index: false, 
 
 /**
  * A public ticket, opened from its link (no account). Right after registering (?momento=iscritto) it
- * comes out of the slot and the ISCRITTO stamp lands (A7).
+ * comes out of the slot and the confirmation seal draws its tick (A7).
  */
 export default async function TicketPage({
   params,

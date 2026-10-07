@@ -446,37 +446,6 @@ samp {
   }
 }
 
-/* A7 Il timbro: it lands from 1.2 to 1, then an ink halo spreads and fades. */
-.stamp-in {
-  animation: stamp 180ms var(--ease-out) both;
-}
-.stamp-in::after {
-  content: "";
-  position: absolute;
-  inset: -6px;
-  border-radius: 12px;
-  background: currentColor;
-  opacity: 0;
-  animation: halo 240ms var(--ease-out) 150ms;
-  pointer-events: none;
-}
-@keyframes stamp {
-  from {
-    opacity: 0;
-    scale: 1.2;
-  }
-}
-@keyframes halo {
-  from {
-    opacity: 0.2;
-    scale: 0.9;
-  }
-  to {
-    opacity: 0;
-    scale: 1.2;
-  }
-}
-
 /* A9 Riduci movimento: everything becomes a 120 ms fade, loops stop. */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -491,7 +460,6 @@ samp {
   .cascade > *,
   .ticket-print,
   .ticket-print .ticket-stub > *,
-  .stamp-in,
   .icon-in,
   .perf-late {
     animation: fade-in 120ms ease-out both !important;

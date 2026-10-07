@@ -1,5 +1,5 @@
 import { ClearMoment } from "@/components/moment";
-import { Stamp, stampDay, Ticket, TicketStub } from "@/components/ticket";
+import { Seal, stampDay, Ticket, TicketStub } from "@/components/ticket";
 import { TypeChip } from "@/components/event-type";
 import { Attachments } from "@/components/attachments/attachments";
 import { BriefView } from "@/components/brief/brief-view";
@@ -75,7 +75,7 @@ export default async function ClientRequestPage({ params, searchParams }: { para
             {request.submittedAt && ` il ${dateFmt.format(new Date(request.submittedAt))}`} · {proposals.length} agenzie
           </p>
         </div>
-        {accepted && <Stamp label="Confermato" date={stampDay(accepted.decided_at)} type={request.draft.eventType ?? null} fresh={momento === "confermato"} />}
+        {accepted && <Seal label="Confermato" date={stampDay(accepted.decided_at)} type={request.draft.eventType ?? null} fresh={momento === "confermato"} />}
         {open && (
           <form action={cancelRequest}>
             <input type="hidden" name="id" value={id} />
