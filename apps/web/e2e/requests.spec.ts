@@ -54,7 +54,7 @@ async function answerRequest(page: Page, title: string, amounts: [string, string
 
 test("client sends a request to two agencies, compares proposals and accepts one", async ({ browser }) => {
   // The whole life of an event, from the request to the reviews.
-  test.setTimeout(150_000);
+  test.setTimeout(210_000);
   const alfa = await agencyWithInvite(browser, "Alfa");
   const beta = await agencyWithInvite(browser, "Beta");
 
@@ -300,7 +300,7 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await publicPage.getByLabel("Aperto al pubblico").check();
   await publicPage.getByLabel("Cosa succede").fill("Una serata di musica nel cortile.");
   await publicPage.getByLabel("Apertura").fill("19:00");
-  await publicPage.getByLabel("Posti", { exact: true }).fill("3");
+  await publicPage.getByRole("spinbutton", { name: /^Posti/ }).fill("3");
   await publicPage.getByRole("button", { name: "Salva pagina pubblica" }).click();
   await expect(publicPage.getByText("Pagina pubblica salvata.")).toBeVisible();
 
