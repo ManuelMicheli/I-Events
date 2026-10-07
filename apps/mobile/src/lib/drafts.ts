@@ -74,7 +74,10 @@ export function issueMessage(issue: z.core.$ZodIssue): string {
 async function save(orgId: string, requestId: string | null, input: RequestDraft): Promise<SaveResult & { draft?: RequestDraft }> {
   const parsed = requestDraftSchema.safeParse(input);
   if (!parsed.success) {
-    return { error: "Controlla i campi evidenziati.", issues: parsed.error.issues.map((i) => ({ path: i.path.join("."), message: issueMessage(i) })) };
+    return {
+      error: "Controlla i campi evidenziati.",
+      issues: parsed.error.issues.map((i) => ({ path: i.path.join("."), message: issueMessage(i) })),
+    };
   }
   const draft = normalizeDraft(parsed.data);
   const { data, error } = await supabase.rpc("save_request_draft", {
@@ -130,7 +133,14 @@ export async function fetchReachableAgencies(clientOrgId: string) {
   const ids = new Set(connected.map((a) => a.id));
   const marketplace = listed
     .filter((m) => !ids.has(m.organizations.id))
-    .map((m) => ({ id: m.organizations.id, name: m.organizations.name, city: m.organizations.city, connected: false, headline: m.headline, regions: m.regions }));
+    .map((m) => ({
+      id: m.organizations.id,
+      name: m.organizations.name,
+      city: m.organizations.city,
+      connected: false,
+      headline: m.headline,
+      regions: m.regions,
+    }));
   return [...connected, ...marketplace];
 }
 
