@@ -55,6 +55,10 @@ export function appRouteForLink(link: string | null): { pathname: string; params
   if (event) return { pathname: "/evento/[id]", params: { id: event[1]! } };
   const booking = new RegExp(`^/supplier/richieste/${uuid}(?:[/?#].*)?$`).exec(link);
   if (booking) return { pathname: "/richiesta/[id]", params: { id: booking[1]! } };
-  if (/^\/supplier\/richieste\/?$/.test(link)) return { pathname: "/" };
+  if (/^\/supplier\/richieste\/?$/.test(link)) return { pathname: "/richieste" };
+  const proposal = new RegExp(`^/pro/richieste/${uuid}(?:[/?#].*)?$`).exec(link);
+  if (proposal) return { pathname: "/proposta/[id]", params: { id: proposal[1]! } };
+  const request = new RegExp(`^/client/richieste/${uuid}(?:[/?#].*)?$`).exec(link);
+  if (request) return { pathname: "/richiesta-azienda/[id]", params: { id: request[1]! } };
   return null;
 }

@@ -1,5 +1,6 @@
 /** Italian labels and messages shared by the web app and the mobile app. */
 import type { MemberRole, OrgType } from "./organizations";
+import type { OBJECTIVES } from "./requests";
 
 export const ORG_TYPE_LABEL: Record<OrgType, string> = { agency: "Agenzia", client: "Azienda", supplier: "Fornitore" };
 
@@ -9,6 +10,15 @@ export const ROLE_LABEL: Record<MemberRole, string> = {
   manager: "Project manager",
   member: "Membro",
   approver: "Approvatore spesa",
+};
+
+export const OBJECTIVE_LABEL: Record<(typeof OBJECTIVES)[number], string> = {
+  product_launch: "Lancio prodotto",
+  brand_awareness: "Brand awareness",
+  internal: "Evento interno",
+  trade_fair: "Fiera",
+  pop_up: "Pop-up",
+  other: "Altro",
 };
 
 export const REQUEST_STATUS_LABEL = { draft: "Bozza", sent: "Inviata", awarded: "Assegnata", cancelled: "Annullata" } as const;

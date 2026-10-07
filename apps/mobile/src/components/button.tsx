@@ -17,7 +17,10 @@ type Props = {
   block?: boolean;
   /** Where a label-wide button sits in its container. */
   align?: "start" | "center";
+  /** "small" fits inside a list row: 44 high, the smallest touch target, with a shorter label. */
+  size?: "large" | "small";
   accessibilityHint?: string;
+  accessibilityLabel?: string;
 };
 
 /**
@@ -34,7 +37,9 @@ export function Button({
   disabled = false,
   block = false,
   align = "start",
+  size = "large",
   accessibilityHint,
+  accessibilityLabel,
 }: Props) {
   const { c } = useTheme();
   const [pressed, setPressed] = useState(false);
@@ -55,11 +60,12 @@ export function Button({
       onPressIn={() => setPressed(true)}
       onPressOut={() => setPressed(false)}
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: off, busy: loading }}
       style={({ pressed: p }) => [
         styles.base,
+        size === "small" && styles.small,
         {
           backgroundColor: disabledLook && variant !== "tertiary" ? c.bgSubtle : look.bg,
           borderColor: disabledLook ? "transparent" : look.border,
@@ -70,7 +76,7 @@ export function Button({
     >
       <View style={[styles.content, loading && styles.hidden]}>
         {icon && <Ionicons name={icon} size={20} color={disabledLook ? c.textDisabled : toneColor} />}
-        <T variant="bodyStrong" tone={disabledLook ? "disabled" : look.tone} style={styles.label}>
+        <T variant={size === "small" ? "calloutStrong" : "bodyStrong"} tone={disabledLook ? "disabled" : look.tone} style={styles.label}>
           {label}
         </T>
       </View>
@@ -88,6 +94,7 @@ const styles = StyleSheet.create({
     paddingVertical: space[2],
     justifyContent: "center",
   },
+  small: { minHeight: control.touch, paddingHorizontal: space[4], paddingVertical: space[1] },
   content: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: space[2] },
   label: { textAlign: "center", flexShrink: 1 },
   hidden: { opacity: 0 },

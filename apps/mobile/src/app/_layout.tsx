@@ -110,6 +110,11 @@ function RootStack({ ready }: { ready: boolean }) {
         <Stack.Screen name="scansiona/[id]" options={{ title: "Scansiona pass" }} />
         <Stack.Screen name="richiesta/[id]" options={{ title: "Richiesta" }} />
         <Stack.Screen name="importa-contatti" options={{ title: "Importa contatti" }} />
+        <Stack.Screen name="proposta/[id]" options={{ title: "Richiesta" }} />
+        <Stack.Screen name="richiesta-azienda/[id]" options={{ title: "Richiesta" }} />
+        <Stack.Screen name="conversazione/[id]" options={{ title: "Messaggi" }} />
+        <Stack.Screen name="notifiche" options={{ title: "Notifiche" }} />
+        <Stack.Screen name="account" options={{ title: "Account" }} />
       </Stack.Protected>
     </Stack>
   );

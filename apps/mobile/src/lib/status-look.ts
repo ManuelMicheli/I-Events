@@ -1,10 +1,12 @@
 import {
   BOOKING_STATUS_LABEL,
   EVENT_STATUS_LABEL,
+  PROPOSAL_STATUS_LABEL,
   QUOTE_STATUS_LABEL,
   SUPPLIER_BUCKET_LABEL,
   type BookingStatus,
   type EventStatus,
+  type ProposalStatus,
   type QuoteStatus,
   type SupplierRequestBucket,
 } from "@i-events/core";
@@ -43,8 +45,35 @@ const BUCKET_LOOK: Record<SupplierRequestBucket, Look> = {
   closed: { label: "Chiusa", tone: "outline" },
 };
 
+const PROPOSAL_LOOK: Record<ProposalStatus, Look> = {
+  invited: { label: PROPOSAL_STATUS_LABEL.invited, tone: "accent", live: true },
+  reviewing: { label: PROPOSAL_STATUS_LABEL.reviewing, tone: "neutral", icon: "eye-outline" },
+  clarification: { label: PROPOSAL_STATUS_LABEL.clarification, tone: "warning", icon: "help-circle-outline" },
+  submitted: { label: PROPOSAL_STATUS_LABEL.submitted, tone: "neutral", icon: "time-outline" },
+  revision_requested: { label: PROPOSAL_STATUS_LABEL.revision_requested, tone: "warning", icon: "create-outline" },
+  accepted: { label: PROPOSAL_STATUS_LABEL.accepted, tone: "success", icon: "checkmark" },
+  rejected: { label: PROPOSAL_STATUS_LABEL.rejected, tone: "outline" },
+  declined: { label: PROPOSAL_STATUS_LABEL.declined, tone: "outline" },
+  withdrawn: { label: PROPOSAL_STATUS_LABEL.withdrawn, tone: "outline" },
+};
+
+/** How a proposal looks to the company that asked for it. */
+const CLIENT_PROPOSAL_LOOK: Record<ProposalStatus, Look> = {
+  invited: { label: "Richiesta inviata", tone: "neutral" },
+  reviewing: { label: "Sta preparando il preventivo", tone: "neutral", icon: "time-outline" },
+  clarification: { label: "Ha delle domande", tone: "warning", icon: "help-circle-outline" },
+  submitted: { label: "Nuovo preventivo", tone: "accent", live: true },
+  revision_requested: { label: "Modifiche chieste", tone: "neutral", icon: "create-outline" },
+  accepted: { label: "Scelta", tone: "success", icon: "checkmark" },
+  rejected: { label: "Non scelta", tone: "outline" },
+  declined: { label: "Ha rinunciato", tone: "outline" },
+  withdrawn: { label: "Preventivo ritirato", tone: "outline" },
+};
+
 /** Badge for each status: the label, plus colour and icon so colour is never the only signal. */
 export const eventStatusLook = (s: EventStatus) => EVENT_LOOK[s];
 export const bookingStatusLook = (s: BookingStatus) => BOOKING_LOOK[s];
 export const quoteStatusLook = (s: QuoteStatus) => QUOTE_LOOK[s];
 export const supplierBucketLook = (b: SupplierRequestBucket) => BUCKET_LOOK[b];
+export const proposalStatusLook = (s: ProposalStatus) => PROPOSAL_LOOK[s];
+export const clientProposalLook = (s: ProposalStatus) => CLIENT_PROPOSAL_LOOK[s];

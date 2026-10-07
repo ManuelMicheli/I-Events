@@ -39,7 +39,6 @@ export default function NotificationsScreen() {
 
   return (
     <Screen
-      title="Notifiche"
       header={
         unread > 0 ? (
           <Button variant="secondary" label="Segna tutte come lette" icon="checkmark-done" loading={marking} onPress={markAll} />

@@ -12,7 +12,7 @@ import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
 import { fetchEvent } from "@/lib/data";
 import { prefetchEventDay } from "@/lib/event-day";
-import { env } from "@/lib/env";
+import { env, siteOnline } from "@/lib/env";
 import { useActiveOrg } from "@/lib/session";
 import { bookingStatusLook, eventStatusLook, quoteStatusLook } from "@/lib/status-look";
 import { useQuery } from "@/lib/use-query";
@@ -152,7 +152,9 @@ export default function EventScreen() {
         </Section>
       )}
 
-      <Button variant="secondary" icon="open-outline" label="Apri sul sito" onPress={() => WebBrowser.openBrowserAsync(`${env.siteUrl}${webPath}`)} />
+      {siteOnline && (
+        <Button variant="secondary" icon="open-outline" label="Apri sul sito" onPress={() => WebBrowser.openBrowserAsync(`${env.siteUrl}${webPath}`)} />
+      )}
     </Screen>
   );
 }

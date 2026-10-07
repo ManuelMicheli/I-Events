@@ -54,12 +54,14 @@ describe("notification links in the app", () => {
     expect(appRouteForLink(`/pro/eventi/${id}/live`)).toEqual({ pathname: "/giornata/[id]", params: { id } });
     expect(appRouteForLink(`/pro/eventi/${id}/live?giorno=2`)).toEqual({ pathname: "/giornata/[id]", params: { id } });
     expect(appRouteForLink(`/supplier/richieste/${id}`)).toEqual({ pathname: "/richiesta/[id]", params: { id } });
-    expect(appRouteForLink("/supplier/richieste")).toEqual({ pathname: "/" });
+    expect(appRouteForLink("/supplier/richieste")).toEqual({ pathname: "/richieste" });
+    expect(appRouteForLink(`/pro/richieste/${id}`)).toEqual({ pathname: "/proposta/[id]", params: { id } });
+    expect(appRouteForLink(`/client/richieste/${id}#messaggi`)).toEqual({ pathname: "/richiesta-azienda/[id]", params: { id } });
+    expect(appRouteForLink(`/client/richieste/${id}/modifica`)).toEqual({ pathname: "/richiesta-azienda/[id]", params: { id } });
   });
 
   it("leaves everything else to the web", () => {
     expect(appRouteForLink(null)).toBeNull();
-    expect(appRouteForLink(`/pro/richieste/${id}`)).toBeNull();
     expect(appRouteForLink("/pro/profilo#recensioni")).toBeNull();
     expect(appRouteForLink("/pro/eventi/not-a-uuid")).toBeNull();
     expect(appRouteForLink(`https://evil.example/pro/eventi/${id}`)).toBeNull();

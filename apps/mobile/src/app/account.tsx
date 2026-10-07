@@ -9,24 +9,17 @@ import { PushSetting } from "@/components/push-prompt";
 import { Divider, ListRow } from "@/components/rows";
 import { Screen, Section } from "@/components/screen";
 import { T } from "@/components/text";
-import { env } from "@/lib/env";
+import { env, siteOnline } from "@/lib/env";
+import { useMyName } from "@/lib/profile";
 import { useSession } from "@/lib/session";
-import { supabase } from "@/lib/supabase";
-import { useQuery } from "@/lib/use-query";
 import { space } from "@/theme";
 
 export default function AccountScreen() {
   const { session, orgs, activeOrg, setActiveOrg, signOut } = useSession();
   const [leaving, setLeaving] = useState(false);
-  const userId = session?.user.id ?? null;
-  const profile = useQuery(userId && `profile:${userId}`, async () => {
-    const { data, error } = await supabase.from("profiles").select("full_name").eq("id", userId!).maybeSingle();
-    if (error) throw error;
-    return data;
-  });
-  const name = profile.data?.full_name?.trim();
+  const name = useMyName();
   return (
-    <Screen title="Account">
+    <Screen>
       <Card>
         <T variant="title3">{name || "Il tuo account"}</T>
         <T variant="callout" tone="secondary">
@@ -59,15 +52,19 @@ export default function AccountScreen() {
             </View>
           ))}
         </Card>
-        <T variant="callout" tone="secondary">
-          Team, collegamenti e profilo pubblico si gestiscono dal sito.
-        </T>
-        <Button
-          variant="secondary"
-          icon="open-outline"
-          label="Apri I-Events sul sito"
-          onPress={() => WebBrowser.openBrowserAsync(`${env.siteUrl}/app`)}
-        />
+        {siteOnline && (
+          <>
+            <T variant="callout" tone="secondary">
+              Team, collegamenti e profilo pubblico si gestiscono dal sito.
+            </T>
+            <Button
+              variant="secondary"
+              icon="open-outline"
+              label="Apri I-Events sul sito"
+              onPress={() => WebBrowser.openBrowserAsync(`${env.siteUrl}/app`)}
+            />
+          </>
+        )}
       </Section>
 
       <Button
