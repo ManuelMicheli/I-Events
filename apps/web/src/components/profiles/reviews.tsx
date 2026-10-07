@@ -26,7 +26,7 @@ export function ReviewList({ reviews, canReply = false, empty }: { reviews: Prof
       {reviews.map((r) => (
         <li key={r.id} className="flex flex-col gap-1.5 py-4 text-sm">
           <p>
-            <span aria-label={`${r.rating} su 5`} className="text-accent">
+            <span aria-label={`${r.rating} su 5`} className="text-text">
               {stars(r.rating)}
             </span>
             <span className="ml-2 font-medium">{r.author_name}</span>

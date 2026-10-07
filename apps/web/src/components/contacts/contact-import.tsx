@@ -116,7 +116,7 @@ export function ContactImport() {
   return (
     <div className="flex flex-col gap-4">
       {step === "source" && (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Card title="Da file">
             <label htmlFor="contacts-file" className="mb-2 block text-sm">
               CSV, Excel (.xlsx) o vCard (.vcf)

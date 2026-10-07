@@ -27,7 +27,7 @@ export function ResponseForm({
         ).map(([value, label]) => (
           <label
             key={value}
-            className="flex cursor-pointer items-center gap-2 rounded-ui border border-border px-4 py-2 text-sm has-[:checked]:border-accent"
+            className="flex cursor-pointer items-center gap-2 rounded-ui border border-border px-4 py-2 text-sm has-[:checked]:border-accent has-[:checked]:bg-accent-subtle"
           >
             <input type="radio" name="available" value={value} checked={available === value} onChange={() => setAvailable(value)} />
             {label}

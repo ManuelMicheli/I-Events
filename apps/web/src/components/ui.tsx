@@ -1,57 +1,73 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
+/** Carta primitives (specs in design-research/carta-componenti-spec.md). Screens compose these. */
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
 
-export function Button({ variant = "primary", className, ...props }: ComponentProps<"button"> & { variant?: "primary" | "secondary" | "danger" }) {
-  return (
-    <button
-      className={cx(
-        "inline-flex h-10 items-center justify-center rounded-ui px-4 text-sm font-medium disabled:opacity-50",
-        variant === "primary" && "bg-accent text-accent-text",
-        variant === "secondary" && "border border-border bg-bg",
-        variant === "danger" && "border border-danger text-danger",
-        className,
-      )}
-      {...props}
-    />
-  );
+type Variant = "primary" | "secondary" | "tertiary" | "danger";
+type Size = "s" | "m" | "l";
+
+const BUTTON_BASE =
+  "inline-flex shrink-0 items-center justify-center gap-2 text-center font-medium transition-[background-color,transform] duration-[120ms] ease-out active:scale-[0.98] disabled:pointer-events-none disabled:bg-surface disabled:text-disabled disabled:border-transparent";
+const BUTTON_SIZE: Record<Size, string> = {
+  // Small buttons keep 32 px but reach 44 px for the finger; medium ones are 44 px on phones.
+  s: "relative min-h-8 rounded-[8px] px-3 py-1 text-label after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-['']",
+  m: "min-h-11 rounded-ui px-4 py-2 text-sm sm:min-h-10",
+  l: "min-h-12 rounded-ui px-5 py-3 text-sm",
+};
+const BUTTON_VARIANT: Record<Variant, string> = {
+  primary: "bg-accent text-accent-text hover:bg-accent-hover",
+  secondary: "border border-border-strong bg-bg text-text hover:bg-surface",
+  tertiary: "text-text hover:bg-surface",
+  danger: "bg-danger text-on-danger hover:opacity-90",
+};
+
+export function buttonClass(variant: Variant = "primary", size: Size = "m", className?: string) {
+  return cx(BUTTON_BASE, BUTTON_SIZE[size], BUTTON_VARIANT[variant], className);
 }
 
-export function ButtonLink({ className, ...props }: ComponentProps<typeof Link>) {
-  return (
-    <Link
-      className={cx("inline-flex h-10 items-center justify-center rounded-ui bg-accent px-4 text-sm font-medium text-accent-text", className)}
-      {...props}
-    />
-  );
+export function Button({ variant = "primary", size = "m", className, ...props }: ComponentProps<"button"> & { variant?: Variant; size?: Size }) {
+  return <button className={buttonClass(variant, size, className)} {...props} />;
+}
+
+export function ButtonLink({ variant = "primary", size = "m", className, ...props }: ComponentProps<typeof Link> & { variant?: Variant; size?: Size }) {
+  return <Link className={buttonClass(variant, size, className)} {...props} />;
 }
 
 export function Field({ label, error, children, hint }: { label: string; error?: string; hint?: string; children: ReactNode }) {
   return (
-    <label className="flex flex-col gap-1.5 text-sm">
-      <span className="font-medium">{label}</span>
-      {children}
-      {hint && !error && <span className="text-muted">{hint}</span>}
-      {error && <span className="text-danger">{error}</span>}
+    <label className="flex flex-col gap-2">
+      <span className="text-label font-medium">{label}</span>
+      <span className="flex flex-col gap-1">
+        {children}
+        {hint && !error && <span className="text-xs text-muted">{hint}</span>}
+        {error && (
+          <span className="flex items-start gap-1 text-xs text-danger">
+            <AlertIcon />
+            {error}
+          </span>
+        )}
+      </span>
     </label>
   );
 }
 
+const FIELD = "min-h-12 w-full min-w-0 rounded-ui border border-control bg-bg px-3 sm:min-h-10";
+
 export function Input({ className, ...props }: ComponentProps<"input">) {
-  return <input className={cx("h-10 rounded-ui border border-border bg-bg px-3", className)} {...props} />;
+  return <input className={cx(FIELD, className)} {...props} />;
 }
 
 export function Select({ className, ...props }: ComponentProps<"select">) {
-  return <select className={cx("h-10 rounded-ui border border-border bg-bg px-3", className)} {...props} />;
+  return <select className={cx(FIELD, "pr-8", className)} {...props} />;
 }
 
 export function Card({ title, action, children, className }: { title?: string; action?: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <section className={cx("rounded-ui border border-border bg-bg p-5", className)}>
+    <section className={cx("rounded-card border border-border bg-bg p-4 sm:p-6", className)}>
       {(title || action) && (
-        <header className="mb-4 flex items-center justify-between gap-4">
-          {title && <h2 className="text-base font-semibold">{title}</h2>}
+        <header className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          {title && <h2 className="text-xl font-medium">{title}</h2>}
           {action}
         </header>
       )}
@@ -65,17 +81,54 @@ export function Notice({ tone = "info", children }: { tone?: "info" | "error" | 
     <p
       role={tone === "error" ? "alert" : "status"}
       className={cx(
-        "rounded-ui border px-3 py-2 text-sm",
-        tone === "info" && "border-border bg-surface",
-        tone === "error" && "border-danger text-danger",
-        tone === "success" && "border-success text-success",
+        "flex items-start gap-2 rounded-ui px-4 py-3 text-sm",
+        tone === "info" && "bg-surface text-text",
+        tone === "error" && "bg-danger-bg text-danger",
+        tone === "success" && "bg-success-bg text-success",
       )}
     >
-      {children}
+      {tone === "error" && <AlertIcon className="mt-1" />}
+      {tone === "success" && <CheckIcon className="mt-1" />}
+      <span>{children}</span>
     </p>
   );
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <p className="rounded-ui bg-surface px-4 py-6 text-center text-sm text-muted">{children}</p>;
+  return <p className="rounded-card bg-surface px-4 py-8 text-center text-sm text-muted">{children}</p>;
+}
+
+/** The I-Events symbol ("Biglietto"): a ticket with the i cut out and the Fiamma dot. */
+export function Logo({ className }: { className?: string }) {
+  return (
+    <span className={cx("inline-flex items-center gap-2", className)}>
+      <svg width="32" height="21" viewBox="10 24 80 52" aria-hidden className="shrink-0">
+        <path
+          fillRule="evenodd"
+          fill="currentColor"
+          d="M20 24H80A10 10 0 0 1 90 34V43A7 7 0 0 0 90 57V66A10 10 0 0 1 80 76H20A10 10 0 0 1 10 66V57A7 7 0 0 0 10 43V34A10 10 0 0 1 20 24ZM45 51A5 5 0 0 1 55 51V65A5 5 0 0 1 45 65Z"
+        />
+        <circle cx="50" cy="36" r="6" fill="var(--color-accent)" />
+      </svg>
+      <span className="text-lg font-semibold tracking-[-0.01em]">I&#8209;Events</span>
+    </span>
+  );
+}
+
+function AlertIcon({ className }: { className?: string }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className={cx("shrink-0", className)}>
+      <circle cx="8" cy="8" r="6.25" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M8 4.75v3.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="8" cy="11" r="0.9" fill="currentColor" />
+    </svg>
+  );
+}
+
+function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className={cx("shrink-0", className)}>
+      <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 }

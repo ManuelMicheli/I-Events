@@ -42,7 +42,7 @@ export function AvailabilityCalendar({ from, months, days, today }: { from: stri
                           title={label}
                           className={[
                             "flex h-8 items-center justify-center rounded-ui",
-                            state === "booked" && "bg-accent text-accent-text",
+                            state === "booked" && "bg-text text-bg",
                             state === "off" && "bg-surface text-muted line-through",
                             day < today && !state && "text-muted",
                             day === today && "ring-1 ring-text",
@@ -63,7 +63,7 @@ export function AvailabilityCalendar({ from, months, days, today }: { from: stri
       </div>
       <p className="flex flex-wrap gap-4 text-sm text-muted">
         <span className="flex items-center gap-2">
-          <span aria-hidden className="inline-block h-3 w-3 rounded-sm bg-accent" /> Evento confermato
+          <span aria-hidden className="inline-block h-3 w-3 rounded-sm bg-text" /> Evento confermato
         </span>
         <span className="flex items-center gap-2">
           <span aria-hidden className="inline-block h-3 w-3 rounded-sm border border-border bg-surface" /> Non disponibile

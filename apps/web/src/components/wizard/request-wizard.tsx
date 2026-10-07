@@ -140,7 +140,7 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
 
   return (
     <div className="flex flex-col gap-6">
-      <ol className="flex flex-wrap gap-2 text-sm" aria-label="Passaggi">
+      <ol className="flex flex-wrap gap-1 text-sm" aria-label="Passaggi">
         {steps.map((s, i) => (
           <li key={s}>
             <button
@@ -148,7 +148,9 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
               disabled={pending || (i > index && !requestId)}
               onClick={() => go(s)}
               aria-current={s === step ? "step" : undefined}
-              className={s === step ? "font-semibold" : "text-muted"}
+              className={`min-h-10 rounded-full px-3 transition-colors duration-[120ms] disabled:text-disabled ${
+                s === step ? "bg-surface font-medium text-text" : "text-muted hover:bg-surface hover:text-text"
+              }`}
             >
               {i + 1}. {STEP_LABEL[s]}
             </button>
@@ -171,9 +173,9 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
                 setDraft((d) => (o.kind === "campaign" ? resizeStages({ ...d, kind: "campaign" }, d.campaign?.eventsCount ?? 2) : { ...d, kind: "single", campaign: undefined, items: d.items.filter((i) => i.stageIndex === undefined) }));
                 setStep("basi");
               }}
-              className={`rounded-ui border p-6 text-left ${draft.kind === o.kind ? "border-accent" : "border-border"}`}
+              className={`rounded-card border p-6 text-left transition-colors duration-[120ms] ${draft.kind === o.kind ? "border-2 border-accent bg-accent-subtle p-[23px]" : "border-border bg-bg hover:bg-surface"}`}
             >
-              <span className="block text-lg font-semibold">{o.title}</span>
+              <span className="block text-xl font-medium">{o.title}</span>
               <span className="block text-sm text-muted">{o.text}</span>
             </button>
           ))}
@@ -317,7 +319,7 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
                   role="tab"
                   aria-selected={stageTab === i}
                   onClick={() => setStageTab(i)}
-                  className={`rounded-ui border px-3 py-1.5 text-sm ${stageTab === i ? "border-accent font-medium" : "border-border text-muted"}`}
+                  className={`min-h-10 rounded-full border px-4 text-sm ${stageTab === i ? "border-accent bg-accent-subtle font-medium" : "border-border-strong bg-bg text-muted hover:bg-surface"}`}
                 >
                   Tappa {i + 1}
                   {s.city ? ` · ${s.city}` : ""}
@@ -329,7 +331,7 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
             {SERVICE_CATALOG.map((c) => {
               const on = Boolean(itemFor(c.key));
               return (
-                <label key={c.key} className={`flex cursor-pointer items-center gap-3 rounded-ui border p-4 ${on ? "border-accent" : "border-border"}`}>
+                <label key={c.key} className={`flex cursor-pointer items-center gap-3 rounded-ui border p-4 ${on ? "border-accent bg-accent-subtle" : "border-border bg-bg hover:bg-surface"}`}>
                   <input type="checkbox" checked={on} onChange={(e) => toggleService(c.key, e.target.checked)} />
                   <span className="font-medium">{c.name.it}</span>
                 </label>

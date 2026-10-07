@@ -4,8 +4,10 @@ import { AREA_BY_TYPE, getMyOrgs, type MyOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { MobileMenu, NavList, type NavItem } from "./shell-nav";
+import { buttonClass, Logo } from "./ui";
 
-const NAV: Record<MyOrg["type"], { href: string; label: string }[]> = {
+const NAV: Record<MyOrg["type"], NavItem[]> = {
   agency: [
     { href: "/pro", label: "Richieste" },
     { href: "/pro/eventi", label: "Eventi" },
@@ -31,59 +33,95 @@ const NAV: Record<MyOrg["type"], { href: string; label: string }[]> = {
   ],
 };
 
+/** App frame: sidebar 240 on desktop, top bar 56 with a menu on smaller screens. */
 export async function Shell({ org, children }: { org: MyOrg; children: ReactNode }) {
   const supabase = await createClient();
   const [orgs, { count: unread }] = await Promise.all([
     getMyOrgs(),
     supabase.from("notifications").select("id", { count: "exact", head: true }).is("read_at", null),
   ]);
-  return (
-    <div className="min-h-dvh">
-      <header className="border-b border-border">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
-          <Link href={AREA_BY_TYPE[org.type]} className="font-semibold">
-            I-Events
-          </Link>
-          <nav className="flex flex-1 gap-4 text-sm">
-            {NAV[org.type].map((n) => (
-              <Link key={n.href} href={n.href} className="text-muted hover:text-text">
-                {n.label}
-              </Link>
+  const nav = NAV[org.type];
+  const account = (where: "side" | "menu") => (
+    <div className="flex flex-col gap-1">
+      {orgs.length > 1 ? (
+        <form action={switchOrganization} className="mb-2 flex flex-col gap-2 px-3">
+          <label htmlFor={`orgId-${where}`} className="text-label font-medium text-muted">
+            Organizzazione
+          </label>
+          <select id={`orgId-${where}`} name="orgId" defaultValue={org.id} className="min-h-12 w-full rounded-ui border border-control bg-bg px-3 sm:min-h-10">
+            {orgs.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name} · {ORG_TYPE_LABEL[o.type]}
+              </option>
             ))}
-          </nav>
-          {orgs.length > 1 ? (
-            <form action={switchOrganization} className="flex items-center gap-2 text-sm">
-              <label htmlFor="orgId" className="sr-only">
-                Organizzazione
-              </label>
-              <select id="orgId" name="orgId" defaultValue={org.id} className="h-9 rounded-ui border border-border bg-bg px-2">
-                {orgs.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    {o.name} · {ORG_TYPE_LABEL[o.type]}
-                  </option>
-                ))}
-              </select>
-              <button type="submit" className="text-muted underline">
-                Cambia
-              </button>
-            </form>
-          ) : (
-            <span className="text-sm text-muted">
-              {org.name} · {ORG_TYPE_LABEL[org.type]}
-            </span>
-          )}
-          <Link href="/notifiche" className="text-sm" aria-label={unread ? `Notifiche, ${unread} non lette` : "Notifiche"}>
-            Notifiche{unread ? <span className="ml-1 rounded-ui bg-accent px-1.5 text-xs text-accent-text">{unread}</span> : null}
-          </Link>
-          <Link href="/onboarding" className="text-sm text-muted">
-            + Nuovo account
-          </Link>
-          <form action="/auth/signout" method="post">
-            <button className="text-sm text-muted underline">Esci</button>
-          </form>
-        </div>
-      </header>
-      <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">{children}</main>
+          </select>
+          <button type="submit" className={buttonClass("secondary", "s", "self-start")}>
+            Cambia organizzazione
+          </button>
+        </form>
+      ) : (
+        <p className="mb-2 px-3 text-sm">
+          <span className="block font-medium">{org.name}</span>
+          <span className="text-muted">{ORG_TYPE_LABEL[org.type]}</span>
+        </p>
+      )}
+      <Link href="/onboarding" className="flex min-h-11 items-center rounded-[8px] px-3 text-sm text-muted hover:bg-surface hover:text-text lg:min-h-8">
+        Nuovo account
+      </Link>
+      <form action="/auth/signout" method="post">
+        <button className="flex min-h-11 w-full items-center rounded-[8px] px-3 text-left text-sm text-muted hover:bg-surface hover:text-text lg:min-h-8">Esci</button>
+      </form>
     </div>
+  );
+
+  return (
+    <div className="min-h-dvh lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
+      <aside className="sticky top-0 hidden h-dvh flex-col gap-6 overflow-y-auto border-r border-border px-3 pb-4 lg:flex">
+        <Link href={AREA_BY_TYPE[org.type]} className="flex h-14 shrink-0 items-center rounded-ui px-3" aria-label="I-Events, home">
+          <Logo />
+        </Link>
+        <NavList items={nav} />
+        <div className="mt-auto border-t border-border pt-4">{account("side")}</div>
+      </aside>
+      <div className="flex min-w-0 flex-col">
+        <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b border-border bg-app/90 px-4 backdrop-blur sm:px-6 lg:px-8">
+          <Link href={AREA_BY_TYPE[org.type]} className="flex min-h-11 items-center lg:hidden" aria-label="I-Events, home">
+            <Logo />
+          </Link>
+          <span className="hidden min-w-0 truncate text-sm text-muted lg:block">
+            {org.name} · {ORG_TYPE_LABEL[org.type]}
+          </span>
+          <Link
+            href="/notifiche"
+            className="ml-auto flex min-h-11 items-center gap-2 rounded-ui px-3 text-sm font-medium hover:bg-surface"
+            aria-label={unread ? `Notifiche, ${unread} non lette` : "Notifiche"}
+          >
+            <BellIcon />
+            <span className="hidden sm:inline">Notifiche</span>
+            {unread ? (
+              <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-accent px-2 font-mono text-xs leading-6 text-accent-text">
+                {unread}
+              </span>
+            ) : null}
+          </Link>
+          <MobileMenu items={nav}>{account("menu")}</MobileMenu>
+        </header>
+        <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">{children}</main>
+      </div>
+    </div>
+  );
+}
+
+function BellIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden className="shrink-0">
+      <path
+        d="M5 8a5 5 0 0 1 10 0v3.5l1.5 2.5h-13L5 11.5V8Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="M8 16.5a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
   );
 }

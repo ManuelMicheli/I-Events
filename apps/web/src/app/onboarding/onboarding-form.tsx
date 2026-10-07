@@ -18,7 +18,7 @@ export function OnboardingForm({ next, defaultType }: { next?: string; defaultTy
       <fieldset className="flex flex-col gap-3">
         <legend className="mb-2 text-sm font-medium">Che tipo di account vuoi creare?</legend>
         {TYPES.map((t) => (
-          <label key={t.value} className="flex cursor-pointer gap-3 rounded-ui border border-border p-4 has-[:checked]:border-accent">
+          <label key={t.value} className="flex cursor-pointer gap-3 rounded-ui border border-border p-4 has-[:checked]:border-accent has-[:checked]:bg-accent-subtle">
             <input type="radio" name="type" value={t.value} required defaultChecked={t.value === defaultType} className="mt-1" />
             <span>
               <span className="block font-medium">{t.title}</span>
