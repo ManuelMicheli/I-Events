@@ -1,4 +1,4 @@
-import { agendaSection, formatEventDates, getServiceCategory, keepDayOnPhone, todayInItaly } from "@i-events/core";
+import { agendaSection, formatEventDates, formatTicketNumber, getServiceCategory, keepDayOnPhone, todayInItaly } from "@i-events/core";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect } from "react";
@@ -6,13 +6,16 @@ import { StyleSheet, View } from "react-native";
 import { Badge, LiveDot } from "@/components/badge";
 import { Button } from "@/components/button";
 import { Card, TicketDivider } from "@/components/card";
+import { EventCover, InkBand } from "@/components/event-type";
 import { Divider, InfoRow } from "@/components/rows";
 import { Screen, Section } from "@/components/screen";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
+import { Stamp, StatusRow, TicketTag } from "@/components/ticket";
 import { fetchEvent } from "@/lib/data";
 import { prefetchEventDay } from "@/lib/event-day";
 import { env, siteOnline } from "@/lib/env";
+import { stampDay } from "@/lib/format";
 import { useActiveOrg } from "@/lib/session";
 import { bookingStatusLook, eventStatusLook, quoteStatusLook } from "@/lib/status-look";
 import { useQuery } from "@/lib/use-query";
@@ -63,10 +66,20 @@ export default function EventScreen() {
     <Screen refreshing={q.refreshing} onRefresh={q.refresh}>
       <Stack.Screen options={{ title: e.title }} />
       <Card>
-        <Badge {...(live ? eventStatusLook("live") : eventStatusLook(e.status))} />
-        <T variant="title2" accessibilityRole="header">
-          {e.title}
-        </T>
+        {e.event_type && <InkBand type={e.event_type} />}
+        <StatusRow>
+          <Badge {...(live ? eventStatusLook("live") : eventStatusLook(e.status))} />
+          {e.status === "completed" && <Stamp label="Andato in scena" date={stampDay(e.end_date ?? e.start_date)} type={e.event_type} />}
+        </StatusRow>
+        <View style={styles.head}>
+          {e.event_type && <EventCover type={e.event_type} size={64} />}
+          <View style={styles.titles}>
+            <T variant="title2" accessibilityRole="header">
+              {e.title}
+            </T>
+            <TicketTag number={formatTicketNumber(e.number, e.stage?.position)} type={e.event_type} />
+          </View>
+        </View>
         <TicketDivider />
         <View style={styles.facts}>
           <InfoRow label="Data" value={formatEventDates(e.start_date, e.end_date).toUpperCase()} mono />
@@ -153,7 +166,12 @@ export default function EventScreen() {
       )}
 
       {siteOnline && (
-        <Button variant="secondary" icon="open-outline" label="Apri sul sito" onPress={() => WebBrowser.openBrowserAsync(`${env.siteUrl}${webPath}`)} />
+        <Button
+          variant="secondary"
+          icon="open-outline"
+          label="Apri sul sito"
+          onPress={() => WebBrowser.openBrowserAsync(`${env.siteUrl}${webPath}`)}
+        />
       )}
     </Screen>
   );
@@ -161,6 +179,8 @@ export default function EventScreen() {
 
 const styles = StyleSheet.create({
   facts: { gap: space[4] },
+  head: { flexDirection: "row", alignItems: "center", gap: space[4] },
+  titles: { flex: 1, gap: space[1] },
   list: { paddingVertical: space[1], gap: 0 },
   booking: { gap: space[1], paddingVertical: space[3] },
   bookingHead: { flexDirection: "row", alignItems: "flex-start", gap: space[3] },

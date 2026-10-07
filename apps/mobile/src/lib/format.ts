@@ -24,6 +24,15 @@ export function dateRange(start: string | null, end: string | null): string | nu
   return `${shortDate(start)} – ${shortDate(end)} ${year}`;
 }
 
+const romeDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" });
+
+/** The date under a stamp, "15 GIU 2027", from a day or a timestamp (read in Italian time). */
+export function stampDay(value: string | null): string {
+  if (!value) return "";
+  const day = value.length === 10 ? value : romeDay.format(new Date(value));
+  return `${shortDate(day)} ${day.slice(0, 4)}`.toUpperCase();
+}
+
 /** "1.200": Italian grouping also for four digits, as in the designs. */
 const thousands = {
   format: (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "."),
@@ -80,7 +89,6 @@ export function euro(amount: number | string | null | undefined): string {
   return `${sign}${thousands.format(Math.floor(abs / 100))},${String(abs % 100).padStart(2, "0")} €`;
 }
 
-const romeDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" });
 const dayNumber = (d: string) => Math.round(Date.parse(`${d}T00:00:00Z`) / 86_400_000);
 
 /** "oggi", "ieri", "3 giorni fa", or the short date after a week. */

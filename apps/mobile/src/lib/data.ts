@@ -1,5 +1,13 @@
-import { supplierRequestBucket } from "@i-events/core";
+import { eventCountdown, formatTicketNumber, supplierRequestBucket, type EventStatus } from "@i-events/core";
 import { supabase } from "./supabase";
+
+type TicketFacts = { number: number; stage: { position: number } | null; status: EventStatus; start_date: string | null; end_date: string | null };
+
+/** What the event's stub says: "#0142-2" and "TRA 3 G". */
+export const eventTicket = (e: TicketFacts, today: string) => ({
+  number: formatTicketNumber(e.number, e.stage?.position),
+  countdown: eventCountdown(e, today),
+});
 
 /**
  * The agency's events, with how many supplier bookings are confirmed, what the event is sold for (the
@@ -9,8 +17,8 @@ export async function fetchAgencyEvents(orgId: string) {
   const { data, error } = await supabase
     .from("events")
     .select(
-      `id, title, status, start_date, end_date, city, venue, client:organizations!events_client_org_id_fkey(name),
-       event_bookings(status, planned_cost), proposal:proposals!events_proposal_id_fkey(total_amount), event_quotes(status, version, total_amount)`,
+      `id, number, title, event_type, status, start_date, end_date, city, venue, stage:campaign_stages(position),
+       client:organizations!events_client_org_id_fkey(name), event_bookings(status, planned_cost), proposal:proposals!events_proposal_id_fkey(total_amount), event_quotes(status, version, total_amount)`,
     )
     .eq("agency_org_id", orgId);
   if (error) throw error;
@@ -33,7 +41,7 @@ export async function fetchClientEvents(orgId: string) {
   const { data, error } = await supabase
     .from("events")
     .select(
-      "id, title, status, start_date, end_date, city, venue, agency:organizations!events_agency_org_id_fkey(name), event_quotes(version, status)",
+      "id, number, title, event_type, status, start_date, end_date, city, venue, stage:campaign_stages(position), agency:organizations!events_agency_org_id_fkey(name), event_quotes(version, status)",
     )
     .eq("client_org_id", orgId);
   if (error) throw error;
@@ -59,7 +67,7 @@ export async function fetchEvent(id: string, orgId: string) {
   const { data, error } = await supabase
     .from("events")
     .select(
-      `id, title, status, start_date, end_date, city, venue, agency_org_id, client_org_id,
+      `id, number, title, event_type, status, start_date, end_date, city, venue, agency_org_id, client_org_id, stage:campaign_stages(position),
        client:organizations!events_client_org_id_fkey(name), agency:organizations!events_agency_org_id_fkey(name)`,
     )
     .eq("id", id)

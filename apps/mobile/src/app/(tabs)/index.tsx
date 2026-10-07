@@ -14,7 +14,7 @@ import { CardSkeletons, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
 import { TaskRow, TodoRow } from "@/components/todo-row";
 import { TopActions } from "@/components/top-actions";
-import { fetchAgencyEvents, fetchClientEvents, fetchSupplierRequests } from "@/lib/data";
+import { eventTicket, fetchAgencyEvents, fetchClientEvents, fetchSupplierRequests } from "@/lib/data";
 import { useKeepEventDays } from "@/lib/event-day";
 import { daysUntil, firstName, greeting, plural, shortDate, until } from "@/lib/format";
 import { useMyName } from "@/lib/profile";
@@ -158,6 +158,8 @@ function AgencyHome({ orgId }: { orgId: string }) {
                   dates={formatEventDates(e.start_date, e.end_date)}
                   place={place(e)}
                   badge={eventStatusLook("live")}
+                  type={e.event_type}
+                  ticket={eventTicket(e, today)}
                   onPress={() => openEvent(e.id)}
                 />
                 <Button
@@ -201,6 +203,8 @@ function AgencyHome({ orgId }: { orgId: string }) {
                 place={place(e)}
                 badge={eventStatusLook(e.status)}
                 detail={e.bookings.total > 0 ? `${e.bookings.confirmed} su ${e.bookings.total} fornitori confermati` : undefined}
+                type={e.event_type}
+                ticket={eventTicket(e, today)}
                 onPress={() => openEvent(e.id)}
               />
             ))}
@@ -352,6 +356,8 @@ function ClientHome({ orgId }: { orgId: string }) {
                 dates={formatEventDates(e.start_date, e.end_date)}
                 place={place(e)}
                 badge={isToday(e, today) ? eventStatusLook("live") : eventStatusLook(e.status)}
+                type={e.event_type}
+                ticket={eventTicket(e, today)}
                 onPress={() => openEvent(e.id)}
               />
             ))}

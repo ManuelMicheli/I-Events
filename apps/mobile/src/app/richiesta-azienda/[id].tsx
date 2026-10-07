@@ -1,5 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { proposalTotal, REQUEST_STATUS_LABEL } from "@i-events/core";
+import { formatTicketNumber, proposalTotal, REQUEST_STATUS_LABEL } from "@i-events/core";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
@@ -17,9 +17,10 @@ import { Segmented } from "@/components/segmented";
 import { Sheet } from "@/components/sheet";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
+import { Stamp, StatusRow, TicketTag } from "@/components/ticket";
 import { InlineError, TextField } from "@/components/text-field";
 import { errorMessage } from "@/lib/errors";
-import { ago, euro, plural, requestMeta } from "@/lib/format";
+import { ago, euro, plural, requestMeta, stampDay } from "@/lib/format";
 import { fetchClientRequest, PROPOSAL_PRICED, type ClientProposal } from "@/lib/requests";
 import { useActiveOrg } from "@/lib/session";
 import { clientProposalLook } from "@/lib/status-look";
@@ -66,6 +67,7 @@ export default function ClientRequestScreen() {
   const open = request.status === "sent";
   const priced = proposals.filter((p) => PROPOSAL_PRICED.includes(p.status) && p.version > 0);
   const fresh = priced.filter((p) => p.status === "submitted").length;
+  const accepted = request.status === "awarded" ? proposals.find((p) => p.status === "accepted") : undefined;
   const badge =
     request.status === "awarded"
       ? ({ label: "Assegnata", tone: "success", icon: "checkmark" } as const)
@@ -96,10 +98,14 @@ export default function ClientRequestScreen() {
     <Screen refreshing={q.refreshing} onRefresh={q.refresh}>
       <Stack.Screen options={{ title: "Richiesta" }} />
       <View style={styles.head}>
-        <Badge {...badge} />
+        <StatusRow>
+          <Badge {...badge} />
+          {accepted && <Stamp label="Confermato" date={stampDay(accepted.decided_at)} type={request.draft.eventType} />}
+        </StatusRow>
         <T variant="title2" accessibilityRole="header">
           {r.title}
         </T>
+        <TicketTag number={formatTicketNumber(request.number)} type={request.draft.eventType} />
         <T variant="mono" tone="secondary">
           {requestMeta(r)}
         </T>
