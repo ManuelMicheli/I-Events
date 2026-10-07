@@ -27,13 +27,10 @@ export const getMyOrgs = cache(async (): Promise<MyOrg[]> => {
   const user = await getUser();
   if (!user) return [];
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("memberships")
-    .select("role, organizations!inner(id, name, slug, type)")
-    .eq("user_id", user.id)
-    .order("created_at");
+  // Own organizations first; a developer account also gets every other one, as owner.
+  const { data, error } = await supabase.rpc("my_organizations");
   if (error) throw error;
-  return data.map((m) => ({ ...m.organizations, role: m.role }));
+  return data;
 });
 
 /** The organization the user is working in: the cookie choice if still valid, else the first one. */

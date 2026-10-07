@@ -24,14 +24,11 @@ type SessionValue = {
 
 const SessionContext = createContext<SessionValue | null>(null);
 
-async function loadOrgs(userId: string): Promise<MyOrg[]> {
-  const { data, error } = await supabase
-    .from("memberships")
-    .select("role, organizations!inner(id, name, slug, type)")
-    .eq("user_id", userId)
-    .order("created_at");
+/** Own organizations first; a developer account also gets every other one, as owner. */
+async function loadOrgs(): Promise<MyOrg[]> {
+  const { data, error } = await supabase.rpc("my_organizations");
   if (error) throw error;
-  return data.map((m) => ({ ...m.organizations, role: m.role }));
+  return data;
 }
 
 /** Who is signed in, their organizations and the one they are working in. */
@@ -62,7 +59,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const load = useCallback(
     (forUser: string) =>
-      loadOrgs(forUser).then(
+      loadOrgs().then(
         (orgs) => setLoaded({ userId: forUser, orgs, failed: false }),
         () => setLoaded({ userId: forUser, orgs: [], failed: true }),
       ),
