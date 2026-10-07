@@ -12,6 +12,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Button } from "@/components/button";
 import { Perforation } from "@/components/perforation";
 import { T } from "@/components/text";
+import { ConfirmProvider } from "@/components/confirm";
 import { ToastProvider } from "@/components/toast";
 import { missingEnv } from "@/lib/env";
 import { SessionProvider, useSession } from "@/lib/session";
@@ -50,7 +51,9 @@ export default function RootLayout() {
         ) : (
           <SessionProvider>
             <ToastProvider>
-              <RootStack ready={fontsLoaded || fontError !== null} />
+              <ConfirmProvider>
+                <RootStack ready={fontsLoaded || fontError !== null} />
+              </ConfirmProvider>
             </ToastProvider>
           </SessionProvider>
         )}
@@ -116,6 +119,7 @@ function RootStack({ ready }: { ready: boolean }) {
         <Stack.Screen name="importa-contatti" options={{ title: "Importa contatti" }} />
         <Stack.Screen name="proposta/[id]" options={{ title: "Richiesta" }} />
         <Stack.Screen name="richiesta-azienda/[id]" options={{ title: "Richiesta" }} />
+        <Stack.Screen name="confronta/[id]" options={{ title: "Confronta le proposte" }} />
         <Stack.Screen name="conversazione/[id]" options={{ title: "Messaggi" }} />
         <Stack.Screen name="notifiche" options={{ title: "Notifiche" }} />
         <Stack.Screen name="account" options={{ title: "Account" }} />

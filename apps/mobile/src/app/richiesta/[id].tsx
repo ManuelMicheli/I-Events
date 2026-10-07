@@ -147,8 +147,9 @@ function AnswerForm({ bookingId, agency, answered, onSent }: { bookingId: string
         value={available}
         onChange={setAvailable}
         accessibilityLabel="Disponibilità"
+        kind="choice"
         options={[
-          { value: "yes", label: "Disponibile" },
+          { value: "yes", label: "Sì, disponibile" },
           { value: "no", label: "Non disponibile" },
         ]}
       />

@@ -67,7 +67,7 @@ export async function fetchEvent(id: string, orgId: string) {
   const { data, error } = await supabase
     .from("events")
     .select(
-      `id, number, title, event_type, status, start_date, end_date, city, venue, agency_org_id, client_org_id, stage:campaign_stages(position),
+      `id, number, title, event_type, status, start_date, end_date, city, venue, agency_org_id, client_org_id, request_id, proposal_id, stage:campaign_stages(position),
        client:organizations!events_client_org_id_fkey(name), agency:organizations!events_agency_org_id_fkey(name)`,
     )
     .eq("id", id)
@@ -81,16 +81,40 @@ export async function fetchEvent(id: string, orgId: string) {
       .eq("event_id", id)
       .order("created_at");
     if (e) throw e;
-    return { ...data, side: "agency" as const, bookings, latestQuote: null };
+    return { ...data, side: "agency" as const, bookings, latestQuote: null, quoteApproved: false, confirmedOn: null, written: 0, notChosen: 0 };
   }
-  const { data: quotes, error: e } = await supabase
-    .from("event_quotes")
-    .select("version, status")
-    .eq("event_id", id)
-    .order("version", { ascending: false })
-    .limit(1);
-  if (e) throw e;
-  return { ...data, side: "client" as const, bookings: [], latestQuote: quotes[0] ?? null };
+  // The company's side: the quotes, when it chose the agency, whether it has written to it since
+  // (the first of the next steps) and how many agencies were not chosen.
+  const [{ data: quotes, error: e1 }, { data: proposal, error: e2 }, { data: others, error: e3 }] = await Promise.all([
+    supabase.from("event_quotes").select("version, status").eq("event_id", id).order("version", { ascending: false }),
+    data.proposal_id ? supabase.from("proposals").select("decided_at").eq("id", data.proposal_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
+    data.request_id ? supabase.from("proposals").select("id").eq("request_id", data.request_id).eq("status", "rejected") : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (e1) throw e1;
+  if (e2) throw e2;
+  if (e3) throw e3;
+  const confirmedOn = proposal?.decided_at ?? null;
+  let written = 0;
+  if (data.proposal_id) {
+    const { count, error: e4 } = await supabase
+      .from("messages")
+      .select("id", { count: "exact", head: true })
+      .eq("proposal_id", data.proposal_id)
+      .eq("author_org_id", orgId)
+      .gte("created_at", confirmedOn ?? "1970-01-01");
+    if (e4) throw e4;
+    written = count ?? 0;
+  }
+  return {
+    ...data,
+    side: "client" as const,
+    bookings: [],
+    latestQuote: quotes[0] ?? null,
+    quoteApproved: quotes.some((q) => q.status === "approved"),
+    confirmedOn,
+    written,
+    notChosen: others?.length ?? 0,
+  };
 }
 
 export async function fetchNotifications() {
