@@ -46,7 +46,7 @@ pnpm --filter @i-events/core catalog:sql
 
 - Gli allegati stanno nel bucket privato `attachments` di Supabase Storage. Ogni file ha una riga in `request_attachments` e Storage concede lettura, caricamento e rimozione solo a chi può farlo su quella riga.
 - Le notifiche nascono da trigger nel database (nuova richiesta, proposta, modifiche, decisione, messaggi) e si vedono in `/notifiche`.
-- `GET /api/cron/notifications` invia a ogni persona un riepilogo email delle notifiche non lette, tramite Resend. Va chiamato dallo scheduler con `Authorization: Bearer $CRON_SECRET` (su Vercel lo fa `apps/web/vercel.json` ogni 10 minuti; i cron così frequenti richiedono il piano Pro). Servono `SUPABASE_SECRET_KEY`, `CRON_SECRET`, `RESEND_API_KEY` ed `EMAIL_FROM`; senza Resend le notifiche restano solo nell'app.
+- `GET /api/cron/notifications` invia a ogni persona un riepilogo email delle notifiche non lette, tramite Resend. Va chiamato dallo scheduler con `Authorization: Bearer $CRON_SECRET` (sul piano Hobby di Vercel `apps/web/vercel.json` lo chiama una volta al giorno alle 7:00 UTC, l'unica frequenza ammessa; le chiamate frequenti a questa route e a `/api/cron/push` partono da Supabase con `pg_cron` e `pg_net`, con il `CRON_SECRET` nel Vault del database). Servono `SUPABASE_SECRET_KEY`, `CRON_SECRET`, `RESEND_API_KEY` ed `EMAIL_FROM`; senza Resend le notifiche restano solo nell'app.
 
 ## Rubrica e import contatti
 
