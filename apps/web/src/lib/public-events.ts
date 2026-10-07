@@ -1,12 +1,13 @@
 import "server-only";
-import { hhmm, isTicketToken } from "@i-events/core";
+import { hhmm, isTicketToken, placesLeft } from "@i-events/core";
 import type { Database } from "@i-events/db";
 import { cookies } from "next/headers";
 import { createClient } from "./supabase/server";
 
 /** What the public sees of an event (public_events / public_event): never budgets, suppliers or people. */
 export type PublicEvent = Database["public"]["Functions"]["public_events"]["Returns"][number];
-export type RegistrationTicket = Database["public"]["Functions"]["registration_ticket"]["Returns"][number];
+export type RegistrationTicket =
+  Database["public"]["Functions"]["registration_ticket"]["Returns"][number];
 
 export async function listPublicEvents(from?: string, to?: string): Promise<PublicEvent[]> {
   const supabase = await createClient();
@@ -23,8 +24,18 @@ export async function getPublicEvent(id: string): Promise<PublicEvent | null> {
   return data[0] ?? null;
 }
 
-const short = new Intl.DateTimeFormat("it-IT", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
-const long = new Intl.DateTimeFormat("it-IT", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+const short = new Intl.DateTimeFormat("it-IT", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  timeZone: "UTC",
+});
+const long = new Intl.DateTimeFormat("it-IT", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  timeZone: "UTC",
+});
 const dayOnly = new Intl.DateTimeFormat("it-IT", { day: "numeric", timeZone: "UTC" });
 const at = (iso: string) => new Date(`${iso}T12:00:00Z`);
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -33,7 +44,9 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 export function shortDate(start: string, end: string | null) {
   if (!end || end === start) return cap(short.format(at(start)).replace(".", ""));
   const sameMonth = start.slice(0, 7) === end.slice(0, 7);
-  const first = sameMonth ? short.format(at(start)).replace(/ [^ ]+$/, "") : short.format(at(start));
+  const first = sameMonth
+    ? short.format(at(start)).replace(/ [^ ]+$/, "")
+    : short.format(at(start));
   return cap(`${first} – ${short.format(at(end))}`.replace(/\./g, ""));
 }
 
@@ -54,8 +67,28 @@ export function timeRange(starts: string | null, ends: string | null) {
 export const dayNumber = (iso: string) => dayOnly.format(at(iso));
 
 /** One line under a title: "Sab 17 ott · 21:00 · Base Milano". */
-export function eventLine(e: Pick<PublicEvent, "start_date" | "end_date" | "starts_at" | "city" | "venue">) {
-  return [shortDate(e.start_date, e.end_date), e.starts_at && hhmm(e.starts_at), e.venue || e.city].filter(Boolean).join(" · ");
+export function eventLine(
+  e: Pick<PublicEvent, "start_date" | "end_date" | "starts_at" | "city" | "venue">,
+) {
+  return [shortDate(e.start_date, e.end_date), e.starts_at && hhmm(e.starts_at), e.venue || e.city]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+/**
+ * The price row of a card or a day list: over, tickets on the organiser's website (the events of the
+ * city), sold out, or free with registration here.
+ */
+export function priceLabel(
+  e: Pick<
+    PublicEvent,
+    "status" | "start_date" | "end_date" | "website" | "capacity" | "registered"
+  >,
+  today: string,
+) {
+  if (e.status === "completed" || (e.end_date ?? e.start_date) < today) return "Andato in scena";
+  if (e.website) return "Biglietti sul sito";
+  return placesLeft(e.capacity, e.registered) === 0 ? "Posti esauriti" : "Gratis";
 }
 
 export function mapsUrl(e: Pick<PublicEvent, "venue" | "city">) {

@@ -1,5 +1,13 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { EVENT_TYPE_INFO, EVENT_TYPES, monthGrid, onDay, shiftMonth, todayInItaly, type EventType } from "@i-events/core";
+import {
+  EVENT_TYPE_INFO,
+  EVENT_TYPES,
+  monthGrid,
+  onDay,
+  shiftMonth,
+  todayInItaly,
+  type EventType,
+} from "@i-events/core";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -9,7 +17,14 @@ import { PublicEventRow, PublicExit } from "@/components/public";
 import { Screen } from "@/components/screen";
 import { CardSkeletons, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
-import { dayLabel, eventLine, listPublicEvents, longDay, monthLabel } from "@/lib/public-events";
+import {
+  dayLabel,
+  eventLine,
+  listPublicEvents,
+  longDay,
+  monthLabel,
+  priceLabel,
+} from "@/lib/public-events";
 import { useQuery } from "@/lib/use-query";
 import { control, radius, space, useTheme } from "@/theme";
 
@@ -24,6 +39,7 @@ export default function PublicCalendar() {
   const { c } = useTheme();
   const today = todayInItaly();
   const thisMonth = today.slice(0, 7);
+  const firstMonth = shiftMonth(thisMonth, -12);
   const [month, setMonth] = useState(thisMonth);
   const [picked, setPicked] = useState<string | null>(null);
   const [y, m] = month.split("-").map(Number) as [number, number];
@@ -35,8 +51,14 @@ export default function PublicCalendar() {
     const on = events.filter((e) => onDay(e, day));
     return { count: on.length, types: [...new Set(on.map((e) => e.event_type))].slice(0, 3) };
   };
-  const firstWithEvents = days.find((d) => d >= today && typesOn(d).count > 0);
-  const chosen = picked?.startsWith(month) ? picked : month === thisMonth ? (firstWithEvents ?? today) : (firstWithEvents ?? days[0]!);
+  const firstWithEvents = days.find(
+    (d) => (month < thisMonth || d >= today) && typesOn(d).count > 0,
+  );
+  const chosen = picked?.startsWith(month)
+    ? picked
+    : month === thisMonth
+      ? (firstWithEvents ?? today)
+      : (firstWithEvents ?? days[0]!);
   const dayEvents = events.filter((e) => onDay(e, chosen));
   const nextDay = days.find((d) => d > chosen && typesOn(d).count > 0);
   const go = (delta: number) => {
@@ -58,14 +80,27 @@ export default function PublicCalendar() {
     >
       <View style={[styles.month, { backgroundColor: c.bgSurface, borderColor: c.borderDefault }]}>
         <View style={styles.monthHead}>
-          <T variant="title3" accessibilityRole="header" accessibilityLiveRegion="polite" style={styles.flex}>
+          <T
+            variant="title3"
+            accessibilityRole="header"
+            accessibilityLiveRegion="polite"
+            style={styles.flex}
+          >
             {monthLabel(month)}
           </T>
-          {month > thisMonth ? <MonthButton dir="prev" onPress={() => go(-1)} /> : <View style={styles.monthButtonSpace} />}
+          {month > firstMonth ? (
+            <MonthButton dir="prev" onPress={() => go(-1)} />
+          ) : (
+            <View style={styles.monthButtonSpace} />
+          )}
           <MonthButton dir="next" onPress={() => go(1)} />
         </View>
 
-        <View style={styles.week} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+        <View
+          style={styles.week}
+          importantForAccessibility="no-hide-descendants"
+          accessibilityElementsHidden
+        >
           {WEEKDAYS.map((d, i) => (
             <T key={i} variant="mono" tone="secondary" style={styles.weekday}>
               {d}
@@ -77,7 +112,8 @@ export default function PublicCalendar() {
             {week.map((day, i) => {
               if (!day) return <View key={i} style={styles.cell} />;
               const { count, types } = typesOn(day);
-              const past = day < today;
+              // Looking back (up to a year): a past day opens only when something went on stage.
+              const past = day < today && typesOn(day).count === 0;
               const selected = day === chosen;
               const label = `${longDay(day, null)}${day === today ? ", oggi" : ""}: ${count === 0 ? "nessun evento" : count === 1 ? "1 evento" : `${count} eventi`}`;
               return (
@@ -93,14 +129,30 @@ export default function PublicCalendar() {
                     styles.day,
                     selected
                       ? { borderColor: c.accentFill, backgroundColor: c.accentSubtle }
-                      : { borderColor: "transparent", backgroundColor: pressed ? c.bgSubtle : "transparent" },
+                      : {
+                          borderColor: "transparent",
+                          backgroundColor: pressed ? c.bgSubtle : "transparent",
+                        },
                   ]}
                 >
-                  <T variant={day === today ? "ticket" : "mono"} tone={past ? "secondary" : "primary"} style={day === today && styles.today}>
+                  <T
+                    variant={day === today ? "ticket" : "mono"}
+                    tone={past ? "secondary" : "primary"}
+                    style={day === today && styles.today}
+                  >
                     {Number(day.slice(8))}
                   </T>
                   <View style={styles.squares}>
-                    {types.map((t) => (t ? <TypeSquare key={t} type={t} /> : <View key="none" style={[styles.noType, { backgroundColor: c.borderControl }]} />))}
+                    {types.map((t) =>
+                      t ? (
+                        <TypeSquare key={t} type={t} />
+                      ) : (
+                        <View
+                          key="none"
+                          style={[styles.noType, { backgroundColor: c.borderControl }]}
+                        />
+                      ),
+                    )}
                   </View>
                 </Pressable>
               );
@@ -113,7 +165,12 @@ export default function PublicCalendar() {
       <View style={styles.dayList}>
         <T variant="title3" accessibilityRole="header">
           {longDay(chosen, null)}
-          {chosen === today && <T variant="title3" tone="secondary"> · oggi</T>}
+          {chosen === today && (
+            <T variant="title3" tone="secondary">
+              {" "}
+              · oggi
+            </T>
+          )}
         </T>
         {q.loading ? (
           <CardSkeletons count={1} />
@@ -124,7 +181,14 @@ export default function PublicCalendar() {
             <T variant="callout" tone="secondary">
               Nessun evento aperto al pubblico in questo giorno.
             </T>
-            {nextDay && <Button variant="secondary" size="small" label={`Vai al prossimo: ${dayLabel(nextDay, null)}`} onPress={() => setPicked(nextDay)} />}
+            {nextDay && (
+              <Button
+                variant="secondary"
+                size="small"
+                label={`Vai al prossimo: ${dayLabel(nextDay, null)}`}
+                onPress={() => setPicked(nextDay)}
+              />
+            )}
           </View>
         ) : (
           dayEvents.map((e) => (
@@ -134,8 +198,10 @@ export default function PublicCalendar() {
               title={e.title}
               line={eventLine(e)}
               live={e.status === "live"}
-              extra="Gratis"
-              onPress={() => router.push({ pathname: "/pubblico/evento/[id]", params: { id: e.id } })}
+              extra={priceLabel(e, today)}
+              onPress={() =>
+                router.push({ pathname: "/pubblico/evento/[id]", params: { id: e.id } })
+              }
             />
           ))
         )}
@@ -151,9 +217,16 @@ function MonthButton({ dir, onPress }: { dir: "prev" | "next"; onPress: () => vo
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={dir === "prev" ? "Mese precedente" : "Mese successivo"}
-      style={({ pressed }) => [styles.monthButton, { borderColor: c.borderStrong, backgroundColor: pressed ? c.bgSubtle : c.bgSurface }]}
+      style={({ pressed }) => [
+        styles.monthButton,
+        { borderColor: c.borderStrong, backgroundColor: pressed ? c.bgSubtle : c.bgSurface },
+      ]}
     >
-      <Ionicons name={dir === "prev" ? "chevron-back" : "chevron-forward"} size={20} color={c.textPrimary} />
+      <Ionicons
+        name={dir === "prev" ? "chevron-back" : "chevron-forward"}
+        size={20}
+        color={c.textPrimary}
+      />
     </Pressable>
   );
 }
@@ -161,7 +234,11 @@ function MonthButton({ dir, onPress }: { dir: "prev" | "next"; onPress: () => vo
 function Legend({ types }: { types: readonly EventType[] }) {
   const { c } = useTheme();
   return (
-    <View style={[styles.legend, { borderTopColor: c.borderDefault }]} accessible accessibilityLabel={`Legenda: ${types.map((t) => EVENT_TYPE_INFO[t].label).join(", ")}`}>
+    <View
+      style={[styles.legend, { borderTopColor: c.borderDefault }]}
+      accessible
+      accessibilityLabel={`Legenda: ${types.map((t) => EVENT_TYPE_INFO[t].label).join(", ")}`}
+    >
       {types.map((t) => (
         <View key={t} style={styles.legendItem}>
           <TypeSquare type={t} />
@@ -183,13 +260,32 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     gap: space[1],
   },
-  monthHead: { flexDirection: "row", alignItems: "center", gap: space[1], paddingHorizontal: space[3], paddingBottom: space[2] },
-  monthButton: { width: control.touch, height: control.touch, borderRadius: radius.md, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  monthHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: space[1],
+    paddingHorizontal: space[3],
+    paddingBottom: space[2],
+  },
+  monthButton: {
+    width: control.touch,
+    height: control.touch,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   monthButtonSpace: { width: control.touch },
   week: { flexDirection: "row" },
   weekday: { flex: 1, textAlign: "center" },
   cell: { flex: 1, height: 48 },
-  day: { alignItems: "center", justifyContent: "center", gap: space[1], borderWidth: 1, borderRadius: radius.md },
+  day: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: space[1],
+    borderWidth: 1,
+    borderRadius: radius.md,
+  },
   today: { textDecorationLine: "underline" },
   squares: { height: 8, flexDirection: "row", gap: 3 },
   noType: { width: 8, height: 8, borderRadius: 2 },

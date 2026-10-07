@@ -706,7 +706,9 @@ export type Database = {
           public_capacity: number | null;
           public_description: string | null;
           public_ends_at: string | null;
+          public_organizer: string | null;
           public_starts_at: string | null;
+          public_url: string | null;
           request_id: string;
           stage_id: string | null;
           start_date: string | null;
@@ -728,7 +730,9 @@ export type Database = {
           public_capacity?: number | null;
           public_description?: string | null;
           public_ends_at?: string | null;
+          public_organizer?: string | null;
           public_starts_at?: string | null;
+          public_url?: string | null;
           request_id: string;
           stage_id?: string | null;
           start_date?: string | null;
@@ -750,7 +754,9 @@ export type Database = {
           public_capacity?: number | null;
           public_description?: string | null;
           public_ends_at?: string | null;
+          public_organizer?: string | null;
           public_starts_at?: string | null;
+          public_url?: string | null;
           request_id?: string;
           stage_id?: string | null;
           start_date?: string | null;
@@ -1954,6 +1960,7 @@ export type Database = {
           status: Database["public"]["Enums"]["event_status"];
           title: string;
           venue: string;
+          website: string;
         }[];
       };
       public_event_rows: {
@@ -1975,6 +1982,7 @@ export type Database = {
           status: Database["public"]["Enums"]["event_status"];
           title: string;
           venue: string;
+          website: string;
         }[];
       };
       public_events: {
@@ -1996,6 +2004,7 @@ export type Database = {
           status: Database["public"]["Enums"]["event_status"];
           title: string;
           venue: string;
+          website: string;
         }[];
       };
       register_for_event: {
