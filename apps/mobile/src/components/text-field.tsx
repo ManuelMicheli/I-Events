@@ -37,7 +37,7 @@ export const TextField = forwardRef<TextInput, Props>(function TextField({ label
               color: c.textPrimary,
               backgroundColor: c.bgSurface,
               borderColor: error ? c.danger : focused ? c.focus : c.borderControl,
-              fontFamily: fonts.sans,
+              fontFamily: fonts.sans["400"],
             },
             style,
           ]}

@@ -26,7 +26,7 @@ export default function TabsLayout() {
         tabBarActiveTintColor: c.textPrimary,
         tabBarInactiveTintColor: c.textSecondary,
         tabBarStyle: { backgroundColor: c.bgApp, borderTopColor: c.borderDefault, height: 56 + insets.bottom, paddingBottom: insets.bottom },
-        tabBarLabelStyle: { fontFamily: fonts.sans, fontSize: 12, lineHeight: 16, fontWeight: "500" },
+        tabBarLabelStyle: { fontFamily: fonts.sans["500"], fontSize: 12, lineHeight: 16 },
         tabBarBadgeStyle: { backgroundColor: c.accentFill, color: c.onAccent, fontSize: 12 },
       }}
     >

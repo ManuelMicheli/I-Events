@@ -106,14 +106,13 @@ export const control = { s: 32, m: 40, l: 48, touch: 44 } as const;
 export const motion = { fast: 120, base: 180, moderate: 240, slow: 320 } as const;
 
 /**
- * Font families. General Sans is the brand face: until its files are added to assets/fonts the
- * system font stands in (same weights), while Geist Mono is bundled for dates, times and amounts.
+ * Font families, bundled with the app: Bricolage Grotesque for all text, Azeret Mono with tabular figures for
+ * numbers, codes, dates and times. Each weight is its own family, so styles pick the family and never set fontWeight.
  */
 export const fonts = {
-  sans: undefined as string | undefined,
-  mono400: "GeistMono_400Regular",
-  mono500: "GeistMono_500Medium",
-};
+  sans: { "400": "BricolageGrotesque_400Regular", "500": "BricolageGrotesque_500Medium", "600": "BricolageGrotesque_600SemiBold" },
+  mono: { "400": "AzeretMono_400Regular", "500": "AzeretMono_500Medium" },
+} as const;
 
 type TextStyle = { fontSize: number; lineHeight: number; fontWeight: "400" | "500" | "600"; letterSpacing: number; mono?: boolean };
 const track = (size: number, percent: number) => Math.round(size * percent) / 100;
