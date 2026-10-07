@@ -2,6 +2,7 @@
 
 import { syncCheckins } from "@/app/(app)/pro/eventi/run-of-show-actions";
 import { ContactActions } from "@/components/contacts/contact-actions";
+import { TicketIcon } from "@/components/icons";
 import { Button, Notice } from "@/components/ui";
 import { crewState, hhmm, liveDay, scheduleTimeline, withPendingCheckins, type ScheduleState } from "@i-events/core";
 import { useRouter } from "next/navigation";
@@ -210,6 +211,7 @@ export function LiveRunOfShow({
                     aria-label={m.checked_in_at ? `Annulla check-in di ${m.name}` : `Check-in ${m.name}`}
                     onClick={() => tap(m)}
                   >
+                    <TicketIcon torn={m.checked_in_at !== null} size={20} />
                     {m.checked_in_at ? "Annulla" : "Check-in"}
                   </Button>
                 </div>

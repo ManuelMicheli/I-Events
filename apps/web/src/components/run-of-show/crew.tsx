@@ -2,6 +2,7 @@
 
 import { addCrew, deleteCrew, syncCheckins, updateCrew, type RosState } from "@/app/(app)/pro/eventi/run-of-show-actions";
 import { ContactActions } from "@/components/contacts/contact-actions";
+import { TicketIcon } from "@/components/icons";
 import { Button, Field, Input, Select } from "@/components/ui";
 import { crewState, hhmm, passCode, whatsappUrl, type CrewMember } from "@i-events/core";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
@@ -49,6 +50,7 @@ export function CrewRow({ eventId, member, days, passLink }: { eventId: string; 
             disabled={saving}
             aria-label={arrived ? `Annulla check-in di ${member.name}` : `Check-in ${member.name}`}
           >
+            <TicketIcon torn={arrived} size={20} />
             {arrived ? "Annulla check-in" : "Check-in"}
           </Button>
           {error && <span className="text-danger">{error}</span>}

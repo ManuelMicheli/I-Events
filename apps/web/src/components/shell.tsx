@@ -94,7 +94,7 @@ export async function Shell({ org, children }: { org: MyOrg; children: ReactNode
           </span>
           <Link
             href="/notifiche"
-            className="ml-auto flex min-h-11 items-center gap-2 rounded-ui px-3 text-sm font-medium hover:bg-surface"
+            className="ic-host ml-auto flex min-h-11 items-center gap-2 rounded-ui px-3 text-sm font-medium hover:bg-surface"
             aria-label={unread ? `Notifiche, ${unread} non lette` : "Notifiche"}
           >
             <Bell unread={unread ?? 0} />

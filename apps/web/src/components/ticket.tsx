@@ -31,9 +31,9 @@ export function TicketStub({ number, countdown }: { number: string; countdown: C
   );
 }
 
-/** The live dot: round and Fiamma, only for what is happening now ("il quadratino è il tipo"). */
+/** The live dot: round and Fiamma, only for what is happening now ("il quadratino è il tipo"); a ring leaves it every 2 s (A10). */
 export function LiveDot() {
-  return <span aria-hidden className="inline-block size-2 shrink-0 rounded-full bg-accent" />;
+  return <span aria-hidden className="live-dot inline-block size-2 shrink-0 rounded-full bg-accent" />;
 }
 
 /** An event in a list, printed as a ticket: small cover, title, facts, then the stub. */
