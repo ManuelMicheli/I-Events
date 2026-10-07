@@ -10,6 +10,8 @@ import { useEffect, useRef } from "react";
 export function Bell({ unread }: { unread: number }) {
   const ref = useRef<SVGSVGElement>(null);
   useEffect(() => {
+    // The frame draws a bell in the sidebar and one in the phone's top bar: only the one on screen counts.
+    if (!ref.current?.getClientRects().length) return;
     let seen = 0;
     try {
       seen = Number(localStorage.getItem("ie-unread") ?? 0);

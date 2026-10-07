@@ -55,24 +55,28 @@ export default async function ProHome() {
         items={[
           {
             label: "Richieste nuove",
+            icon: "requests",
             value: String(h.fresh.length),
             note: `${h.toReview.length} da guardare in tutto`,
             href: "/pro/richieste",
           },
           {
             label: "Proposte in attesa",
+            icon: "requests",
             value: String(h.waiting.length),
             note: "Aspettano l'azienda",
             href: "/pro/richieste",
           },
           {
             label: "Eventi questo mese",
+            icon: "events",
             value: String(h.thisMonth.length),
             note: `${h.eventsThisWeek} questa settimana`,
             href: "/pro/eventi",
           },
           {
             label: "Margine medio",
+            icon: "tasks",
             value: h.margin === null ? "–" : `${h.margin}%`,
             note:
               h.margin === null

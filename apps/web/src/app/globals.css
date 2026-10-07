@@ -108,7 +108,8 @@
   --color-info: var(--color-info);
   --color-info-bg: var(--color-info-bg);
   --radius-ui: var(--radius);
-  --radius-card: 16px;
+  --radius-card: 18px;
+  --shadow-card: var(--shadow-card);
   --shadow-1: var(--shadow-1);
   --shadow-2: var(--shadow-2);
   --shadow-3: var(--shadow-3);
@@ -2234,4 +2235,151 @@ a.chip:focus-visible > span {
 .perforation::after {
   right: -9px;
   clip-path: inset(0 50% 0 0);
+}
+
+/*
+ * W Wharf reference (design-research/wharf-riferimento.md): the paper with a Fiamma glow at the top right,
+ * cards that float on a soft wide shadow, Grafite for "where you are" and "what you chose", pages and
+ * rows that arrive one after the other, numbers that count. Carta, the inks and every A animation stay.
+ */
+:root {
+  --shadow-card: 0 1px 2px rgba(28, 27, 25, 0.04), 0 12px 32px -16px rgba(28, 27, 25, 0.14);
+  --glow-a: rgba(255, 106, 71, 0.16);
+  --glow-b: rgba(255, 176, 120, 0.18);
+  --next-bg: #fff1ec;
+  --next-border: rgba(200, 48, 15, 0.14);
+  --next-track: rgba(200, 48, 15, 0.14);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --shadow-card: 0 0 0 1px rgba(241, 236, 228, 0.06), 0 16px 40px -20px rgba(0, 0, 0, 0.7);
+    --glow-a: rgba(255, 90, 60, 0.1);
+    --glow-b: rgba(224, 120, 60, 0.07);
+    --next-bg: #2a1d18;
+    --next-border: rgba(255, 122, 96, 0.16);
+    --next-track: rgba(255, 122, 96, 0.18);
+  }
+}
+
+/* The glow: light from a window at the top right, fixed while the page scrolls. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(56rem 32rem at 100% -8%, var(--glow-a), transparent 70%),
+    radial-gradient(36rem 26rem at 78% -6%, var(--glow-b), transparent 72%);
+}
+
+/* Every white card floats: the hairline stays, a wide soft shadow lifts it off the paper. */
+@layer components {
+  :where(.rounded-card.bg-bg) {
+    box-shadow: var(--shadow-card);
+  }
+}
+
+/* The sidebar's Grafite pill: it slides to the section you open, 320 ms with a soft landing. */
+.nav-pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  border-radius: 10px;
+  background: var(--color-text);
+  box-shadow: 0 6px 16px -8px rgba(28, 27, 25, 0.5);
+  transition:
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 120ms linear;
+}
+.nav-item {
+  transition: color 200ms var(--ease-out), background-color 120ms var(--ease-out);
+}
+
+/* The next event at the foot of the sidebar: a Fiamma-tinted card, its bar fills in on arrival. */
+.next-card {
+  background: var(--next-bg);
+  border: 1px solid var(--next-border);
+  transition: translate 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
+}
+.next-card:hover {
+  translate: 0 -1px;
+  box-shadow: var(--shadow-card);
+}
+.grow-bar {
+  transform-origin: left;
+  animation: grow-x 900ms cubic-bezier(0.22, 1, 0.36, 1) 200ms both;
+}
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* Segmented: the chosen segment in Grafite, like Wharf's 7 / 30 / 90 days. */
+.segmented input:checked + span {
+  background: var(--color-text);
+  box-shadow: 0 4px 12px -6px rgba(28, 27, 25, 0.6);
+  color: var(--color-app);
+}
+
+/*
+ * A page arrives in steps: each block rises 8 px out of a 4 px blur, 40 ms after the one before (the
+ * first ten). Lists marked .rows-in do the same with their rows, 30 ms apart.
+ */
+.page-in > *,
+.rows-in > * {
+  animation: arrive 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.page-in > :nth-child(2) { animation-delay: 40ms; }
+.page-in > :nth-child(3) { animation-delay: 80ms; }
+.page-in > :nth-child(4) { animation-delay: 120ms; }
+.page-in > :nth-child(5) { animation-delay: 160ms; }
+.page-in > :nth-child(6) { animation-delay: 200ms; }
+.page-in > :nth-child(7) { animation-delay: 240ms; }
+.page-in > :nth-child(8) { animation-delay: 280ms; }
+.page-in > :nth-child(9) { animation-delay: 320ms; }
+.page-in > :nth-child(n + 10) { animation-delay: 360ms; }
+.rows-in > :nth-child(2) { animation-delay: 30ms; }
+.rows-in > :nth-child(3) { animation-delay: 60ms; }
+.rows-in > :nth-child(4) { animation-delay: 90ms; }
+.rows-in > :nth-child(5) { animation-delay: 120ms; }
+.rows-in > :nth-child(6) { animation-delay: 150ms; }
+.rows-in > :nth-child(7) { animation-delay: 180ms; }
+.rows-in > :nth-child(8) { animation-delay: 210ms; }
+.rows-in > :nth-child(n + 9) { animation-delay: 240ms; }
+@keyframes arrive {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+    filter: blur(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-in > *,
+  .rows-in > * {
+    animation: fade-in 120ms ease-out both !important;
+  }
+  .nav-pill {
+    transition: none;
+  }
+}
+
+/* A number card that opens its section lifts by 2 px and its arrow steps forward. */
+a.metric {
+  transition: translate 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
+}
+a.metric:hover {
+  translate: 0 -2px;
+  box-shadow: 0 1px 2px rgba(28, 27, 25, 0.04), 0 18px 40px -18px rgba(28, 27, 25, 0.22);
+}
+.metric-arrow {
+  transition: translate 200ms var(--ease-out), color 120ms linear;
+}
+a.metric:hover .metric-arrow {
+  translate: 2px 0;
+  color: var(--color-text);
 }

@@ -43,12 +43,14 @@ export default async function ClientHome() {
   const metrics: MetricItem[] = [
     {
       label: "Richieste aperte",
+      icon: "requests",
       value: String(h.open.length),
       note: `${h.awaitingQuotes.length} in attesa di preventivi`,
       href: "/client/richieste",
     },
     {
       label: "Preventivi ricevuti",
+      icon: "tasks",
       value: String(h.priced.length),
       note: `${h.fresh.length} da valutare`,
       href: "/client/richieste",
@@ -56,6 +58,7 @@ export default async function ClientHome() {
     h.next && days !== null
       ? {
           label: "Prossimo evento",
+          icon: "events",
           value: days === 0 ? "oggi" : days === 1 ? "domani" : `tra ${days} giorni`,
           note: `${h.next.title} · ${formatEventDates(h.next.start_date, h.next.end_date)}`,
           href: `/client/eventi/${h.next.id}`,
@@ -63,6 +66,7 @@ export default async function ClientHome() {
         }
       : {
           label: "Prossimo evento",
+          icon: "events",
           value: "–",
           note: "Nessun evento in programma",
           href: "/client/eventi",
