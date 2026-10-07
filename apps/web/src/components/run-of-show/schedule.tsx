@@ -1,5 +1,6 @@
 "use client";
 
+import { ConfirmButton } from "@/components/modal";
 import {
   addScheduleItem,
   addSuggestedSchedule,
@@ -156,20 +157,18 @@ export function ScheduleItemRow({
             <Button type="submit" variant="secondary" disabled={pending}>
               Salva
             </Button>
-            <Button
+            <ConfirmButton
               type="submit"
               variant="danger"
               className="ic-host"
               formAction={deleteScheduleItem}
               formNoValidate
               disabled={pending}
-              onClick={(e) => {
-                if (!confirm("Togliere questo momento dalla scaletta?")) e.preventDefault();
-              }}
+              confirm={{ title: "Togliere questo momento dalla scaletta?", confirmLabel: "Togli", danger: true }}
             >
               <TrashIcon />
               Elimina
-            </Button>
+            </ConfirmButton>
           </div>
           {state.error && <p className="text-danger sm:col-span-2">{state.error}</p>}
         </form>

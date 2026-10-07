@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, Linking, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/button";
+import { GearIcon, ImportIcon } from "@/components/icons";
 import { ListRow } from "@/components/rows";
 import { Segmented } from "@/components/segmented";
 import { Sheet } from "@/components/sheet";
@@ -166,7 +167,7 @@ function Start({ access, orgName, onOpen }: { access: ContactsAccess | null; org
         title="Accesso alla rubrica spento"
         body="Per importare i contatti, attiva l'accesso per I-Events nelle impostazioni del telefono."
       >
-        <Button label="Impostazioni" icon="settings-outline" align="center" onPress={() => Linking.openSettings()} />
+        <Button label="Impostazioni" leading={(color, pressed) => <GearIcon color={color} turn={pressed} />} align="center" onPress={() => Linking.openSettings()} />
       </Message>
     );
   return (
@@ -326,6 +327,7 @@ function Choose({
         <Button
           block
           align="center"
+          leading={(color, pressed) => <ImportIcon color={color} play={pressed} />}
           label={count === 0 ? "Scegli i contatti da importare" : count === 1 ? "Importa 1 contatto" : `Importa ${count} contatti`}
           disabled={count === 0}
           loading={importing}

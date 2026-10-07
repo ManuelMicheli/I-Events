@@ -1,5 +1,6 @@
 "use client";
 
+import { ConfirmButton } from "@/components/modal";
 import { PlusIcon, TrashIcon } from "@/components/icons";
 import { Button, Field, Input, Notice } from "@/components/ui";
 import {
@@ -143,18 +144,16 @@ function EditableItem({ item }: { item: PortfolioItem }) {
           </Button>
           <form action={deletePortfolioItem}>
             <input type="hidden" name="id" value={item.id} />
-            <Button
+            <ConfirmButton
               type="submit"
               variant="danger"
               className="ic-host"
               aria-label={`Elimina ${item.title}`}
-              onClick={(e) => {
-                if (!confirm(`Eliminare "${item.title}" e le sue foto dal portfolio?`)) e.preventDefault();
-              }}
+              confirm={{ title: `Eliminare "${item.title}" e le sue foto dal portfolio?`, confirmLabel: "Elimina", danger: true }}
             >
               <TrashIcon />
               Elimina
-            </Button>
+            </ConfirmButton>
           </form>
         </div>
       </div>

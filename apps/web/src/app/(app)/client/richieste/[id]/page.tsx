@@ -205,7 +205,7 @@ export default async function ClientRequestPage({ params, searchParams }: { para
               </div>
               {open && p.status === "submitted" && (
                 <div className="mt-4">
-                  <DecisionForms proposalId={p.id} requestId={id} agencyName={p.agency?.name ?? "questa agenzia"} lead={decidable === 1} />
+                  <DecisionForms proposalId={p.id} requestId={id} agencyName={p.agency?.name ?? "questa agenzia"} lead={decidable === 1} total={p.total ?? 0} others={proposals.length - 1} />
                 </div>
               )}
             </Card>

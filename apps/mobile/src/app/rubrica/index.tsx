@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { Avatar } from "@/components/avatar";
 import { Badge } from "@/components/badge";
 import { Button } from "@/components/button";
+import { ImportIcon } from "@/components/icons";
 import { Card } from "@/components/card";
 import { Chip, ChipRow } from "@/components/chip";
 import { Divider } from "@/components/rows";
@@ -77,7 +78,12 @@ export default function AddressBookScreen() {
           </Card>
           {!filtered && (
             <View style={styles.more}>
-              <Button variant="secondary" icon="phone-portrait-outline" label="Importa dal telefono" onPress={importFromPhone} />
+              <Button
+                variant="secondary"
+                leading={(color, pressed) => <ImportIcon color={color} play={pressed} />}
+                label="Importa dal telefono"
+                onPress={importFromPhone}
+              />
               <Button variant="secondary" icon="storefront-outline" label="Trova fornitori su I-Events" onPress={() => router.push("/trova")} />
             </View>
           )}

@@ -1,5 +1,6 @@
 "use client";
 
+import { ConfirmButton } from "@/components/modal";
 import { addCrew, deleteCrew, syncCheckins, updateCrew, type RosState } from "@/app/(app)/pro/eventi/run-of-show-actions";
 import { ContactActions } from "@/components/contacts/contact-actions";
 import { PlusIcon, TicketIcon, TrashIcon } from "@/components/icons";
@@ -83,20 +84,18 @@ export function CrewRow({ eventId, member, days, passLink }: { eventId: string; 
             <Button type="submit" variant="secondary" disabled={pending}>
               Salva
             </Button>
-            <Button
+            <ConfirmButton
               type="submit"
               variant="danger"
               className="ic-host"
               formAction={deleteCrew}
               formNoValidate
               disabled={pending}
-              onClick={(e) => {
-                if (!confirm(`Togliere ${member.name} dagli arrivi?`)) e.preventDefault();
-              }}
+              confirm={{ title: `Togliere ${member.name} dagli arrivi?`, confirmLabel: "Togli", danger: true }}
             >
               <TrashIcon />
               Elimina
-            </Button>
+            </ConfirmButton>
           </div>
           {state.error && <p className="text-danger sm:col-span-2">{state.error}</p>}
         </form>

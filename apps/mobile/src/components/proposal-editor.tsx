@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { control, radius, space, useTheme } from "@/theme";
 import { Badge } from "./badge";
 import { Button } from "./button";
+import { SendIcon, TrashIcon } from "./icons";
 import { Card, TicketDivider } from "./card";
 import { serviceName } from "./proposal-lines";
 import { Divider, ListRow } from "./rows";
@@ -128,7 +129,7 @@ export function ProposalEditor({ proposalId, clientName, initialLines, initialSu
                 accessibilityLabel={`Rimuovi la voce ${serviceName(l.category)}`}
                 style={({ pressed }) => [styles.remove, pressed && { backgroundColor: c.bgSubtle }]}
               >
-                <Ionicons name="trash-outline" size={20} color={c.textSecondary} />
+                {({ pressed }) => <TrashIcon color={c.textSecondary} open={pressed} />}
               </Pressable>
             </View>
             <TextField label="Descrizione" value={l.description} onChangeText={(t) => update(i, { description: t })} maxLength={300} />
@@ -173,7 +174,7 @@ export function ProposalEditor({ proposalId, clientName, initialLines, initialSu
       {error && <InlineError message={error} />}
       <Button
         block
-        icon="paper-plane-outline"
+        leading={(color, pressed) => <SendIcon color={color} lean={pressed} />}
         label={resubmit ? "Invia la proposta aggiornata" : "Invia la proposta"}
         loading={sending}
         onPress={send}

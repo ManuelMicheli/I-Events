@@ -1,3 +1,4 @@
+import { Toggle } from "@/components/controls";
 import { Button, Card, Empty } from "@/components/ui";
 import { markAllNotificationsRead, setEmailNotifications } from "@/lib/notification-actions";
 import { requireUser } from "@/lib/session";
@@ -58,13 +59,9 @@ export default async function NotificationsPage() {
       </Card>
       <Card title="Email">
         <form action={setEmailNotifications} className="flex flex-col items-start gap-4 text-sm sm:flex-row sm:items-center sm:justify-between">
-          <label className="flex items-start gap-3">
-            <input type="checkbox" name="email" defaultChecked={profile?.email_notifications ?? true} className="mt-1 shrink-0" />
-            <span>
-              <span className="block font-medium">Ricevi un riepilogo via email</span>
-              <span className="block text-muted">Solo delle notifiche non lette.</span>
-            </span>
-          </label>
+          <div className="w-full sm:max-w-md">
+            <Toggle name="email" label="Ricevi un riepilogo via email" hint="Solo delle notifiche non lette." defaultChecked={profile?.email_notifications ?? true} />
+          </div>
           <Button type="submit" variant="secondary">
             Salva
           </Button>

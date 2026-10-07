@@ -14,6 +14,7 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Switch, useWindowDimensions, View } from "react-native";
 import { Button } from "@/components/button";
+import { SaveIcon, SendIcon } from "@/components/icons";
 import { Card } from "@/components/card";
 import { Chip, ChipRow } from "@/components/chip";
 import { DateField } from "@/components/date-field";
@@ -246,7 +247,14 @@ function Wizard({
               </Pressable>
             )}
             <View style={styles.flex}>
-              <Button label={primary.label} block loading={pending} disabled={primary.disabled} onPress={primary.onPress} />
+              <Button
+                label={primary.label}
+                block
+                leading={step === "riepilogo" ? (color, pressed) => <SendIcon color={color} lean={pressed} /> : undefined}
+                loading={pending}
+                disabled={primary.disabled}
+                onPress={primary.onPress}
+              />
             </View>
           </View>
         </View>
@@ -284,13 +292,16 @@ function Wizard({
               );
             })}
           </ScrollView>
-          <T variant="caption" tone="secondary">
-            {pending
-              ? "Salvataggio…"
-              : savedOnce || requestId
-                ? `Bozza salvata · completezza del brief ${completeness}%`
-                : `Completezza del brief ${completeness}%`}
-          </T>
+          <View style={styles.saveRow}>
+            {(pending || savedOnce || requestId) && <SaveIcon color={c.textSecondary} saving={pending} saved={savedOnce || !!requestId} size={16} />}
+            <T variant="caption" tone="secondary" style={styles.shrink}>
+              {pending
+                ? "Salvataggio…"
+                : savedOnce || requestId
+                  ? `Bozza salvata · completezza del brief ${completeness}%`
+                  : `Completezza del brief ${completeness}%`}
+            </T>
+          </View>
         </View>
       }
     >
@@ -759,6 +770,8 @@ function Review({ draft, completeness, agencies }: { draft: RequestDraft; comple
 
 const styles = StyleSheet.create({
   header: { gap: space[1] },
+  saveRow: { flexDirection: "row", alignItems: "center", gap: space[1] },
+  shrink: { flexShrink: 1 },
   bleed: { marginHorizontal: -space[4], flexGrow: 0 },
   steps: { paddingHorizontal: space[4], gap: space[1] },
   stepTouch: { minHeight: control.touch, justifyContent: "center" },

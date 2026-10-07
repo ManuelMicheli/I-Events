@@ -5,6 +5,7 @@ import { Linking, StyleSheet, View } from "react-native";
 import { usePushPermission } from "@/lib/use-push-permission";
 import { space, useTheme } from "@/theme";
 import { Button } from "./button";
+import { GearIcon } from "./icons";
 import { Card } from "./card";
 import { T } from "./text";
 
@@ -49,7 +50,7 @@ export function PushPrompt() {
       </View>
       <View style={styles.actions}>
         {blocked ? (
-          <Button label="Impostazioni" icon="settings-outline" onPress={() => Linking.openSettings()} />
+          <Button label="Impostazioni" leading={(color, pressed) => <GearIcon color={color} turn={pressed} />} onPress={() => Linking.openSettings()} />
         ) : (
           <Button label="Attiva le notifiche" loading={enabling} onPress={enable} />
         )}
@@ -78,7 +79,7 @@ export function PushSetting() {
       </View>
       {!on &&
         (state === "blocked" ? (
-          <Button variant="secondary" label="Impostazioni" icon="settings-outline" onPress={() => Linking.openSettings()} />
+          <Button variant="secondary" label="Impostazioni" leading={(color, pressed) => <GearIcon color={color} turn={pressed} />} onPress={() => Linking.openSettings()} />
         ) : (
           <Button variant="secondary" label="Attiva le notifiche" loading={enabling} onPress={enable} />
         ))}

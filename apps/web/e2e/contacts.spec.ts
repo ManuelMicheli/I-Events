@@ -56,8 +56,7 @@ test("agency imports its suppliers from a file and from pasted text", async ({ b
   await expect(page.getByRole("link", { name: "Email a Marco Bianchi" })).toHaveAttribute("href", "mailto:marco@soundfactory.test");
 
   // Filter by service, then open and edit a contact.
-  await page.getByLabel("Servizio").selectOption("security");
-  await page.getByRole("button", { name: "Filtra" }).click();
+  await page.getByRole("navigation", { name: "Servizio" }).getByRole("link", { name: "Sicurezza e steward" }).click();
   await expect(page.getByText("1 contatto")).toBeVisible();
   await page.getByRole("link", { name: "Giulia Verdi", exact: true }).click();
   await page.getByLabel("Note").fill("Squadra affidabile per concerti.");

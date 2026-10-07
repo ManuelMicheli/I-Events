@@ -3,7 +3,8 @@
 import { submitDraft, saveDraft, type SaveResult } from "@/app/(app)/client/richieste/actions";
 import { EventCover, TypeChip } from "@/components/event-type";
 import { SaveIcon, SendIcon } from "@/components/icons";
-import { Button, buttonClass, Card, Field, Input, Notice, Select } from "@/components/ui";
+import { Chips, Segmented, Stepper, Toggle } from "@/components/controls";
+import { Button, buttonClass, Card, Field, Input, Notice } from "@/components/ui";
 import type { ReachableAgency } from "@/lib/requests";
 import {
   briefCompleteness,
@@ -239,15 +240,14 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
                 <Input value={draft.basics.title} onChange={(e) => setBasics({ title: e.target.value })} maxLength={120} />
               </Field>
             </div>
-            <Field label="Obiettivo *">
-              <Select value={draft.basics.objective} onChange={(e) => setBasics({ objective: e.target.value as RequestDraft["basics"]["objective"] })}>
-                {OBJECTIVES.map((o) => (
-                  <option key={o} value={o}>
-                    {OBJECTIVE_LABEL[o]}
-                  </option>
-                ))}
-              </Select>
-            </Field>
+            <div className="sm:col-span-2">
+              <Chips
+                legend="Obiettivo *"
+                options={OBJECTIVES.map((o) => ({ value: o, label: OBJECTIVE_LABEL[o] }))}
+                value={draft.basics.objective}
+                onChange={(v) => setBasics({ objective: v as RequestDraft["basics"]["objective"] })}
+              />
+            </div>
             <Field label="Città o zona" error={fieldError("basics.city")}>
               <Input value={draft.basics.city ?? ""} onChange={(e) => setBasics({ city: e.target.value || undefined })} />
             </Field>
@@ -269,10 +269,14 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
             <Field label="Budget massimo (€)" error={fieldError("basics.budgetMax")}>
               <Input type="number" min={0} value={draft.basics.budgetMax ?? ""} onChange={(e) => setBasics({ budgetMax: e.target.value ? Number(e.target.value) : undefined })} />
             </Field>
-            <label className="flex items-center gap-2 text-sm sm:col-span-2">
-              <input type="checkbox" checked={draft.basics.isPublic} onChange={(e) => setBasics({ isPublic: e.target.checked })} />
-              Evento aperto al pubblico (comparirà nel calendario pubblico)
-            </label>
+            <div className="sm:col-span-2">
+              <Toggle
+                label="Evento aperto al pubblico"
+                hint="Comparirà nel calendario pubblico di I-Events."
+                checked={draft.basics.isPublic}
+                onChange={(on) => setBasics({ isPublic: on })}
+              />
+            </div>
           </div>
         </Card>
       )}
@@ -281,50 +285,39 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
         <Card>
           <div className="flex flex-col gap-5">
             <Field label="Quanti eventi?" error={fieldError("campaign.eventsCount") ?? fieldError("campaign.stages")}>
-              <Input
-                type="number"
+              <Stepper
+                label="Eventi"
                 min={2}
                 max={MAX_CAMPAIGN_EVENTS}
                 value={draft.campaign.eventsCount}
-                onChange={(e) => setDraft((d) => resizeStages(d, Math.min(MAX_CAMPAIGN_EVENTS, Math.max(2, Number(e.target.value) || 2))))}
+                onChange={(n) => setDraft((d) => resizeStages(d, Math.min(MAX_CAMPAIGN_EVENTS, Math.max(2, n ?? 2))))}
               />
             </Field>
-            <fieldset className="flex flex-col gap-2 text-sm">
-              <legend className="mb-1 font-medium">Dove</legend>
-              {[
-                { v: true, label: "Tutti nello stesso posto" },
-                { v: false, label: "In posti diversi" },
-              ].map((o) => (
-                <label key={String(o.v)} className="flex items-center gap-2">
-                  <input type="radio" name="sameVenue" checked={draft.campaign!.sameVenue === o.v} onChange={() => setDraft((d) => ({ ...d, campaign: { ...d.campaign!, sameVenue: o.v } }))} />
-                  {o.label}
-                </label>
-              ))}
-            </fieldset>
-            <fieldset className="flex flex-col gap-2 text-sm">
-              <legend className="mb-1 font-medium">Servizi</legend>
-              {[
-                { v: "shared", label: "Gli stessi servizi per tutte le tappe" },
-                { v: "per_stage", label: "Servizi diversi per ogni tappa" },
-              ].map((o) => (
-                <label key={o.v} className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="servicesMode"
-                    checked={draft.campaign!.servicesMode === o.v}
-                    onChange={() =>
-                      setDraft((d) => ({
-                        ...d,
-                        campaign: { ...d.campaign!, servicesMode: o.v as "shared" | "per_stage" },
-                        // Switching mode starts the service choice again, to avoid half-assigned items.
-                        items: [],
-                      }))
-                    }
-                  />
-                  {o.label}
-                </label>
-              ))}
-            </fieldset>
+            <Segmented
+              legend="Dove si tengono?"
+              options={[
+                { value: "same", label: "Stesso posto" },
+                { value: "different", label: "Posti diversi" },
+              ]}
+              value={draft.campaign.sameVenue ? "same" : "different"}
+              onChange={(v) => setDraft((d) => ({ ...d, campaign: { ...d.campaign!, sameVenue: v === "same" } }))}
+            />
+            <Segmented
+              legend="Servizi delle tappe"
+              options={[
+                { value: "shared", label: "Uguali per tutte" },
+                { value: "per_stage", label: "Diversi per tappa" },
+              ]}
+              value={draft.campaign.servicesMode}
+              onChange={(v) =>
+                setDraft((d) => ({
+                  ...d,
+                  campaign: { ...d.campaign!, servicesMode: v },
+                  // Switching mode starts the service choice again, to avoid half-assigned items.
+                  items: [],
+                }))
+              }
+            />
             <div className="flex flex-col gap-3">
               <h3 className="text-sm font-medium">Tappe</h3>
               {draft.campaign.stages.map((s, i) => (
