@@ -1936,12 +1936,12 @@ samp {
  * the width beside the sidebar and everything grows a little: the root goes to 17 px and 18 px, and
  * the Carta text styles follow it in rem, so a 2K monitor at 100% looks as a 1440 laptop does.
  * Below 1920 px the sizes stay as they are. Media queries in rem use the browser's 16 px, not the root's.
+ * The app pages never shrink to a centred column: from 1536 px (2xl) or 1920 px (3xl) forms, profiles and
+ * the request wizard split into columns (a side panel, sections side by side) and use the whole width.
  */
 @theme {
   --breakpoint-3xl: 120rem;
   --breakpoint-4xl: 160rem;
-  /* Forms and the request wizard read top to bottom: from 1536 px (2xl) a centred column this wide. */
-  --container-form: 56rem;
   /* Public area from 1920 px: the page stops here (1632 px at 1920, 1728 at 2560). */
   --container-public: 96rem;
 }

@@ -26,39 +26,42 @@ export default async function TeamPage() {
   return (
     <>
       <h1 className="text-2xl font-semibold">Team di {org.name}</h1>
-      <Card title="Persone">
-        <ul className="divide-y divide-border text-sm">
-          {members.map((m) => (
-            <li key={m.user_id} className="flex justify-between py-2">
-              <span>{m.profiles?.full_name || "Senza nome"}</span>
-              <span className="text-muted">{ROLE_LABEL[m.role]}</span>
-            </li>
-          ))}
-        </ul>
-      </Card>
-      {canInvite && (
-        <Card title="Invita una persona">
-          <InviteForm action={inviteMember} roles={roles} submitLabel="Crea invito" />
-          <h3 className="mt-6 mb-2 text-sm font-medium">Inviti in attesa</h3>
-          {invites && invites.length > 0 ? (
-            <ul className="divide-y divide-border text-sm">
-              {invites.map((i) => (
-                <li key={i.id} className="flex items-center justify-between py-2">
-                  <span>
-                    {i.email} <span className="text-muted">· {ROLE_LABEL[i.role]}</span>
-                  </span>
-                  <form action={cancelMemberInvitation}>
-                    <input type="hidden" name="id" value={i.id} />
-                    <button className="text-muted underline">Annulla</button>
-                  </form>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <Empty>Nessun invito in attesa.</Empty>
-          )}
+      {/* From 1920 px the people and the invitations sit side by side (A11 in globals.css). */}
+      <div className={`flex flex-col gap-6 ${canInvite ? "3xl:grid 3xl:grid-cols-2 3xl:items-start" : ""}`}>
+        <Card title="Persone">
+          <ul className="divide-y divide-border text-sm">
+            {members.map((m) => (
+              <li key={m.user_id} className="flex justify-between py-2">
+                <span>{m.profiles?.full_name || "Senza nome"}</span>
+                <span className="text-muted">{ROLE_LABEL[m.role]}</span>
+              </li>
+            ))}
+          </ul>
         </Card>
-      )}
+        {canInvite && (
+          <Card title="Invita una persona">
+            <InviteForm action={inviteMember} roles={roles} submitLabel="Crea invito" />
+            <h3 className="mt-6 mb-2 text-sm font-medium">Inviti in attesa</h3>
+            {invites && invites.length > 0 ? (
+              <ul className="divide-y divide-border text-sm">
+                {invites.map((i) => (
+                  <li key={i.id} className="flex items-center justify-between py-2">
+                    <span>
+                      {i.email} <span className="text-muted">· {ROLE_LABEL[i.role]}</span>
+                    </span>
+                    <form action={cancelMemberInvitation}>
+                      <input type="hidden" name="id" value={i.id} />
+                      <button className="text-muted underline">Annulla</button>
+                    </form>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <Empty>Nessun invito in attesa.</Empty>
+            )}
+          </Card>
+        )}
+      </div>
     </>
   );
 }

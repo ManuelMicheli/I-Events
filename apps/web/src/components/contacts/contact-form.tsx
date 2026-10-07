@@ -14,7 +14,7 @@ export function ContactForm({ contact, canDelete }: { contact?: Tables<"contacts
     <Card>
       <form action={action} className="flex flex-col gap-4">
         <input type="hidden" name="id" value={contact?.id ?? ""} />
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 3xl:grid-cols-4">
           <Field label="Nome *" error={f.name}>
             <Input name="name" required maxLength={200} defaultValue={contact?.name} />
           </Field>

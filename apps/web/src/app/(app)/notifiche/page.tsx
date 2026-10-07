@@ -30,6 +30,8 @@ export default async function NotificationsPage() {
           </form>
         )}
       </div>
+      {/* From 1920 px the email setting sits beside the list (A11 in globals.css). */}
+      <div className="flex flex-col gap-6 3xl:grid 3xl:grid-cols-[minmax(0,1fr)_26rem] 3xl:items-start 4xl:grid-cols-[minmax(0,1fr)_30rem]">
       <Card>
         {items.length === 0 ? (
           <Empty>Nessuna notifica. Qui trovi nuove richieste, proposte, messaggi e decisioni.</Empty>
@@ -68,6 +70,7 @@ export default async function NotificationsPage() {
           </Button>
         </form>
       </Card>
+      </div>
     </>
   );
 }
