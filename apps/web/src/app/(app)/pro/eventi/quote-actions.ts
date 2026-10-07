@@ -4,6 +4,7 @@ import { dbErrorMessage } from "@/lib/labels";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceCategory, quoteSchema, type ProposalLine } from "@i-events/core";
+import { flash } from "@/lib/flash";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -65,6 +66,8 @@ export async function saveQuoteDraft(quoteId: string, eventId: string, input: un
   if (send) {
     const { error: sendError } = await supabase.rpc("send_event_quote", { p_quote: id });
     if (sendError) return { error: sendError.code === "22023" ? "L'evento è chiuso o il preventivo è già stato inviato." : dbErrorMessage(sendError) };
+    const { data: ev } = await supabase.from("events").select("client:organizations!events_client_org_id_fkey(name)").eq("id", event).maybeSingle();
+    await flash(ev?.client?.name ? `Preventivo inviato a ${ev.client.name}` : "Preventivo inviato");
   }
   revalidatePath(`/pro/eventi/${event}`);
   return { saved: Date.now() };
