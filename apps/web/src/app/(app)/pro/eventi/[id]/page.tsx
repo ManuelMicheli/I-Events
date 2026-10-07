@@ -1,3 +1,5 @@
+import { CopyButton } from "@/components/copy-button";
+import { PublicPageForm } from "@/components/events/public-page";
 import { ClearMoment } from "@/components/moment";
 import { Stamp, stampDay } from "@/components/ticket";
 import { EventHeader } from "@/components/event-type";
@@ -9,6 +11,7 @@ import { QuoteHistory, type SentQuote } from "@/components/quotes/quote-history"
 import { NewTaskForm } from "@/components/tasks/new-task-form";
 import { TaskBoard } from "@/components/tasks/task-board";
 import { Button, ButtonLink, Card, Empty, Select } from "@/components/ui";
+import { env } from "@/lib/env";
 import { EVENT_STATUS_LABEL } from "@/lib/labels";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
@@ -38,6 +41,7 @@ export const metadata: Metadata = { title: "Evento" };
 
 const dateFmt = new Intl.DateTimeFormat("it-IT", { weekday: "short", day: "numeric", month: "long", year: "numeric" });
 const day = (d: string | null) => (d ? dateFmt.format(new Date(`${d}T12:00:00`)) : null);
+const registeredFmt = new Intl.DateTimeFormat("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" });
 const num = (v: number | string | null) => (v === null ? null : Number(v));
 
 export default async function EventPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ momento?: string }> }) {
@@ -49,7 +53,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
 
   const { data: event, error } = await supabase
     .from("events")
-    .select("id, number, title, event_type, status, start_date, end_date, city, venue, proposal_id, stage:campaign_stages(position), client:organizations!events_client_org_id_fkey(name)")
+    .select("id, number, title, event_type, status, start_date, end_date, city, venue, proposal_id, is_public, public_description, public_starts_at, public_ends_at, public_capacity, stage:campaign_stages(position), client:organizations!events_client_org_id_fkey(name)")
     .eq("id", id)
     .eq("agency_org_id", org.id)
     .maybeSingle();
@@ -57,7 +61,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
   if (!event) notFound();
 
   const completed = event.status === "completed";
-  const [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes, quotesRes, scheduleRes, crewRes, busyRes, reviewsRes, reviewableRes] = await Promise.all([
+  const [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes, quotesRes, scheduleRes, crewRes, busyRes, reviewsRes, reviewableRes, registrationsRes] = await Promise.all([
     supabase
       .from("event_bookings")
       .select("id, service_key, description, contact_id, status, planned_cost, actual_cost, notes, supplier_response, supplier_price, supplier_note")
@@ -84,8 +88,9 @@ export default async function EventPage({ params, searchParams }: { params: Prom
     supabase.rpc("event_busy_contacts", { p_event: id }),
     supabase.from("reviews").select("author_org_id, subject_org_id, rating, comment, reply").eq("event_id", id),
     completed ? supabase.rpc("reviewable_for", { p_event: id, p_author: org.id }) : Promise.resolve({ data: [], error: null }),
+    supabase.from("event_registrations").select("id, name, email, guests, created_at").eq("event_id", id).order("created_at", { ascending: false }).limit(500),
   ]);
-  for (const r of [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes, quotesRes, scheduleRes, crewRes, busyRes, reviewsRes, reviewableRes])
+  for (const r of [bookingsRes, contactsRes, proposalRes, siblingsRes, tasksRes, membersRes, quotesRes, scheduleRes, crewRes, busyRes, reviewsRes, reviewableRes, registrationsRes])
     if (r.error) throw r.error;
 
   const bookings: Booking[] = bookingsRes.data!.map((b) => ({
@@ -127,6 +132,8 @@ export default async function EventPage({ params, searchParams }: { params: Prom
     name: supplierName(r.subject_org_id),
     existing: reviews.find((x) => x.author_org_id === org.id && x.subject_org_id === r.subject_org_id) ?? null,
   }));
+  const registrations = registrationsRes.data!;
+  const people = registrations.reduce((n, r) => n + r.guests, 0);
   const marginPct = budget.margin !== null && budget.sold ? Math.round((budget.margin / budget.sold) * 100) : null;
 
   return (
@@ -360,6 +367,58 @@ export default async function EventPage({ params, searchParams }: { params: Prom
             Aggiungi
           </Button>
         </form>
+      </Card>
+
+      <Card
+        title="Pagina pubblica"
+        action={
+          event.is_public ? (
+            <span className="text-sm text-muted">
+              {people === 1 ? "1 persona iscritta" : `${people} persone iscritte`}
+              {event.public_capacity ? ` su ${event.public_capacity} posti` : ""}
+            </span>
+          ) : undefined
+        }
+      >
+        <div className="flex flex-col gap-6">
+          {event.is_public && (
+            <p className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+              <Link href={`/eventi/${event.id}`} className="underline">
+                Apri la pagina pubblica
+              </Link>
+              <CopyButton text={`${env.siteUrl.replace(/\/$/, "")}/eventi/${event.id}`} />
+            </p>
+          )}
+          <PublicPageForm eventId={event.id} page={event} canManage={canManage} />
+          {registrations.length > 0 && (
+            <table className="list-table w-full text-left text-sm">
+              <thead className="text-muted">
+                <tr>
+                  <th className="py-1 font-medium">Nome</th>
+                  <th className="py-1 font-medium">Email</th>
+                  <th className="py-1 text-right font-medium">Persone</th>
+                  <th className="py-1 text-right font-medium">Iscritto il</th>
+                </tr>
+              </thead>
+              <tbody>
+                {registrations.map((r) => (
+                  <tr key={r.id} className="border-t border-border">
+                    <td className="py-2 font-medium">{r.name}</td>
+                    <td data-label="Email" className="py-2">
+                      <span className="min-w-0 break-all">{r.email}</span>
+                    </td>
+                    <td data-label="Persone" className="py-2 text-right">
+                      <span className="font-mono">{r.guests}</span>
+                    </td>
+                    <td data-label="Iscritto il" className="py-2 text-right">
+                      <span className="font-mono">{registeredFmt.format(new Date(r.created_at))}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       </Card>
 
       <Card title="Dettagli">
