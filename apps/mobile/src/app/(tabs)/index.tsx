@@ -38,7 +38,17 @@ const isToday = (e: { start_date: string | null; end_date: string | null; status
   !!e.start_date && e.status !== "cancelled" && e.start_date <= today && (e.end_date ?? e.start_date) >= today;
 
 /** The page frame shared by every Home: greeting, one line of summary, the organization, then the content. */
-function HomeFrame({ summary, queries, children }: { summary: string | null; queries: Query<unknown>[]; children: ReactNode }) {
+function HomeFrame({
+  summary,
+  queries,
+  footer,
+  children,
+}: {
+  summary: string | null;
+  queries: Query<unknown>[];
+  footer?: ReactNode;
+  children: ReactNode;
+}) {
   const name = firstName(useMyName());
   const loading = queries.some((q) => q.loading);
   const failed = queries.find((q) => q.error && !q.data);
@@ -49,6 +59,7 @@ function HomeFrame({ summary, queries, children }: { summary: string | null; que
     <Screen
       title={name ? `${greeting()}, ${name}` : greeting()}
       actions={<TopActions />}
+      footer={footer}
       header={
         <View style={styles.headerTexts}>
           {summary && !loading && (
@@ -66,6 +77,8 @@ function HomeFrame({ summary, queries, children }: { summary: string | null; que
     </Screen>
   );
 }
+
+const newRequestButton = <Button icon="add" label="Nuova richiesta" onPress={() => router.push("/nuova-richiesta")} />;
 
 const seeAll = (path: "/richieste" | "/eventi") => (
   <Button
@@ -277,7 +290,7 @@ function ClientHome({ orgId }: { orgId: string }) {
   }
 
   return (
-    <HomeFrame summary={summary} queries={[requests, events]}>
+    <HomeFrame summary={summary} queries={[requests, events]} footer={newRequestButton}>
       <MetricGrid items={metrics} />
 
       {(fresh.length > 0 || quotes.length > 0 || questions.length > 0) && (

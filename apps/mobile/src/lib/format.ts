@@ -103,3 +103,13 @@ export function until(date: string, today: string): string | null {
 
 /** Whole days from today to a date: 0 today, negative when passed. */
 export const daysUntil = (date: string, today: string) => dayNumber(date) - dayNumber(today);
+
+/** "14/11/2026" to "2026-11-14"; null when the date does not exist. */
+export function parseItalianDate(text: string): string | null {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(text);
+  if (!m) return null;
+  const [, d, mo, y] = m;
+  const iso = `${y}-${mo}-${d}`;
+  const date = new Date(`${iso}T12:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === iso ? iso : null;
+}

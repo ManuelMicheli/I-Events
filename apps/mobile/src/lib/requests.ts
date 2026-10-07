@@ -85,6 +85,7 @@ export async function fetchRequest(id: string) {
   } | null;
   const draft: RequestDraft = {
     kind: r.kind,
+    eventType: opt(r.event_type),
     basics: {
       title: r.title,
       objective: r.objective as RequestDraft["basics"]["objective"],
