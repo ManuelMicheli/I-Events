@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { MessageIcon } from "./icons";
 import { Card } from "./ui";
 import { MessageForm } from "./message-form";
 
@@ -15,9 +16,14 @@ export async function MessageThread({ proposalId, viewerOrgId, isAgency, path, t
   if (error) throw error;
 
   return (
-    <Card title={title}>
+    <Card title={title} className="msg-host">
       <ol className="mb-4 flex flex-col gap-3">
-        {messages.length === 0 && <li className="text-sm text-muted">Ancora nessun messaggio.</li>}
+        {messages.length === 0 && (
+          <li className="flex items-center gap-3 text-sm text-muted">
+            <MessageIcon />
+            Ancora nessun messaggio.
+          </li>
+        )}
         {messages.map((m) => {
           const mine = m.author_org_id === viewerOrgId;
           return (

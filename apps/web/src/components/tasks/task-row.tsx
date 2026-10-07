@@ -1,6 +1,7 @@
 "use client";
 
 import { deleteTask, toggleTask, updateTask, type TaskState } from "@/app/(app)/pro/attivita/actions";
+import { TrashIcon } from "@/components/icons";
 import { Button, Field, Input, Select } from "@/components/ui";
 import { daysBetween } from "@i-events/core";
 import Link from "next/link";
@@ -139,12 +140,14 @@ export function TaskRow({
             <Button
               type="submit"
               variant="danger"
+              className="ic-host"
               formAction={deleteTask}
               disabled={pending}
               onClick={(e) => {
                 if (!confirm("Eliminare questa attività?")) e.preventDefault();
               }}
             >
+              <TrashIcon />
               Elimina
             </Button>
           </div>

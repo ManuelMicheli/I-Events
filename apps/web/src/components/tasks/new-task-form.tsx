@@ -1,6 +1,7 @@
 "use client";
 
 import { addTask, type TaskState } from "@/app/(app)/pro/attivita/actions";
+import { PlusIcon } from "@/components/icons";
 import { Button, Input, Select } from "@/components/ui";
 import { useActionState, useEffect, useRef } from "react";
 import type { Option } from "./task-row";
@@ -34,7 +35,8 @@ export function NewTaskForm({ eventId, members, bookings }: { eventId: string; m
             </option>
           ))}
         </Select>
-        <Button type="submit" variant="secondary" disabled={pending}>
+        <Button type="submit" variant="secondary" disabled={pending} className="ic-host">
+          <PlusIcon />
           Aggiungi
         </Button>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { importContacts, suggestServices } from "@/app/(app)/pro/rubrica/actions";
+import { ImportIcon } from "@/components/icons";
 import { Button, ButtonLink, Card, Notice, Select } from "@/components/ui";
 import {
   CONTACT_COLUMN_LABEL,
@@ -277,7 +278,8 @@ export function ContactImport() {
             <Button type="button" pending={pending} variant="secondary" disabled={pending} onClick={() => setStep(table ? "mapping" : "source")}>
               Indietro
             </Button>
-            <Button type="button" pending={pending} disabled={pending || included === 0} onClick={runImport}>
+            <Button type="button" pending={pending} disabled={pending || included === 0} onClick={runImport} className="ic-host">
+              <ImportIcon />
               Importa {included} {included === 1 ? "contatto" : "contatti"}
             </Button>
             {progress && <span className="text-sm text-muted">{progress}</span>}

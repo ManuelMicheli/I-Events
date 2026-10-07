@@ -2,6 +2,7 @@ import { cancelRegistration } from "@/app/(pubblico)/eventi/actions";
 import { CopyButton } from "@/components/copy-button";
 import { ClearMoment } from "@/components/moment";
 import { PublicTicket } from "@/components/public/public-ticket";
+import { ShareButton } from "@/components/share-button";
 import { Button, ButtonLink } from "@/components/ui";
 import { env } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
@@ -73,6 +74,7 @@ export default async function TicketPage({
           <p className="text-muted">Questo link è il tuo biglietto. Salvalo o fai uno screenshot: va bene anche senza rete.</p>
           <p className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <CopyButton text={link} />
+            <ShareButton label="Condividi" text={`Il mio biglietto per ${ticket.title}`} url={link} />
             <Link href={`/eventi/${ticket.event_id}`} className="underline">
               Pagina dell&apos;evento
             </Link>
