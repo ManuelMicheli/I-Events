@@ -1,3 +1,4 @@
+import { TypeChip } from "@/components/event-type";
 import { Attachments } from "@/components/attachments/attachments";
 import { BriefView } from "@/components/brief/brief-view";
 import { MessageThread } from "@/components/messages";
@@ -60,6 +61,11 @@ export default async function ClientRequestPage({ params }: { params: Promise<{ 
             Le tue richieste
           </Link>
           <h1 className="text-2xl font-semibold">{request.draft.basics.title}</h1>
+          {request.draft.eventType && (
+            <div className="my-2">
+              <TypeChip type={request.draft.eventType} />
+            </div>
+          )}
           <p className="text-sm text-muted">
             {REQUEST_STATUS_LABEL[request.status]}
             {request.submittedAt && ` il ${dateFmt.format(new Date(request.submittedAt))}`} · {proposals.length} agenzie

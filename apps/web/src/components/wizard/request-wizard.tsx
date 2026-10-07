@@ -1,10 +1,13 @@
 "use client";
 
 import { submitDraft, saveDraft, type SaveResult } from "@/app/(app)/client/richieste/actions";
-import { Button, Card, Field, Input, Notice, Select } from "@/components/ui";
+import { EventCover, TypeChip } from "@/components/event-type";
+import { Button, buttonClass, Card, Field, Input, Notice, Select } from "@/components/ui";
 import type { ReachableAgency } from "@/lib/requests";
 import {
   briefCompleteness,
+  EVENT_TYPE_INFO,
+  EVENT_TYPES,
   MAX_CAMPAIGN_EVENTS,
   OBJECTIVES,
   SERVICE_CATALOG,
@@ -26,7 +29,8 @@ const OBJECTIVE_LABEL: Record<(typeof OBJECTIVES)[number], string> = {
 };
 
 const STEP_LABEL: Record<Step, string> = {
-  tipo: "Tipo",
+  evento: "Evento",
+  tipo: "Formato",
   basi: "Informazioni",
   campagna: "Tappe",
   servizi: "Servizi",
@@ -63,14 +67,14 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
   const router = useRouter();
   const [draft, setDraft] = useState<RequestDraft>(initial);
   const [requestId, setRequestId] = useState(initialId);
-  const [step, setStep] = useState<Step>(initialStep ?? (initialId ? "basi" : "tipo"));
+  const [step, setStep] = useState<Step>(initialStep ?? (initialId ? "basi" : "evento"));
   const [result, setResult] = useState<SaveResult>({});
   const [selectedAgencies, setSelectedAgencies] = useState<string[]>(initialAgencies ?? []);
   const [stageTab, setStageTab] = useState(0);
   const [agencyQuery, setAgencyQuery] = useState("");
   const [pending, startTransition] = useTransition();
 
-  const steps: Step[] = ["tipo", "basi", ...(draft.kind === "campaign" ? (["campagna"] as const) : []), "servizi", "note", "agenzie", "riepilogo"];
+  const steps: Step[] = ["evento", "tipo", "basi", ...(draft.kind === "campaign" ? (["campagna"] as const) : []), "servizi", "note", "agenzie", "riepilogo"];
   const index = steps.indexOf(step);
   const perStage = draft.kind === "campaign" && draft.campaign?.servicesMode === "per_stage";
   const fieldError = (path: string) => result.issues?.find((i) => i.path === path)?.message;
@@ -157,6 +161,46 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
           </li>
         ))}
       </ol>
+
+      {step === "evento" && (
+        <div className="flex flex-col gap-6">
+          <h2 className="text-xl font-medium">Che evento è?</h2>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3" role="radiogroup" aria-label="Che evento è?">
+            {EVENT_TYPES.map((t) => {
+              const info = EVENT_TYPE_INFO[t];
+              const selected = draft.eventType === t;
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  onClick={() => setDraft((d) => ({ ...d, eventType: t }))}
+                  className={`flex flex-col items-start gap-3 rounded-card border p-4 text-left transition-colors duration-[120ms] ${
+                    selected ? "border-2 border-accent bg-accent-subtle p-[15px]" : "border-border bg-bg hover:bg-surface"
+                  }`}
+                >
+                  <EventCover type={t} className="size-12 rounded-ui" />
+                  <span className="flex flex-col gap-1">
+                    <span className="font-medium">{info.label}</span>
+                    <span className="text-xs text-muted">{info.examples}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="sticky bottom-0 -mx-4 bg-app/95 px-4 pt-3 pb-[max(16px,env(safe-area-inset-bottom))] backdrop-blur sm:static sm:mx-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+            <button
+              type="button"
+              disabled={!draft.eventType}
+              onClick={() => setStep("tipo")}
+              className={buttonClass("primary", "l", "w-full sm:w-auto")}
+            >
+              {draft.eventType ? `Scegli ${EVENT_TYPE_INFO[draft.eventType].label}` : "Scegli il tipo di evento"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {step === "tipo" && (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -419,7 +463,7 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
             Indietro
           </Button>
         )}
-        {step !== "tipo" && step !== "riepilogo" && (
+        {step !== "evento" && step !== "tipo" && step !== "riepilogo" && (
           <Button type="button" disabled={pending} onClick={() => go(steps[index + 1]!)}>
             Avanti
           </Button>
@@ -429,7 +473,7 @@ export function RequestWizard({ requestId: initialId, initial, agencies, initial
             Invia a {selectedAgencies.length} {selectedAgencies.length === 1 ? "agenzia" : "agenzie"}
           </Button>
         )}
-        {step !== "tipo" && (
+        {step !== "evento" && step !== "tipo" && (
           <Button type="button" variant="secondary" disabled={pending} onClick={() => persist()}>
             Salva bozza
           </Button>
@@ -448,7 +492,11 @@ function Review({ draft, completeness, agencies }: { draft: RequestDraft; comple
     <Card title="Riepilogo">
       <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
         <div>
-          <dt className="text-muted">Tipo</dt>
+          <dt className="text-muted">Che evento è</dt>
+          <dd className="pt-1">{draft.eventType ? <TypeChip type={draft.eventType} /> : "Da scegliere"}</dd>
+        </div>
+        <div>
+          <dt className="text-muted">Formato</dt>
           <dd>{draft.kind === "campaign" ? `Campagna di ${draft.campaign?.eventsCount} eventi` : "Evento singolo"}</dd>
         </div>
         <div>

@@ -1,6 +1,8 @@
+import { TypeSquare } from "@/components/event-type";
 import { Card } from "@/components/ui";
 import type { LoadedRequest } from "@/lib/requests";
-import { answerRows, formatEuro, getServiceCategory, openQuestions, OBJECTIVES } from "@i-events/core";
+import { answerRows, EVENT_TYPE_INFO, formatEuro, getServiceCategory, openQuestions, OBJECTIVES } from "@i-events/core";
+import type { ReactNode } from "react";
 
 const OBJECTIVE_LABEL: Record<(typeof OBJECTIVES)[number], string> = {
   product_launch: "Lancio prodotto",
@@ -25,9 +27,18 @@ export function BriefView({ request }: { request: NonNullable<LoadedRequest> }) 
     ? stages.map((s, i) => ({ key: `stage-${i}`, title: `Tappa ${i + 1}${s.city ? ` · ${s.city}` : ""}`, items: draft.items.filter((it) => it.stageIndex === i) }))
     : [{ key: "all", title: draft.kind === "campaign" ? "Servizi per tutte le tappe" : "Servizi richiesti", items: draft.items }];
 
-  const facts: [string, string | null][] = [
+  const facts: [string, ReactNode][] = [
     ["Azienda", request.clientName],
-    ["Tipo", draft.kind === "campaign" ? `Campagna · ${draft.campaign?.eventsCount} eventi` : "Evento singolo"],
+    [
+      "Che evento",
+      draft.eventType ? (
+        <span className="inline-flex items-center gap-2">
+          <TypeSquare type={draft.eventType} />
+          {EVENT_TYPE_INFO[draft.eventType].label}
+        </span>
+      ) : null,
+    ],
+    ["Formato", draft.kind === "campaign" ? `Campagna · ${draft.campaign?.eventsCount} eventi` : "Evento singolo"],
     ["Obiettivo", OBJECTIVE_LABEL[b.objective]],
     ["Date", [fmtDate(b.startDate), fmtDate(b.endDate)].filter(Boolean).join(" → ") || "Da definire"],
     ["Ospiti", b.guests ? String(b.guests) : null],

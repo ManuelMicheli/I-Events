@@ -1,8 +1,8 @@
 "use client";
 
 import { moveEvent, saveEventDetails, type EventState } from "@/app/(app)/pro/eventi/actions";
-import { Button, Field, Input, Notice } from "@/components/ui";
-import type { EventStatus } from "@i-events/core";
+import { Button, Field, Input, Notice, Select } from "@/components/ui";
+import { EVENT_TYPE_INFO, EVENT_TYPES, type EventStatus, type EventType } from "@i-events/core";
 import { useActionState } from "react";
 
 const MOVE_LABEL: Record<EventStatus, string> = {
@@ -40,13 +40,25 @@ export function EventStatusActions({ eventId, moves }: { eventId: string; moves:
   );
 }
 
-type Details = { start_date: string | null; end_date: string | null; city: string | null; venue: string | null };
+type Details = { event_type: EventType | null; start_date: string | null; end_date: string | null; city: string | null; venue: string | null };
 
 export function EventDetailsForm({ eventId, details }: { eventId: string; details: Details }) {
   const [state, action, pending] = useActionState<EventState, FormData>(saveEventDetails, {});
   return (
     <form action={action} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <input type="hidden" name="eventId" value={eventId} />
+      <div className="sm:col-span-2 lg:col-span-4 lg:max-w-[calc(50%-8px)]">
+        <Field label="Che evento è">
+          <Select name="event_type" defaultValue={details.event_type ?? ""}>
+            {!details.event_type && <option value="">Da indicare</option>}
+            {EVENT_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {EVENT_TYPE_INFO[t].label}
+              </option>
+            ))}
+          </Select>
+        </Field>
+      </div>
       <Field label="Inizio">
         <Input type="date" name="start_date" defaultValue={details.start_date ?? ""} />
       </Field>

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { EVENT_TYPES } from "./event-types";
 import { answersSchema, getServiceCategory, SERVICE_KEYS } from "./services";
 
 export const REQUEST_KINDS = ["single", "campaign"] as const;
@@ -56,6 +57,8 @@ export const requestItemSchema = z.object({
 export const requestDraftSchema = z
   .object({
     kind: z.enum(REQUEST_KINDS),
+    /** "Che evento è?": optional while drafting, needed to send. */
+    eventType: z.enum(EVENT_TYPES).optional(),
     basics: basicsSchema,
     campaign: campaignSchema.optional(),
     items: z.array(requestItemSchema),
@@ -119,6 +122,7 @@ export function normalizeDraft(draft: RequestDraft): RequestDraft {
 /** A request can be sent only when it is valid and asks for at least one service or has free text. */
 export function submissionIssues(draft: RequestDraft): string[] {
   const issues: string[] = [];
+  if (!draft.eventType) issues.push("Scegli che evento è");
   if (draft.items.length === 0 && !draft.freeText) issues.push("Scegli almeno un servizio o scrivi una richiesta libera");
   if (!draft.basics.startDate) issues.push("Indica almeno una data o un periodo");
   return issues;

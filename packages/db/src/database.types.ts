@@ -660,6 +660,7 @@ export type Database = {
           client_org_id: string;
           created_at: string;
           end_date: string | null;
+          event_type: Database["public"]["Enums"]["event_type"] | null;
           id: string;
           is_public: boolean;
           proposal_id: string;
@@ -676,6 +677,7 @@ export type Database = {
           client_org_id: string;
           created_at?: string;
           end_date?: string | null;
+          event_type?: Database["public"]["Enums"]["event_type"] | null;
           id?: string;
           is_public?: boolean;
           proposal_id: string;
@@ -692,6 +694,7 @@ export type Database = {
           client_org_id?: string;
           created_at?: string;
           end_date?: string | null;
+          event_type?: Database["public"]["Enums"]["event_type"] | null;
           id?: string;
           is_public?: boolean;
           proposal_id?: string;
@@ -1369,6 +1372,7 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           end_date: string | null;
+          event_type: Database["public"]["Enums"]["event_type"] | null;
           free_text: string | null;
           guests: number | null;
           id: string;
@@ -1392,6 +1396,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           end_date?: string | null;
+          event_type?: Database["public"]["Enums"]["event_type"] | null;
           free_text?: string | null;
           guests?: number | null;
           id?: string;
@@ -1415,6 +1420,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           end_date?: string | null;
+          event_type?: Database["public"]["Enums"]["event_type"] | null;
           free_text?: string | null;
           guests?: number | null;
           id?: string;
@@ -1985,6 +1991,7 @@ export type Database = {
       booking_status: "to_book" | "requested" | "confirmed" | "cancelled";
       connection_status: "pending" | "active" | "revoked";
       event_status: "planning" | "preparing" | "live" | "completed" | "cancelled";
+      event_type: "music" | "brand" | "business" | "gala" | "culture" | "sport";
       member_role: "owner" | "admin" | "manager" | "member" | "approver";
       org_type: "agency" | "client" | "supplier";
       plan_id: "trial" | "starter" | "pro" | "enterprise";
@@ -2119,6 +2126,7 @@ export const Constants = {
       booking_status: ["to_book", "requested", "confirmed", "cancelled"],
       connection_status: ["pending", "active", "revoked"],
       event_status: ["planning", "preparing", "live", "completed", "cancelled"],
+      event_type: ["music", "brand", "business", "gala", "culture", "sport"],
       member_role: ["owner", "admin", "manager", "member", "approver"],
       org_type: ["agency", "client", "supplier"],
       plan_id: ["trial", "starter", "pro", "enterprise"],

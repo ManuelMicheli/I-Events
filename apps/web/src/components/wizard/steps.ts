@@ -1,4 +1,4 @@
-export const WIZARD_STEPS = ["tipo", "basi", "campagna", "servizi", "note", "agenzie", "riepilogo"] as const;
+export const WIZARD_STEPS = ["evento", "tipo", "basi", "campagna", "servizi", "note", "agenzie", "riepilogo"] as const;
 export type WizardStep = (typeof WIZARD_STEPS)[number];
 
 export function isWizardStep(value: unknown): value is WizardStep {
