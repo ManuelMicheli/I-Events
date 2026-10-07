@@ -4,6 +4,7 @@ import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Badge } from "@/components/badge";
 import { Button } from "@/components/button";
+import { SendIcon } from "@/components/icons";
 import { Card, TicketDivider } from "@/components/card";
 import { InfoRow } from "@/components/rows";
 import { Notice } from "@/components/notice";
@@ -171,7 +172,7 @@ function AnswerForm({ bookingId, agency, answered, onSent }: { bookingId: string
         textAlignVertical="top"
       />
       {error && <InlineError message={error} />}
-      <Button block icon="paper-plane-outline" label="Invia la risposta" loading={sending} onPress={send} />
+      <Button block leading={(color, pressed) => <SendIcon color={color} lean={pressed} />} label="Invia la risposta" loading={sending} onPress={send} />
     </Section>
   );
 }

@@ -1,10 +1,11 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { formatTicketNumber, placesLabel, placesLeft, todayInItaly } from "@i-events/core";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Linking, StyleSheet, View } from "react-native";
 import { Badge, LiveDot } from "@/components/badge";
 import { Button } from "@/components/button";
+import { PlaceIcon } from "@/components/icons";
 import { Card } from "@/components/card";
 import { TypeChip } from "@/components/event-type";
 import { Notice } from "@/components/notice";
@@ -171,26 +172,12 @@ export default function PublicEventScreen() {
 
       <View style={[styles.facts, { borderColor: c.borderDefault }]}>
         <Fact
-          icon="calendar-outline"
+          icon={<Ionicons name="calendar-outline" size={20} color={c.textPrimary} />}
           title={longDay(event.start_date, event.end_date)}
           detail={time}
           mono
         />
-        {place.length > 0 && (
-          <View style={styles.placeRow}>
-            <Fact icon="location-outline" title={place[0]!} detail={place[1] ?? null} />
-            {maps && (
-              <Button
-                variant="tertiary"
-                size="small"
-                icon="map-outline"
-                label="Mappe"
-                accessibilityLabel="Apri nelle mappe"
-                onPress={() => Linking.openURL(maps)}
-              />
-            )}
-          </View>
-        )}
+        {place.length > 0 && <Place place={place} maps={maps} />}
       </View>
 
       {event.description && (
@@ -216,21 +203,32 @@ export default function PublicEventScreen() {
   );
 }
 
-function Fact({
-  icon,
-  title,
-  detail,
-  mono = false,
-}: {
-  icon: "calendar-outline" | "location-outline";
-  title: string;
-  detail: string | null;
-  mono?: boolean;
-}) {
+/** Where: the place, with the way to open it in the maps; touching Mappe makes the pin hop (A10). */
+function Place({ place, maps }: { place: string[]; maps: string | null }) {
   const { c } = useTheme();
+  const [hop, setHop] = useState(0);
+  return (
+    <View style={styles.placeRow}>
+      <Fact icon={<PlaceIcon color={c.textPrimary} hop={hop} />} title={place[0]!} detail={place[1] ?? null} />
+      {maps && (
+        <Button
+          variant="tertiary"
+          size="small"
+          icon="map-outline"
+          label="Mappe"
+          accessibilityLabel="Apri nelle mappe"
+          onPressIn={() => setHop((n) => n + 1)}
+          onPress={() => Linking.openURL(maps)}
+        />
+      )}
+    </View>
+  );
+}
+
+function Fact({ icon, title, detail, mono = false }: { icon: ReactNode; title: string; detail: string | null; mono?: boolean }) {
   return (
     <View style={styles.fact}>
-      <Ionicons name={icon} size={20} color={c.textPrimary} style={styles.factIcon} />
+      <View style={styles.factIcon}>{icon}</View>
       <View style={styles.flex}>
         <T variant="bodyStrong">{title}</T>
         {detail && (

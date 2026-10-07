@@ -10,10 +10,12 @@ type Variant = "primary" | "secondary" | "tertiary" | "destructive";
 type Props = {
   label: string;
   onPress: () => void;
+  /** The finger has just touched the button: an icon elsewhere can answer, as the website's do when pointed at. */
+  onPressIn?: () => void;
   variant?: Variant;
   icon?: ComponentProps<typeof Ionicons>["name"];
-  /** An icon of its own (one that moves, A10) in place of `icon`, drawn in the label's colour. */
-  leading?: (color: string) => ReactNode;
+  /** An icon of its own (one that moves, A10) in place of `icon`, drawn in the label's colour; it knows when the finger is on the button. */
+  leading?: (color: string, pressed: boolean) => ReactNode;
   loading?: boolean;
   disabled?: boolean;
   /** Stretches to the container width; otherwise the button is as wide as its label. */
@@ -34,6 +36,7 @@ type Props = {
 export function Button({
   label,
   onPress,
+  onPressIn,
   variant = "primary",
   icon,
   leading,
@@ -61,7 +64,10 @@ export function Button({
     <Pressable
       onPress={onPress}
       disabled={off}
-      onPressIn={() => setPressed(true)}
+      onPressIn={() => {
+        setPressed(true);
+        onPressIn?.();
+      }}
       onPressOut={() => setPressed(false)}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
@@ -79,7 +85,7 @@ export function Button({
       ]}
     >
       <View style={[styles.content, loading && styles.hidden]}>
-        {leading ? leading(disabledLook ? c.textDisabled : toneColor) : icon && <Ionicons name={icon} size={20} color={disabledLook ? c.textDisabled : toneColor} />}
+        {leading ? leading(disabledLook ? c.textDisabled : toneColor, pressed) : icon && <Ionicons name={icon} size={20} color={disabledLook ? c.textDisabled : toneColor} />}
         <T variant={size === "small" ? "calloutStrong" : "bodyStrong"} tone={disabledLook ? "disabled" : look.tone} style={styles.label}>
           {label}
         </T>
