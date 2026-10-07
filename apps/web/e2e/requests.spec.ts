@@ -54,7 +54,7 @@ async function answerRequest(page: Page, title: string, amounts: [string, string
 
 test("client sends a request to two agencies, compares proposals and accepts one", async ({ browser }) => {
   // The whole life of an event, from the request to the reviews.
-  test.setTimeout(150_000);
+  test.setTimeout(210_000);
   const alfa = await agencyWithInvite(browser, "Alfa");
   const beta = await agencyWithInvite(browser, "Beta");
 
@@ -293,6 +293,47 @@ test("client sends a request to two agencies, compares proposals and accepts one
   await guest.goto(passLink!.replace(/[0-9a-f]{32}$/, "0".repeat(32)));
   await expect(guest.getByRole("heading", { name: "Pass non trovato" })).toBeVisible();
   await guest.close();
+
+  // Public area: Beta opens the event to the public with 3 places; anyone registers without an account.
+  // In a second tab, so the run of show stays open for the event day below.
+  const agencyTab = await beta.page.context().newPage();
+  await agencyTab.goto(eventUrl);
+  const publicPage = agencyTab.locator("section", { has: agencyTab.getByRole("heading", { name: "Pagina pubblica" }) });
+  await publicPage.getByLabel("Aperto al pubblico").check();
+  await publicPage.getByLabel("Cosa succede").fill("Una serata di musica nel cortile.");
+  await publicPage.getByLabel("Apertura").fill("19:00");
+  await publicPage.getByRole("spinbutton", { name: /^Posti/ }).fill("3");
+  await publicPage.getByRole("button", { name: "Salva pagina pubblica" }).click();
+  await expect(publicPage.getByText("Pagina pubblica salvata.")).toBeVisible();
+  await agencyTab.close();
+
+  const visitor = await browser.newPage();
+  await visitor.goto("/eventi");
+  await visitor.getByRole("link", { name: title }).click();
+  await expect(visitor.getByRole("heading", { level: 1, name: title })).toBeVisible();
+  await expect(visitor.getByText("Una serata di musica nel cortile.")).toBeVisible();
+  await expect(visitor.getByText("Ultimi 3 posti")).toBeVisible();
+  await visitor.getByLabel("Nome e cognome").fill("Giulia Rossi");
+  await visitor.getByRole("textbox", { name: /^Email/ }).fill("giulia.rossi@example.test");
+  await visitor.getByRole("button", { name: "Una persona in più" }).click();
+  await visitor.getByRole("button", { name: "Conferma iscrizione" }).click();
+  await expect(visitor.getByText("Controlla i campi evidenziati.")).toBeVisible();
+  await expect(visitor.getByLabel("Nome e cognome")).toHaveValue("Giulia Rossi");
+  await visitor.getByLabel("Accetto che chi organizza").check();
+  await visitor.getByRole("button", { name: "Conferma iscrizione" }).click();
+  await expect(visitor).toHaveURL(/\/biglietto\/[0-9a-f]{32}/);
+  const publicTicket = visitor.getByRole("article", { name: `Biglietto per ${title}, a nome di Giulia Rossi` });
+  await expect(publicTicket).toContainText("2 persone");
+  await expect(publicTicket).toContainText("19:00");
+  await expect(publicTicket.getByText("Iscrizione confermata")).toBeVisible();
+  await expect(publicTicket.getByRole("img", { name: "Codice QR del biglietto" }).locator("svg")).toBeVisible();
+  await visitor.getByRole("link", { name: "Biglietti" }).first().click();
+  await expect(visitor.getByRole("link", { name: title })).toBeVisible();
+  await visitor.getByRole("link", { name: title }).click();
+  await visitor.getByText("Non puoi più venire?").click();
+  await visitor.getByRole("button", { name: "Annulla l'iscrizione" }).click();
+  await expect(visitor.getByText("Iscrizione annullata. Il posto è di nuovo libero.")).toBeVisible();
+  await visitor.close();
 
   // On the day, from a phone at 18:20: the briefing is on, security is late. Check-ins work offline.
   const runOfShow = new URL(beta.page.url()).pathname;

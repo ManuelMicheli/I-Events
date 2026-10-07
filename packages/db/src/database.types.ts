@@ -496,6 +496,44 @@ export type Database = {
           },
         ];
       };
+      event_registrations: {
+        Row: {
+          created_at: string;
+          email: string;
+          event_id: string;
+          guests: number;
+          id: string;
+          name: string;
+          token: string;
+        };
+        Insert: {
+          created_at?: string;
+          email: string;
+          event_id: string;
+          guests?: number;
+          id?: string;
+          name: string;
+          token?: string;
+        };
+        Update: {
+          created_at?: string;
+          email?: string;
+          event_id?: string;
+          guests?: number;
+          id?: string;
+          name?: string;
+          token?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_registrations_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       event_schedule_items: {
         Row: {
           assignee_id: string | null;
@@ -665,6 +703,10 @@ export type Database = {
           is_public: boolean;
           number: number;
           proposal_id: string;
+          public_capacity: number | null;
+          public_description: string | null;
+          public_ends_at: string | null;
+          public_starts_at: string | null;
           request_id: string;
           stage_id: string | null;
           start_date: string | null;
@@ -683,6 +725,10 @@ export type Database = {
           is_public?: boolean;
           number?: number;
           proposal_id: string;
+          public_capacity?: number | null;
+          public_description?: string | null;
+          public_ends_at?: string | null;
+          public_starts_at?: string | null;
           request_id: string;
           stage_id?: string | null;
           start_date?: string | null;
@@ -701,6 +747,10 @@ export type Database = {
           is_public?: boolean;
           number?: number;
           proposal_id?: string;
+          public_capacity?: number | null;
+          public_description?: string | null;
+          public_ends_at?: string | null;
+          public_starts_at?: string | null;
           request_id?: string;
           stage_id?: string | null;
           start_date?: string | null;
@@ -1703,6 +1753,7 @@ export type Database = {
       can_read_attachment: { Args: { p_proposal: string; p_request: string }; Returns: boolean };
       can_read_request: { Args: { p_request: string }; Returns: boolean };
       can_write_attachment: { Args: { p_proposal: string; p_request: string }; Returns: boolean };
+      cancel_registration: { Args: { p_token: string }; Returns: undefined };
       cancel_request: { Args: { p_request: string }; Returns: undefined };
       claim_notification_emails: {
         Args: { p_limit?: number };
@@ -1883,7 +1934,94 @@ export type Database = {
           valid: boolean;
         }[];
       };
+      public_event: {
+        Args: { p_event: string };
+        Returns: {
+          capacity: number;
+          city: string;
+          description: string;
+          end_date: string;
+          ends_at: string;
+          event_type: Database["public"]["Enums"]["event_type"];
+          id: string;
+          number: number;
+          organizer: string;
+          produced_by: string;
+          registered: number;
+          start_date: string;
+          starts_at: string;
+          status: Database["public"]["Enums"]["event_status"];
+          title: string;
+          venue: string;
+        }[];
+      };
+      public_event_rows: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          capacity: number;
+          city: string;
+          description: string;
+          end_date: string;
+          ends_at: string;
+          event_type: Database["public"]["Enums"]["event_type"];
+          id: string;
+          number: number;
+          organizer: string;
+          produced_by: string;
+          registered: number;
+          start_date: string;
+          starts_at: string;
+          status: Database["public"]["Enums"]["event_status"];
+          title: string;
+          venue: string;
+        }[];
+      };
+      public_events: {
+        Args: { p_from?: string; p_to?: string };
+        Returns: {
+          capacity: number;
+          city: string;
+          description: string;
+          end_date: string;
+          ends_at: string;
+          event_type: Database["public"]["Enums"]["event_type"];
+          id: string;
+          number: number;
+          organizer: string;
+          produced_by: string;
+          registered: number;
+          start_date: string;
+          starts_at: string;
+          status: Database["public"]["Enums"]["event_status"];
+          title: string;
+          venue: string;
+        }[];
+      };
+      register_for_event: {
+        Args: { p_email: string; p_event: string; p_guests?: number; p_name: string };
+        Returns: string;
+      };
       register_push_token: { Args: { p_platform: string; p_token: string }; Returns: undefined };
+      registration_ticket: {
+        Args: { p_token: string };
+        Returns: {
+          city: string;
+          end_date: string;
+          ends_at: string;
+          event_id: string;
+          event_type: Database["public"]["Enums"]["event_type"];
+          guests: number;
+          name: string;
+          number: number;
+          organizer: string;
+          registered_at: string;
+          start_date: string;
+          starts_at: string;
+          status: Database["public"]["Enums"]["event_status"];
+          title: string;
+          venue: string;
+        }[];
+      };
       remove_push_tokens: { Args: { p_tokens: string[] }; Returns: undefined };
       reply_to_review: { Args: { p_reply: string; p_review: string }; Returns: undefined };
       request_revision: { Args: { p_note: string; p_proposal: string }; Returns: undefined };

@@ -123,3 +123,35 @@ export async function saveEventDetails(_: EventState, form: FormData): Promise<E
   revalidatePath("/pro/eventi");
   return { ok: true };
 }
+
+const time = z.iso.time({ precision: -1 }).nullable();
+
+/** The public page of an event: open to the public or not, what to tell people, times and places. */
+export async function savePublicPage(_: EventState, form: FormData): Promise<EventState> {
+  await requireOrg("agency");
+  const id = z.uuid().parse(form.get("eventId"));
+  const parsed = z
+    .object({
+      is_public: z.boolean(),
+      public_description: z.string().max(2000, "La descrizione può avere al massimo 2000 caratteri.").nullable(),
+      public_starts_at: time,
+      public_ends_at: time,
+      public_capacity: z.coerce.number().int("I posti sono un numero intero.").min(1, "Almeno un posto, oppure lascia vuoto.").max(100000).nullable(),
+    })
+    .safeParse({
+      is_public: form.get("is_public") === "on",
+      public_description: text(form, "public_description") ?? null,
+      public_starts_at: text(form, "public_starts_at") ?? null,
+      public_ends_at: text(form, "public_ends_at") ?? null,
+      public_capacity: text(form, "public_capacity") ?? null,
+    });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Controlla i dati." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("events").update(parsed.data).eq("id", id).select("id");
+  if (error) return { error: dbErrorMessage(error) };
+  if (data.length === 0) return { error: "Non hai i permessi per questa azione." };
+  revalidatePath(`/pro/eventi/${id}`);
+  revalidatePath(`/eventi/${id}`);
+  revalidatePath("/eventi");
+  return { ok: true };
+}

@@ -502,3 +502,81 @@ samp {
     opacity: 1;
   }
 }
+
+/*
+ * Public event card (Carta item 17) and the public ticket: a dashed rule with a notch (radius 8) cut
+ * out of each side, --notch-y from the bottom of the card.
+ */
+.notched {
+  --notch: 8px;
+  --notch-y: 52px;
+  mask:
+    radial-gradient(circle var(--notch) at 0 calc(100% - var(--notch-y)), #0000 calc(var(--notch) - 0.5px), #000 var(--notch)),
+    radial-gradient(circle var(--notch) at 100% calc(100% - var(--notch-y)), #0000 calc(var(--notch) - 0.5px), #000 var(--notch));
+  mask-composite: intersect;
+}
+.perf-rule {
+  height: 1px;
+  background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-control) 55%, transparent) 0 4px, #0000 4px 8px);
+}
+
+/* A row of filter chips that scrolls on phones: the last chip fades at the edge, no scrollbar. */
+@media (max-width: 639px) {
+  .chip-scroll {
+    overflow-x: auto;
+    scrollbar-width: none;
+    mask-image: linear-gradient(90deg, #000 calc(100% - 32px), #0000);
+  }
+  .chip-scroll::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* A long value (an email) never squeezes its label in the phone layout of list tables. */
+@media (max-width: 639px) {
+  .list-table td[data-label]::before {
+    flex-shrink: 0;
+  }
+}
+
+/*
+ * Public ticket, just registered (A7): the cover band catches the light once, the seal grows in
+ * and its tick draws. With Riduci movimento the sheen never shows and the tick is simply there.
+ */
+.sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, #0000 35%, rgba(255, 255, 255, 0.28) 50%, #0000 65%);
+  opacity: 0;
+  pointer-events: none;
+  animation: sheen 320ms var(--ease-in-out) 200ms;
+}
+@keyframes sheen {
+  from {
+    opacity: 1;
+    translate: -100% 0;
+  }
+  to {
+    opacity: 1;
+    translate: 100% 0;
+  }
+}
+.seal-in {
+  animation: seal 180ms var(--ease-out) 320ms both;
+}
+@keyframes seal {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+.check-draw path {
+  stroke-dasharray: 16;
+  animation: draw 240ms var(--ease-out) 440ms both;
+}
+@keyframes draw {
+  from {
+    stroke-dashoffset: 16;
+  }
+}

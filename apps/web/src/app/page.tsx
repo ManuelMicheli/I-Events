@@ -18,7 +18,7 @@ export default async function Home() {
           {user ? "Vai al tuo spazio" : "Accedi o registrati"}
         </ButtonLink>
         <ButtonLink href="/eventi" variant="secondary" size="l">
-          Calendario eventi
+          Eventi aperti al pubblico
         </ButtonLink>
       </div>
     </main>
