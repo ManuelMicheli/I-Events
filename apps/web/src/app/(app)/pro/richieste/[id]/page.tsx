@@ -1,4 +1,4 @@
-import { Stamp, stampDay } from "@/components/ticket";
+import { Seal, stampDay } from "@/components/ticket";
 import { TypeChip } from "@/components/event-type";
 import { Attachments } from "@/components/attachments/attachments";
 import { BriefView } from "@/components/brief/brief-view";
@@ -76,10 +76,11 @@ export default async function AgencyRequestPage({ params }: { params: Promise<{ 
             <TypeChip type={request.draft.eventType ?? null} />
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          {proposal.status === "accepted" && <Stamp label="Confermato" date={stampDay(proposal.decided_at)} type={request.draft.eventType ?? null} />}
+        {proposal.status === "accepted" ? (
+          <Seal label="Confermato" date={stampDay(proposal.decided_at)} type={request.draft.eventType ?? null} />
+        ) : (
           <span className="rounded-ui border border-border px-3 py-1 text-sm">{PROPOSAL_STATUS_LABEL[proposal.status]}</span>
-        </div>
+        )}
       </div>
 
       {request.status === "cancelled" && <Notice>L&apos;azienda ha annullato questa richiesta.</Notice>}

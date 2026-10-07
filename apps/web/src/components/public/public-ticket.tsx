@@ -1,8 +1,8 @@
 import { EventCover } from "@/components/event-type";
-import { stampDay } from "@/components/ticket";
+import { Seal, stampDay } from "@/components/ticket";
 import { Logo } from "@/components/ui";
 import { shortDate, type RegistrationTicket } from "@/lib/public-events";
-import { EVENT_TYPE_INFO, formatTicketNumber, hhmm, passCode, peopleLabel, type EventType } from "@i-events/core";
+import { formatTicketNumber, hhmm, passCode, peopleLabel } from "@i-events/core";
 import type { CSSProperties, ReactNode } from "react";
 
 /** Height of the part below the perforation: the QR (160), the code under it and the padding. */
@@ -56,7 +56,7 @@ export function PublicTicket({
       <div className="flex flex-col gap-5 p-6">
         <div className="flex flex-col gap-2">
           <h1 className="text-title2 font-semibold">{ticket.title}</h1>
-          {!cancelled && <Confirmed type={ticket.event_type} date={stampDay(ticket.registered_at)} fresh={fresh} />}
+          {!cancelled && <Seal label="Iscrizione confermata" type={ticket.event_type} date={stampDay(ticket.registered_at)} fresh={fresh} />}
         </div>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-4">
           <Item label="Data">{shortDate(ticket.start_date, ticket.end_date)}</Item>
@@ -102,32 +102,6 @@ function Item({ label, mono = false, children }: { label: string; mono?: boolean
     <div className="flex min-w-0 flex-col gap-0.5">
       <dt className="font-mono text-xs tracking-[0.08em] text-muted uppercase">{label}</dt>
       <dd className={`break-words ${mono ? "font-mono" : ""}`}>{children}</dd>
-    </div>
-  );
-}
-
-/**
- * The confirmation, in place of a stamp: a round seal in the event's deep ink with a white tick,
- * "Iscrizione confermata" and, under it, the day. Fresh, the seal grows in and the tick draws (A7).
- */
-function Confirmed({ type, date, fresh }: { type: EventType | null; date: string; fresh: boolean }) {
-  const ink = type ? EVENT_TYPE_INFO[type].ink : null;
-  const style = { "--seal": ink?.deep ?? "var(--color-text)", "--seal-dark": ink?.darkFill ?? "var(--color-text)" } as CSSProperties;
-  return (
-    <div className="flex items-center gap-3">
-      <span
-        aria-hidden
-        style={style}
-        className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[var(--seal)] text-white dark:bg-[var(--seal-dark)] dark:text-[#121110] ${fresh ? "seal-in" : ""}`}
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={fresh ? "check-draw" : undefined}>
-          <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </span>
-      <p className="flex min-w-0 flex-col">
-        <span className="font-medium">Iscrizione confermata</span>
-        {date && <span className="font-mono text-xs tracking-[0.08em] text-muted uppercase">{date}</span>}
-      </p>
     </div>
   );
 }

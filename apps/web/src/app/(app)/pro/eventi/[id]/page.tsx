@@ -1,7 +1,7 @@
 import { CopyButton } from "@/components/copy-button";
 import { PublicPageForm } from "@/components/events/public-page";
 import { ClearMoment } from "@/components/moment";
-import { Stamp, stampDay } from "@/components/ticket";
+import { Seal, stampDay } from "@/components/ticket";
 import { EventHeader } from "@/components/event-type";
 import { BookingRow, type Booking } from "@/components/events/booking-row";
 import { ReviewForm } from "@/components/profiles/review-forms";
@@ -150,12 +150,11 @@ export default async function EventPage({ params, searchParams }: { params: Prom
           </Link>
         }
         aside={
-          <div className="flex items-center gap-4">
-            {event.status === "completed" && (
-              <Stamp label="Andato in scena" date={stampDay(event.end_date ?? event.start_date)} type={event.event_type} fresh={momento === "concluso"} />
-            )}
+          event.status === "completed" ? (
+            <Seal label="Andato in scena" date={stampDay(event.end_date ?? event.start_date)} type={event.event_type} fresh={momento === "concluso"} />
+          ) : (
             <span className="rounded-ui border border-border px-3 py-1 text-sm">{EVENT_STATUS_LABEL[event.status]}</span>
-          </div>
+          )
         }
       >
         <h1 className="text-2xl font-semibold">{event.title}</h1>
