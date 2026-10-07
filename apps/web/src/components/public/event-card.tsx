@@ -1,14 +1,48 @@
 import { EventCover, TypeChip } from "@/components/event-type";
 import { LiveDot } from "@/components/ticket";
 import { eventLine, priceLabel, type PublicEvent } from "@/lib/public-events";
-import { placesLabel, todayInItaly, type EventType } from "@i-events/core";
+import { EVENT_TYPE_INFO, placesLabel, todayInItaly, type EventType } from "@i-events/core";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
 
-/** The event's cover, or a quiet paper one while the agency has not said what kind of event it is. */
-export function PublicCover({ type, className }: { type: EventType | null; className?: string }) {
+/**
+ * The event's cover: its poster when there is one (linked from the organiser's website, on the type's
+ * deep ink while it loads), else the ink cover of its type, or a quiet paper one while the agency has
+ * not said what kind of event it is. On the event page the whole poster shows (fit="contain").
+ */
+export function PublicCover({
+  type,
+  image,
+  fit = "cover",
+  className,
+}: {
+  type: EventType | null;
+  image?: string | null;
+  fit?: "cover" | "contain";
+  className?: string;
+}) {
+  if (image)
+    return (
+      <div
+        aria-hidden
+        className={cx("relative shrink-0 overflow-hidden bg-surface", className)}
+        style={type ? { backgroundColor: EVENT_TYPE_INFO[type].ink.deep } : undefined}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- remote poster, any host: no optimisation */}
+        <img
+          src={image}
+          alt=""
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          className={cx(
+            "absolute inset-0 size-full",
+            fit === "contain" ? "object-contain" : "object-cover",
+          )}
+        />
+      </div>
+    );
   if (type) return <EventCover type={type} className={className} />;
   return <div aria-hidden className={cx("shrink-0 bg-surface", className)} />;
 }
@@ -41,7 +75,11 @@ export function PublicEventCard({
   return (
     <article className="notched group relative flex flex-col rounded-card border border-border bg-bg p-1 transition-shadow duration-[180ms] hover:shadow-2">
       <div className="relative">
-        <PublicCover type={event.event_type} className="aspect-[16/10] w-full rounded-ui" />
+        <PublicCover
+          type={event.event_type}
+          image={event.image}
+          className="aspect-[16/10] w-full rounded-ui"
+        />
         {live ? (
           <CoverBadge>
             <LiveDot />
@@ -91,6 +129,7 @@ export function PublicEventCard({
 export function PublicEventRow({
   href,
   type,
+  image,
   title,
   line,
   extra,
@@ -98,6 +137,7 @@ export function PublicEventRow({
 }: {
   href: string;
   type: EventType | null;
+  image?: string | null;
   title: string;
   line: string;
   extra?: ReactNode;
@@ -105,7 +145,7 @@ export function PublicEventRow({
 }) {
   return (
     <article className="group relative flex items-center gap-4 rounded-card border border-border bg-bg p-3 transition-shadow duration-[180ms] hover:shadow-2">
-      <PublicCover type={type} className="size-14 rounded-[8px]" />
+      <PublicCover type={type} image={image} className="size-14 rounded-[8px]" />
       <div className="flex min-w-0 flex-col">
         <h3 className="font-medium">
           <Link

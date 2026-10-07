@@ -706,6 +706,8 @@ export type Database = {
           public_capacity: number | null;
           public_description: string | null;
           public_ends_at: string | null;
+          public_image_credit: string | null;
+          public_image_url: string | null;
           public_organizer: string | null;
           public_starts_at: string | null;
           public_url: string | null;
@@ -730,6 +732,8 @@ export type Database = {
           public_capacity?: number | null;
           public_description?: string | null;
           public_ends_at?: string | null;
+          public_image_credit?: string | null;
+          public_image_url?: string | null;
           public_organizer?: string | null;
           public_starts_at?: string | null;
           public_url?: string | null;
@@ -754,6 +758,8 @@ export type Database = {
           public_capacity?: number | null;
           public_description?: string | null;
           public_ends_at?: string | null;
+          public_image_credit?: string | null;
+          public_image_url?: string | null;
           public_organizer?: string | null;
           public_starts_at?: string | null;
           public_url?: string | null;
@@ -1951,6 +1957,8 @@ export type Database = {
           ends_at: string;
           event_type: Database["public"]["Enums"]["event_type"];
           id: string;
+          image: string;
+          image_credit: string;
           number: number;
           organizer: string;
           produced_by: string;
@@ -1973,6 +1981,8 @@ export type Database = {
           ends_at: string;
           event_type: Database["public"]["Enums"]["event_type"];
           id: string;
+          image: string;
+          image_credit: string;
           number: number;
           organizer: string;
           produced_by: string;
@@ -1995,6 +2005,8 @@ export type Database = {
           ends_at: string;
           event_type: Database["public"]["Enums"]["event_type"];
           id: string;
+          image: string;
+          image_credit: string;
           number: number;
           organizer: string;
           produced_by: string;
