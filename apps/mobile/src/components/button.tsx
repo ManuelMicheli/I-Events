@@ -1,5 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useState, type ComponentProps } from "react";
+import { useState, type ComponentProps, type ReactNode } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { control, radius, space, useTheme } from "@/theme";
 import { Perforation } from "./perforation";
@@ -12,6 +12,8 @@ type Props = {
   onPress: () => void;
   variant?: Variant;
   icon?: ComponentProps<typeof Ionicons>["name"];
+  /** An icon of its own (one that moves, A10) in place of `icon`, drawn in the label's colour. */
+  leading?: (color: string) => ReactNode;
   loading?: boolean;
   disabled?: boolean;
   /** Stretches to the container width; otherwise the button is as wide as its label. */
@@ -34,6 +36,7 @@ export function Button({
   onPress,
   variant = "primary",
   icon,
+  leading,
   loading = false,
   disabled = false,
   block = false,
@@ -76,7 +79,7 @@ export function Button({
       ]}
     >
       <View style={[styles.content, loading && styles.hidden]}>
-        {icon && <Ionicons name={icon} size={20} color={disabledLook ? c.textDisabled : toneColor} />}
+        {leading ? leading(disabledLook ? c.textDisabled : toneColor) : icon && <Ionicons name={icon} size={20} color={disabledLook ? c.textDisabled : toneColor} />}
         <T variant={size === "small" ? "calloutStrong" : "bodyStrong"} tone={disabledLook ? "disabled" : look.tone} style={styles.label}>
           {label}
         </T>
