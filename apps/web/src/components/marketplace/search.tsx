@@ -4,6 +4,7 @@ import { Button, Card, Empty, Input, Select } from "@/components/ui";
 import { getServiceCategory, SERVICE_CATALOG } from "@i-events/core";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { OrgLogo } from "./org-logo";
 
 export type MarketplaceFilters = { q: string; servizio: string; zona: string; data: string };
 export type MarketplaceResult = {
@@ -18,6 +19,7 @@ export type MarketplaceResult = {
   contact_id: string | null;
   rating_avg: number | null;
   rating_count: number;
+  logo_url: string | null;
 };
 
 /** Search box for the marketplace: words, service, area and (for suppliers) a date they are free, as a plain GET form. */
@@ -127,19 +129,22 @@ export function MarketplaceResults({
       <ul className="cascade divide-y divide-border">
         {results.map((r) => (
           <li key={r.org_id} className="flex flex-wrap items-start justify-between gap-x-6 gap-y-1 py-3 text-sm">
-            <span className="min-w-0">
-              <Link href={`${hrefBase}/${r.slug}`} className="font-medium underline">
-                <Found text={r.name} query={filters?.q ?? ""} />
-              </Link>
-              {r.city && <span className="ml-2 text-muted">{r.city}</span>}
-              {r.rating_count > 0 && (
-                <span className="ml-2">
-                  <RatingBadge avg={r.rating_avg} count={r.rating_count} />
+            <span className="flex min-w-0 flex-1 gap-3">
+              <OrgLogo name={r.name} src={r.logo_url} />
+              <span className="min-w-0">
+                <Link href={`${hrefBase}/${r.slug}`} className="font-medium underline">
+                  <Found text={r.name} query={filters?.q ?? ""} />
+                </Link>
+                {r.city && <span className="ml-2 text-muted">{r.city}</span>}
+                {r.rating_count > 0 && (
+                  <span className="ml-2">
+                    <RatingBadge avg={r.rating_avg} count={r.rating_count} />
+                  </span>
+                )}
+                {r.headline && <span className="block">{r.headline}</span>}
+                <span className="block text-muted">
+                  {[serviceNames(r.services), r.regions.join(", ")].filter(Boolean).join(" · ") || "Servizi non indicati"}
                 </span>
-              )}
-              {r.headline && <span className="block">{r.headline}</span>}
-              <span className="block text-muted">
-                {[serviceNames(r.services), r.regions.join(", ")].filter(Boolean).join(" · ") || "Servizi non indicati"}
               </span>
             </span>
             {badge(r)}
