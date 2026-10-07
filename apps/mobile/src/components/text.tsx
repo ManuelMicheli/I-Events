@@ -22,8 +22,8 @@ export function T({ variant = "body", tone = "primary", style, ...props }: TextP
   const { c } = useTheme();
   const { mono, ...s } = type[variant] as (typeof type)[TypeVariant] & { mono?: boolean };
   const face = mono
-    ? { fontFamily: s.fontWeight === "500" ? fonts.mono500 : fonts.mono400, fontVariant: ["tabular-nums" as const] }
-    : { fontFamily: fonts.sans, fontWeight: s.fontWeight };
+    ? { fontFamily: fonts.mono[s.fontWeight === "400" ? "400" : "500"], fontVariant: ["tabular-nums" as const] }
+    : { fontFamily: fonts.sans[s.fontWeight] };
   return (
     <Text
       maxFontSizeMultiplier={2}

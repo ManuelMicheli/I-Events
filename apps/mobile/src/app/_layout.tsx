@@ -1,5 +1,8 @@
-import { GeistMono_400Regular } from "@expo-google-fonts/geist-mono/400Regular";
-import { GeistMono_500Medium } from "@expo-google-fonts/geist-mono/500Medium";
+import { AzeretMono_400Regular } from "@expo-google-fonts/azeret-mono/400Regular";
+import { AzeretMono_500Medium } from "@expo-google-fonts/azeret-mono/500Medium";
+import { BricolageGrotesque_400Regular } from "@expo-google-fonts/bricolage-grotesque/400Regular";
+import { BricolageGrotesque_500Medium } from "@expo-google-fonts/bricolage-grotesque/500Medium";
+import { BricolageGrotesque_600SemiBold } from "@expo-google-fonts/bricolage-grotesque/600SemiBold";
 import { DarkTheme, DefaultTheme, SplashScreen, Stack, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
@@ -15,7 +18,13 @@ import { fonts, space, useTheme } from "@/theme";
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({ GeistMono_400Regular, GeistMono_500Medium });
+  const [fontsLoaded, fontError] = useFonts({
+    BricolageGrotesque_400Regular,
+    BricolageGrotesque_500Medium,
+    BricolageGrotesque_600SemiBold,
+    AzeretMono_400Regular,
+    AzeretMono_500Medium,
+  });
   const { c, scheme } = useTheme();
   const base = scheme === "dark" ? DarkTheme : DefaultTheme;
   const navTheme = {
@@ -82,7 +91,7 @@ function RootStack({ ready }: { ready: boolean }) {
         headerStyle: { backgroundColor: c.bgApp },
         headerShadowVisible: false,
         headerTintColor: c.textPrimary,
-        headerTitleStyle: { fontFamily: fonts.sans, fontWeight: "500" },
+        headerTitleStyle: { fontFamily: fonts.sans["500"] },
         headerBackButtonDisplayMode: "minimal",
         headerBackTitle: "Indietro",
         contentStyle: { backgroundColor: c.bgApp },

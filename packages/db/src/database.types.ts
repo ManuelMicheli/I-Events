@@ -1028,6 +1028,24 @@ export type Database = {
         };
         Relationships: [];
       };
+      platform_admins: {
+        Row: {
+          created_at: string;
+          note: string | null;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          note?: string | null;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          note?: string | null;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       portfolio_items: {
         Row: {
           city: string | null;
@@ -1767,6 +1785,7 @@ export type Database = {
         Args: { roles?: Database["public"]["Enums"]["member_role"][]; target: string };
         Returns: boolean;
       };
+      is_platform_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
       leave_review: {
         Args: {
           p_author: string;
@@ -1808,6 +1827,16 @@ export type Database = {
         }[];
       };
       my_org_ids: { Args: Record<PropertyKey, never>; Returns: string[] };
+      my_organizations: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          id: string;
+          name: string;
+          role: Database["public"]["Enums"]["member_role"];
+          slug: string;
+          type: Database["public"]["Enums"]["org_type"];
+        }[];
+      };
       notify_org: {
         Args: { p_body: string; p_kind: string; p_link: string; p_org: string; p_title: string };
         Returns: undefined;
