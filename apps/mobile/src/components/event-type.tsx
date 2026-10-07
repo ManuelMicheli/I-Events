@@ -1,5 +1,5 @@
 import { EVENT_TYPE_INFO, type CoverPattern, type EventType } from "@i-events/core";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import Svg, { Circle, G, Line, Path, Rect } from "react-native-svg";
 import { radius, space, useTheme } from "@/theme";
 import { T } from "./text";
@@ -36,16 +36,21 @@ export function InkBand({ type }: { type: EventType }) {
   return <View style={[styles.band, { backgroundColor: scheme === "dark" ? ink.darkFill : ink.fill }]} />;
 }
 
-/** Generated cover: deep ink background with a tone-on-tone texture filling the square. */
-export function EventCover({ type, size = 48 }: { type: EventType; size?: 48 | 64 }) {
+/**
+ * Generated cover: deep ink background with a tone-on-tone texture filling the square. `style` sizes
+ * it otherwise, such as the wide covers of the public area.
+ */
+export function EventCover({ type, size = 48, style }: { type: EventType; size?: 48 | 64; style?: StyleProp<ViewStyle> }) {
   const { scheme } = useTheme();
   const { ink, pattern } = EVENT_TYPE_INFO[type];
   return (
     <View
       style={[
         styles.cover,
-        { width: size, height: size, backgroundColor: ink.deep },
+        { backgroundColor: ink.deep },
+        !style && { width: size, height: size },
         scheme === "dark" && { borderWidth: 1, borderColor: "rgba(241,236,228,0.08)" },
+        style,
       ]}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"

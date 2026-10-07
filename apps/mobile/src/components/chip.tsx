@@ -8,7 +8,20 @@ import { T } from "./text";
  * Filter chip: a 32 high pill inside a 44 high touch area. Selected uses the Carta selection style
  * (Fiamma border on the subtle Fiamma fill, with a tick), the text stays Grafite.
  */
-export function Chip({ label, selected, onPress, multi = false }: { label: string; selected: boolean; onPress: () => void; multi?: boolean }) {
+export function Chip({
+  label,
+  selected,
+  onPress,
+  multi = false,
+  leading,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+  multi?: boolean;
+  /** Before the label, such as the event type's square. */
+  leading?: ReactNode;
+}) {
   const { c } = useTheme();
   return (
     <Pressable
@@ -29,6 +42,7 @@ export function Chip({ label, selected, onPress, multi = false }: { label: strin
           ]}
         >
           {selected && <Ionicons name="checkmark" size={16} color={c.textPrimary} />}
+          {leading}
           <T variant="label" numberOfLines={1}>
             {label}
           </T>
