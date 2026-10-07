@@ -1,11 +1,18 @@
-import type { ProposalStatus, SupplierRequestBucket } from "@i-events/core";
+import { EVENT_TYPE_INFO, type ProposalStatus, type SupplierRequestBucket } from "@i-events/core";
+import { router } from "expo-router";
 import { StyleSheet, View } from "react-native";
+import { Button } from "@/components/button";
+import { Card } from "@/components/card";
 import { OrgSwitcher } from "@/components/org-switcher";
 import { AgencyRequestCard, ClientRequestCard, Count, SupplierRequestCard } from "@/components/request-cards";
+import { Divider, ListRow } from "@/components/rows";
 import { Screen, Section } from "@/components/screen";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
+import { T } from "@/components/text";
 import { TopActions } from "@/components/top-actions";
 import { fetchSupplierRequests, type SupplierRequest } from "@/lib/data";
+import { fetchDrafts } from "@/lib/drafts";
+import { ago } from "@/lib/format";
 import { fetchAgencyProposals, fetchClientRequests, PROPOSAL_TO_REVIEW } from "@/lib/requests";
 import { useActiveOrg } from "@/lib/session";
 import { useQuery } from "@/lib/use-query";
@@ -59,22 +66,51 @@ function AgencyRequests({ orgId }: { orgId: string }) {
 
 function ClientRequests({ orgId }: { orgId: string }) {
   const q = useQuery(`client-requests:${orgId}`, () => fetchClientRequests(orgId));
+  const drafts = useQuery(`drafts:${orgId}`, () => fetchDrafts(orgId));
   const open = (q.data ?? []).filter((r) => r.status === "sent");
   const closed = (q.data ?? []).filter((r) => r.status !== "sent");
+  const refresh = async () => {
+    await Promise.all([q.refresh(), drafts.refresh()]);
+  };
   return (
-    <Screen title="Richieste" actions={<TopActions />} header={<OrgSwitcher />} refreshing={q.refreshing} onRefresh={q.refresh}>
+    <Screen
+      title="Richieste"
+      actions={<TopActions />}
+      header={<OrgSwitcher />}
+      footer={<Button icon="add" label="Nuova richiesta" onPress={() => router.push("/nuova-richiesta")} />}
+      refreshing={q.refreshing || drafts.refreshing}
+      onRefresh={refresh}
+    >
       {q.loading ? (
         <CardSkeletons />
       ) : q.error && !q.data ? (
-        <ErrorState error={q.error} onRetry={q.refresh} />
-      ) : q.data && q.data.length === 0 ? (
+        <ErrorState error={q.error} onRetry={refresh} />
+      ) : q.data && q.data.length === 0 && !drafts.data?.length ? (
         <EmptyState
           icon="file-tray-outline"
           title="Nessuna richiesta ancora"
           body="Le richieste che mandi alle agenzie compaiono qui, con i preventivi man mano che arrivano."
+          action={{ label: "Crea la prima richiesta", onPress: () => router.push("/nuova-richiesta") }}
         />
       ) : (
         <>
+          {!!drafts.data?.length && (
+            <Section title="Bozze" aside={<Count n={drafts.data.length} />}>
+              <Card style={styles.drafts}>
+                {drafts.data.map((d, i) => (
+                  <View key={d.id}>
+                    {i > 0 && <Divider />}
+                    <ListRow
+                      title={d.title || "Richiesta senza nome"}
+                      subtitle={`${d.event_type ? `${EVENT_TYPE_INFO[d.event_type].label} · ` : ""}Modificata ${ago(d.updated_at)} · brief al ${d.completeness}%`}
+                      onPress={() => router.push({ pathname: "/nuova-richiesta", params: { id: d.id } })}
+                      trailing={<T variant="calloutStrong">Riprendi</T>}
+                    />
+                  </View>
+                ))}
+              </Card>
+            </Section>
+          )}
           {open.length > 0 && (
             <Section title="In corso" aside={<Count n={open.length} />}>
               <View style={styles.list}>
@@ -146,4 +182,5 @@ function SupplierRequests({ orgId }: { orgId: string }) {
 
 const styles = StyleSheet.create({
   list: { gap: space[3] },
+  drafts: { paddingVertical: space[1], gap: 0 },
 });

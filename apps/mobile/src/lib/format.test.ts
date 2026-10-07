@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ago, dateRange, euro, firstName, greeting, initials, plural, requestMeta, until } from "./format";
+import { ago, dateRange, euro, firstName, greeting, initials, parseItalianDate, plural, requestMeta, until } from "./format";
 
 describe("format", () => {
   it("writes the facts line of a request", () => {
@@ -60,5 +60,13 @@ describe("format", () => {
     expect(until("2026-10-07", "2026-10-07")).toBe("oggi");
     expect(until("2026-10-19", "2026-10-07")).toBe("tra 12 giorni");
     expect(until("2026-10-01", "2026-10-07")).toBeNull();
+  });
+});
+
+describe("typed dates", () => {
+  it("reads GG/MM/AAAA and rejects days that do not exist", () => {
+    expect(parseItalianDate("14/11/2026")).toBe("2026-11-14");
+    expect(parseItalianDate("31/02/2026")).toBeNull();
+    expect(parseItalianDate("14/11")).toBeNull();
   });
 });
