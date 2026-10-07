@@ -1,5 +1,5 @@
 import { ContactActions } from "@/components/contacts/contact-actions";
-import { ImportIcon } from "@/components/icons";
+import { FilterIcon, ImportIcon, PlusIcon } from "@/components/icons";
 import { ButtonLink, Card, Empty, Input, Select } from "@/components/ui";
 import { requireOrg } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
@@ -34,7 +34,8 @@ export default async function AddressBookPage({ searchParams }: { searchParams: 
             <ImportIcon />
             Importa contatti
           </ButtonLink>
-          <ButtonLink href="/pro/rubrica/nuovo" variant="secondary">
+          <ButtonLink href="/pro/rubrica/nuovo" variant="secondary" className="ic-host">
+            <PlusIcon />
             Nuovo contatto
           </ButtonLink>
         </div>
@@ -55,7 +56,8 @@ export default async function AddressBookPage({ searchParams }: { searchParams: 
             </option>
           ))}
         </Select>
-        <button type="submit" className="h-10 rounded-ui border border-border px-4 text-sm">
+        <button type="submit" className="ic-host inline-flex h-10 items-center gap-2 rounded-ui border border-border px-4 text-sm">
+          <FilterIcon />
           Filtra
         </button>
       </form>

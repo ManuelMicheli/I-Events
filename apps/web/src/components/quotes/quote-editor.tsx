@@ -1,7 +1,7 @@
 "use client";
 
 import { deleteQuoteDraft, saveQuoteDraft } from "@/app/(app)/pro/eventi/quote-actions";
-import { TrashIcon } from "@/components/icons";
+import { PlusIcon, TrashIcon } from "@/components/icons";
 import { Button, Field, Input, Notice, Select } from "@/components/ui";
 import { formatEuro, proposalTotal, SERVICE_CATALOG, type ProposalLine } from "@i-events/core";
 import { useState, useTransition } from "react";
@@ -85,8 +85,9 @@ export function QuoteEditor({
         </tbody>
       </table>
       <div className="flex items-center justify-between">
-        <button type="button" className="text-sm underline" onClick={() => setLines((ls) => [...ls, { category: "other", description: "", amount: 0 }])}>
-          + Aggiungi voce
+        <button type="button" className="ic-host inline-flex items-center gap-1 text-sm underline" onClick={() => setLines((ls) => [...ls, { category: "other", description: "", amount: 0 }])}>
+          <PlusIcon size={16} />
+          Aggiungi voce
         </button>
         <span className="text-base font-semibold">Totale {formatEuro(proposalTotal(lines))}</span>
       </div>

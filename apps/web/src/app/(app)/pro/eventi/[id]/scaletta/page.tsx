@@ -1,3 +1,4 @@
+import { PlusIcon } from "@/components/icons";
 import { CrewRow, NewCrewForm } from "@/components/run-of-show/crew";
 import { dayLabel } from "@/components/run-of-show/format";
 import { NewScheduleItemForm, ScheduleItemRow, SuggestedScheduleForm } from "@/components/run-of-show/schedule";
@@ -73,7 +74,8 @@ export default async function RunOfShowPage({ params }: { params: Promise<{ id: 
               <input type="hidden" name="eventId" value={event.id} />
               <input type="hidden" name="day" value={defaultDay} />
               <span className="flex-1">Metti in elenco i fornitori scelti per questo evento, con l&apos;orario di arrivo preso dalla scaletta.</span>
-              <Button type="submit" variant="secondary">
+              <Button type="submit" variant="secondary" className="ic-host">
+                <PlusIcon />
                 Aggiungi {suppliersToList === 1 ? "1 fornitore" : `${suppliersToList} fornitori`}
               </Button>
             </form>

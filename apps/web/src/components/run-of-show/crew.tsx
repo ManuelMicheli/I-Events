@@ -2,7 +2,7 @@
 
 import { addCrew, deleteCrew, syncCheckins, updateCrew, type RosState } from "@/app/(app)/pro/eventi/run-of-show-actions";
 import { ContactActions } from "@/components/contacts/contact-actions";
-import { TicketIcon, TrashIcon } from "@/components/icons";
+import { PlusIcon, TicketIcon, TrashIcon } from "@/components/icons";
 import { Button, Field, Input, Select } from "@/components/ui";
 import { crewState, hhmm, passCode, whatsappUrl, type CrewMember } from "@i-events/core";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
@@ -188,7 +188,8 @@ export function NewCrewForm({ eventId, days, defaultDay, members }: { eventId: s
         <Input type="time" name="call_time" />
       </Field>
       <div className="flex items-end">
-        <Button type="submit" variant="secondary" disabled={pending}>
+        <Button type="submit" variant="secondary" disabled={pending} className="ic-host">
+          <PlusIcon />
           Aggiungi agli arrivi
         </Button>
       </div>

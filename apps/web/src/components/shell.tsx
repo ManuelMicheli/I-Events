@@ -5,34 +5,35 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Bell } from "./bell";
+import { LogoutIcon, PlusIcon } from "./icons";
 import { MobileMenu, NavList, type NavItem } from "./shell-nav";
 import { buttonClass, Logo } from "./ui";
 
 const NAV: Record<MyOrg["type"], NavItem[]> = {
   agency: [
-    { href: "/pro", label: "Home" },
-    { href: "/pro/richieste", label: "Richieste" },
-    { href: "/pro/eventi", label: "Eventi" },
-    { href: "/pro/attivita", label: "Attività" },
-    { href: "/pro/rubrica", label: "Rubrica" },
-    { href: "/pro/fornitori", label: "Trova fornitori" },
-    { href: "/impostazioni/collegamenti", label: "Aziende collegate" },
-    { href: "/pro/profilo", label: "Profilo marketplace" },
-    { href: "/impostazioni/team", label: "Team" },
+    { href: "/pro", label: "Home", icon: "home" },
+    { href: "/pro/richieste", label: "Richieste", icon: "requests" },
+    { href: "/pro/eventi", label: "Eventi", icon: "events" },
+    { href: "/pro/attivita", label: "Attività", icon: "tasks" },
+    { href: "/pro/rubrica", label: "Rubrica", icon: "contacts" },
+    { href: "/pro/fornitori", label: "Trova fornitori", icon: "search" },
+    { href: "/impostazioni/collegamenti", label: "Aziende collegate", icon: "links" },
+    { href: "/pro/profilo", label: "Profilo marketplace", icon: "profile" },
+    { href: "/impostazioni/team", label: "Team", icon: "team" },
   ],
   client: [
-    { href: "/client", label: "Home" },
-    { href: "/client/richieste", label: "Richieste" },
-    { href: "/client/eventi", label: "Eventi" },
-    { href: "/client/agenzie", label: "Trova agenzie" },
-    { href: "/impostazioni/collegamenti", label: "Agenzie collegate" },
-    { href: "/impostazioni/team", label: "Team" },
+    { href: "/client", label: "Home", icon: "home" },
+    { href: "/client/richieste", label: "Richieste", icon: "requests" },
+    { href: "/client/eventi", label: "Eventi", icon: "events" },
+    { href: "/client/agenzie", label: "Trova agenzie", icon: "search" },
+    { href: "/impostazioni/collegamenti", label: "Agenzie collegate", icon: "links" },
+    { href: "/impostazioni/team", label: "Team", icon: "team" },
   ],
   supplier: [
-    { href: "/supplier/richieste", label: "Richieste" },
-    { href: "/supplier/disponibilita", label: "Disponibilità" },
-    { href: "/supplier", label: "Profilo" },
-    { href: "/impostazioni/team", label: "Team" },
+    { href: "/supplier/richieste", label: "Richieste", icon: "requests" },
+    { href: "/supplier/disponibilita", label: "Disponibilità", icon: "availability" },
+    { href: "/supplier", label: "Profilo", icon: "profile" },
+    { href: "/impostazioni/team", label: "Team", icon: "team" },
   ],
 };
 
@@ -68,11 +69,15 @@ export async function Shell({ org, children }: { org: MyOrg; children: ReactNode
           <span className="text-muted">{ORG_TYPE_LABEL[org.type]}</span>
         </p>
       )}
-      <Link href="/onboarding" className="flex min-h-11 items-center rounded-[8px] px-3 text-sm text-muted hover:bg-surface hover:text-text lg:min-h-8">
+      <Link href="/onboarding" className="ic-host flex min-h-11 items-center gap-3 rounded-[8px] px-3 text-sm text-muted hover:bg-surface hover:text-text lg:min-h-9">
+        <PlusIcon />
         Nuovo account
       </Link>
       <form action="/auth/signout" method="post">
-        <button className="flex min-h-11 w-full items-center rounded-[8px] px-3 text-left text-sm text-muted hover:bg-surface hover:text-text lg:min-h-8">Esci</button>
+        <button className="ic-host flex min-h-11 w-full items-center gap-3 rounded-[8px] px-3 text-left text-sm text-muted hover:bg-surface hover:text-text lg:min-h-9">
+          <LogoutIcon />
+          Esci
+        </button>
       </form>
     </div>
   );

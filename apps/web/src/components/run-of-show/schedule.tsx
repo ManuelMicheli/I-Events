@@ -7,7 +7,7 @@ import {
   updateScheduleItem,
   type RosState,
 } from "@/app/(app)/pro/eventi/run-of-show-actions";
-import { TrashIcon } from "@/components/icons";
+import { PlusIcon, TrashIcon } from "@/components/icons";
 import { Button, Field, Input, Select } from "@/components/ui";
 import { hhmm } from "@i-events/core";
 import { useActionState, useEffect, useRef } from "react";
@@ -108,7 +108,8 @@ export function NewScheduleItemForm({ lead = true, ...props }: { eventId: string
       <input type="hidden" name="eventId" value={props.eventId} />
       <ItemFields {...props} state={state} />
       <div className="flex items-end">
-        <Button type="submit" variant={lead ? "primary" : "secondary"} disabled={pending}>
+        <Button type="submit" variant={lead ? "primary" : "secondary"} disabled={pending} className="ic-host">
+          <PlusIcon />
           Aggiungi alla scaletta
         </Button>
       </div>

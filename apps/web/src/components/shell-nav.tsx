@@ -1,11 +1,12 @@
 "use client";
 
 import { MenuIcon } from "./icons";
+import { NavIcon, type NavIconName } from "./nav-icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
-export type NavItem = { href: string; label: string };
+export type NavItem = { href: string; label: string; icon: NavIconName };
 
 /** The area home (e.g. /pro) is active only on itself; other items also on their sub-pages. */
 function isActive(pathname: string, href: string, items: NavItem[]) {
@@ -27,10 +28,11 @@ export function NavList({ items, onNavigate }: { items: NavItem[]; onNavigate?: 
                 href={n.href}
                 onClick={onNavigate}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-h-11 items-center rounded-[8px] px-3 text-sm transition-colors duration-[120ms] lg:min-h-8 ${
+                className={`ic-host flex min-h-11 items-center gap-3 rounded-[8px] px-3 text-sm transition-colors duration-[120ms] [--ic-cut:var(--color-surface)] lg:min-h-9 ${
                   active ? "bg-surface font-medium text-text" : "text-muted hover:bg-surface hover:text-text"
                 }`}
               >
+                <NavIcon name={n.icon} filled={active} />
                 {n.label}
               </Link>
             </li>

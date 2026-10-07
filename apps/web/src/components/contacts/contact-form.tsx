@@ -1,7 +1,7 @@
 "use client";
 
 import { deleteContact, saveContact, type ContactState } from "@/app/(app)/pro/rubrica/actions";
-import { TrashIcon } from "@/components/icons";
+import { PlusIcon, TrashIcon } from "@/components/icons";
 import { Button, Card, Field, Input, Notice, Select } from "@/components/ui";
 import { SERVICE_CATALOG } from "@i-events/core";
 import type { Tables } from "@i-events/db";
@@ -63,7 +63,8 @@ export function ContactForm({ contact, canDelete }: { contact?: Tables<"contacts
         </Field>
         {state.error && <Notice tone="error">{state.error}</Notice>}
         <div className="flex gap-3">
-          <Button type="submit" disabled={pending}>
+          <Button type="submit" disabled={pending} className="ic-host">
+            {!contact && <PlusIcon />}
             {contact ? "Salva" : "Aggiungi contatto"}
           </Button>
           {contact && canDelete && (
