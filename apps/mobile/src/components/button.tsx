@@ -1,7 +1,8 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useState, type ComponentProps } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { control, radius, space, useTheme } from "@/theme";
+import { Perforation } from "./perforation";
 import { T, type Tone } from "./text";
 
 type Variant = "primary" | "secondary" | "tertiary" | "destructive";
@@ -25,8 +26,8 @@ type Props = {
 
 /**
  * Carta button, 48 high (L, the mobile default). The label never leaves the button: it wraps onto a
- * second line and the button grows. While loading the label stays in place, hidden under a spinner,
- * so the width does not change.
+ * second line and the button grows. While it sends (A2) the label stays in place but hidden and the
+ * small perforation runs over it, so the width does not change.
  */
 export function Button({
   label,
@@ -80,7 +81,11 @@ export function Button({
           {label}
         </T>
       </View>
-      {loading && <ActivityIndicator style={StyleSheet.absoluteFill} color={look.spinner} />}
+      {loading && (
+        <View style={[StyleSheet.absoluteFill, styles.busy]}>
+          <Perforation size="s" color={look.spinner} />
+        </View>
+      )}
     </Pressable>
   );
 }
@@ -98,4 +103,5 @@ const styles = StyleSheet.create({
   content: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: space[2] },
   label: { textAlign: "center", flexShrink: 1 },
   hidden: { opacity: 0 },
+  busy: { alignItems: "center", justifyContent: "center" },
 });

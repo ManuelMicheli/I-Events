@@ -1,5 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { proposalTotal, REQUEST_STATUS_LABEL } from "@i-events/core";
+import { formatTicketNumber, proposalTotal, REQUEST_STATUS_LABEL } from "@i-events/core";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
@@ -17,9 +17,10 @@ import { Segmented } from "@/components/segmented";
 import { Sheet } from "@/components/sheet";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
+import { PrintedTicket, Stamp, StatusRow, TicketTag } from "@/components/ticket";
 import { InlineError, TextField } from "@/components/text-field";
 import { errorMessage } from "@/lib/errors";
-import { ago, euro, plural, requestMeta } from "@/lib/format";
+import { ago, euro, plural, requestMeta, stampDay } from "@/lib/format";
 import { fetchClientRequest, PROPOSAL_PRICED, type ClientProposal } from "@/lib/requests";
 import { useActiveOrg } from "@/lib/session";
 import { clientProposalLook } from "@/lib/status-look";
@@ -31,7 +32,9 @@ type Tab = "overview" | "quotes" | "brief";
 
 /** One of the company's requests: where each agency stands, the quotes side by side, and the brief. */
 export default function ClientRequestScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, momento } = useLocalSearchParams<{ id: string; momento?: "inviata" | "confermato" }>();
+  // A signature moment plays on the screen opened by the action that caused it, when it first shows.
+  const [moment] = useState(momento);
   const org = useActiveOrg();
   const q = useQuery(`client-request:${org.id}:${id}`, () => fetchClientRequest(id, org.id));
   const [tab, setTab] = useState<Tab>("overview");
@@ -66,6 +69,7 @@ export default function ClientRequestScreen() {
   const open = request.status === "sent";
   const priced = proposals.filter((p) => PROPOSAL_PRICED.includes(p.status) && p.version > 0);
   const fresh = priced.filter((p) => p.status === "submitted").length;
+  const accepted = request.status === "awarded" ? proposals.find((p) => p.status === "accepted") : undefined;
   const badge =
     request.status === "awarded"
       ? ({ label: "Assegnata", tone: "success", icon: "checkmark" } as const)
@@ -96,10 +100,16 @@ export default function ClientRequestScreen() {
     <Screen refreshing={q.refreshing} onRefresh={q.refresh}>
       <Stack.Screen options={{ title: "Richiesta" }} />
       <View style={styles.head}>
-        <Badge {...badge} />
+        <StatusRow>
+          <Badge {...badge} />
+          {accepted && (
+            <Stamp label="Confermato" date={stampDay(accepted.decided_at)} type={request.draft.eventType} fresh={moment === "confermato"} />
+          )}
+        </StatusRow>
         <T variant="title2" accessibilityRole="header">
           {r.title}
         </T>
+        <TicketTag number={formatTicketNumber(request.number)} type={request.draft.eventType} />
         <T variant="mono" tone="secondary">
           {requestMeta(r)}
         </T>
@@ -108,6 +118,13 @@ export default function ClientRequestScreen() {
         </T>
       </View>
 
+      {moment === "inviata" && open && (
+        <PrintedTicket
+          number={formatTicketNumber(request.number)}
+          title="Richiesta inviata"
+          body={`${proposals.length === 1 ? "È arrivata all'agenzia" : `È arrivata alle ${proposals.length} agenzie`}. Ti avvisiamo quando arrivano le proposte.`}
+        />
+      )}
       {request.status === "cancelled" && <Notice>Hai annullato questa richiesta.</Notice>}
       {events.length > 0 && (
         <Notice
@@ -234,8 +251,9 @@ function Quotes({ quotes, open, onChange }: { quotes: ClientProposal[]; open: bo
           const { data, error: e } = await supabase.rpc("accept_proposal", { p_proposal: p.id });
           setBusy(null);
           if (e) return setError(errorMessage(e));
-          onChange();
-          if (data?.[0]) router.push({ pathname: "/evento/[id]", params: { id: data[0] } });
+          // Back to the top of the request, where the CONFERMATO stamp lands and the event can be opened.
+          if (data?.[0]) router.replace({ pathname: "/richiesta-azienda/[id]", params: { id: p.request_id, momento: "confermato" } });
+          else onChange();
         },
       },
     ]);

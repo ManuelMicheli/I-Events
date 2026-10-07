@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ago, dateRange, euro, firstName, greeting, initials, parseItalianDate, plural, requestMeta, until } from "./format";
+import { ago, dateRange, euro, firstName, greeting, initials, parseItalianDate, plural, requestMeta, stampDay, until } from "./format";
 
 describe("format", () => {
   it("writes the facts line of a request", () => {
@@ -29,6 +29,9 @@ describe("format", () => {
     expect(dateRange("2026-11-14", null)).toBe("14 nov 2026");
     expect(dateRange("2026-11-14", "2026-12-05")).toBe("14 nov – 5 dic 2026");
     expect(dateRange(null, null)).toBeNull();
+    expect(stampDay("2027-06-15")).toBe("15 GIU 2027");
+    expect(stampDay("2026-12-31T23:30:00Z")).toBe("1 GEN 2027");
+    expect(stampDay(null)).toBe("");
   });
 
   it("greets by the time in Italy", () => {

@@ -7,9 +7,10 @@ import { DarkTheme, DefaultTheme, SplashScreen, Stack, ThemeProvider } from "exp
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Button } from "@/components/button";
+import { Perforation } from "@/components/perforation";
 import { T } from "@/components/text";
 import { missingEnv } from "@/lib/env";
 import { SessionProvider, useSession } from "@/lib/session";
@@ -80,7 +81,7 @@ function RootStack({ ready }: { ready: boolean }) {
   if (signedIn && orgsStatus !== "ready")
     return (
       <Centered>
-        <ActivityIndicator color={c.textSecondary} accessibilityLabel="Caricamento dell'account" />
+        <Perforation color={c.textSecondary} label="Caricamento dell'account" late />
       </Centered>
     );
 

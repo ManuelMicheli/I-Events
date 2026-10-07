@@ -6,7 +6,7 @@ import { OrgSwitcher } from "@/components/org-switcher";
 import { Screen, Section } from "@/components/screen";
 import { TopActions } from "@/components/top-actions";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
-import { fetchAgencyEvents, fetchClientEvents } from "@/lib/data";
+import { eventTicket, fetchAgencyEvents, fetchClientEvents } from "@/lib/data";
 import { useKeepEventDays } from "@/lib/event-day";
 import { useActiveOrg, type MyOrgType } from "@/lib/session";
 import { eventStatusLook, quoteStatusLook } from "@/lib/status-look";
@@ -31,7 +31,8 @@ type EventRow = Awaited<ReturnType<typeof fetchAgencyEvents>>[number] | Awaited<
 
 function EventsList({ orgId, side }: { orgId: string; side: Exclude<MyOrgType, "supplier"> }) {
   const q = useQuery<EventRow[]>(`events:${side}:${orgId}`, () => (side === "agency" ? fetchAgencyEvents(orgId) : fetchClientEvents(orgId)));
-  const sections = q.data ? agendaSections(q.data, todayInItaly()) : null;
+  const today = todayInItaly();
+  const sections = q.data ? agendaSections(q.data, today) : null;
 
   useKeepEventDays(orgId, side === "agency" ? q.data : undefined);
 
@@ -72,6 +73,8 @@ function EventsList({ orgId, side }: { orgId: string; side: Exclude<MyOrgType, "
                       place={place(e)}
                       badge={key === "live" ? eventStatusLook("live") : eventStatusLook(e.status)}
                       detail={key === "past" ? undefined : detail(e)}
+                      type={e.event_type}
+                      ticket={key === "past" ? undefined : eventTicket(e, today)}
                       onPress={() => openEvent(e.id)}
                     />
                   ))}

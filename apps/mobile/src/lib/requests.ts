@@ -117,6 +117,7 @@ export async function fetchRequest(id: string) {
   };
   return {
     id: r.id,
+    number: r.number,
     row: r,
     status: r.status,
     clientOrgId: r.client_org_id,
@@ -129,7 +130,7 @@ export async function fetchRequest(id: string) {
 
 export type LoadedRequest = NonNullable<Awaited<ReturnType<typeof fetchRequest>>>;
 
-const PROPOSAL_FIELDS = "id, request_id, agency_org_id, status, summary, lines, total_amount, version, submitted_at, updated_at";
+const PROPOSAL_FIELDS = "id, request_id, agency_org_id, status, summary, lines, total_amount, version, submitted_at, updated_at, decided_at";
 
 /** One proposal of the agency, with the request it answers; null when it is not theirs. */
 export async function fetchAgencyProposal(id: string, orgId: string) {

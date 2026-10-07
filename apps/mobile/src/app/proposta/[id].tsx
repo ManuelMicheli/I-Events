@@ -1,4 +1,4 @@
-import { getServiceCategory, type ProposalLine, type ProposalStatus } from "@i-events/core";
+import { formatTicketNumber, getServiceCategory, type ProposalLine, type ProposalStatus } from "@i-events/core";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
@@ -14,9 +14,10 @@ import { Screen } from "@/components/screen";
 import { Segmented } from "@/components/segmented";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/states";
 import { T } from "@/components/text";
+import { Stamp, StatusRow, TicketTag } from "@/components/ticket";
 import { InlineError } from "@/components/text-field";
 import { errorMessage } from "@/lib/errors";
-import { ago, requestMeta } from "@/lib/format";
+import { ago, requestMeta, stampDay } from "@/lib/format";
 import { fetchAgencyProposal, PROPOSAL_EDITABLE } from "@/lib/requests";
 import { useActiveOrg } from "@/lib/session";
 import { proposalStatusLook } from "@/lib/status-look";
@@ -120,10 +121,14 @@ export default function ProposalScreen() {
     <Screen refreshing={q.refreshing} onRefresh={q.refresh}>
       <Stack.Screen options={{ title: "Richiesta" }} />
       <View style={styles.head}>
-        <Badge {...proposalStatusLook(proposal.status)} />
+        <StatusRow>
+          <Badge {...proposalStatusLook(proposal.status)} />
+          {proposal.status === "accepted" && <Stamp label="Confermato" date={stampDay(proposal.decided_at)} type={request.draft.eventType} />}
+        </StatusRow>
         <T variant="title2" accessibilityRole="header">
           {r.title}
         </T>
+        <TicketTag number={formatTicketNumber(request.number)} type={request.draft.eventType} />
         <T variant="mono" tone="secondary">
           {requestMeta(r)}
         </T>

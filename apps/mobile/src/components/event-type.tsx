@@ -29,6 +29,13 @@ export function TypeChip({ type }: { type: EventType | null | undefined }) {
   );
 }
 
+/** The 4 px band in the ink's fill tone across the top of the event's main card. */
+export function InkBand({ type }: { type: EventType }) {
+  const { scheme } = useTheme();
+  const { ink } = EVENT_TYPE_INFO[type];
+  return <View style={[styles.band, { backgroundColor: scheme === "dark" ? ink.darkFill : ink.fill }]} />;
+}
+
 /** Generated cover: deep ink background with a tone-on-tone texture filling the square. */
 export function EventCover({ type, size = 48 }: { type: EventType; size?: 48 | 64 }) {
   const { scheme } = useTheme();
@@ -117,4 +124,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   cover: { borderRadius: radius.md, overflow: "hidden" },
+  // Reaches over the card's 16 px padding (and its hairline border) to sit flush on the top edge.
+  band: { height: 4, marginTop: -space[4], marginHorizontal: -space[4], marginBottom: space[1] },
 });
